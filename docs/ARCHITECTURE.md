@@ -116,7 +116,12 @@ sequenceDiagram
     P->>X: Weather with bounded timeout
     X-->>P: Weather or unavailable
   end
-  P->>P: Apply weather and eligibility rules
+  P->>P: Validate weather, then daylight (family path)
+  alt Family run outside daylight (BACKEND-CONTRACT 1)
+    P-->>W: Fixed daylight copy; no further rules, no model call
+  else Daylight holds or solo path
+    P->>P: Apply weather and eligibility rules
+  end
   alt Weather unavailable or no eligible activities
     P-->>W: Explain unavailability; no model call
   else Eligible pairs available
@@ -376,6 +381,7 @@ Every outbound request has a purpose and a bound. Validation runs before any pro
 | Weather missing or stale, or no eligible candidates | 0 model calls |
 | Duplicate submission, double click, resubmission after a lost response | 0 additional upstream calls; joins the existing job |
 | "Change answers" resubmission that changes only the interest text, with the same carried coordinates and the same time budget, while the cached weather is fresh and covers the new window (D46) | only the model call |
+| **Every "Change answers" resubmission (TC-002)** | the counts in this table are *upstream calls*, not checks. A resubmission is a new job and re-runs every pure check — daylight, the weather limits, eligibility, season and time — against its own `planned_start` and window, on cached data where the caches still cover it. Re-running adds 0 calls, so no count here changes |
 | "Change answers" with a different place, a different time budget (it changes the places radius and the window), or expired weather | the calls whose cache keys or coverage changed: geocode for a newly typed place, places for a new location or radius, weather for a new location or an expired or non-covering entry; then the model call |
 | Redisplay of a completed result within its TTL | 0 upstream calls |
 

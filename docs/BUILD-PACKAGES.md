@@ -157,7 +157,7 @@ results.
 *Accept:* tests with fake ports for every state transition, deadline expiry at each
 stage, exactly one model call per planning attempt and no repair (D44), partial picks
 kept, no valid pick → labelled fallback, fallback only with eligible pairs and valid
-weather, no model call when weather is missing or nothing is eligible, a family run whose `daylight_outcome` is DAYLIGHT_NIGHT or DAYLIGHT_TOO_SHORT ends with that code (200, answers kept) with no model call and no further eligibility work, duplicate
+weather, no model call when weather is missing or nothing is eligible, a family run whose `daylight_outcome` is DAYLIGHT_NIGHT or DAYLIGHT_TOO_SHORT ends with that code (200, answers kept) with no model call and no further eligibility work **in that run** (TC-002: the verdict is never cached), duplicate
 submissions and resubmission after a lost response join the same job (D43), key
 conflict, internal cancellation at the deadline and at shutdown (local model: the slot is
 released only when inference ended or cancellation is verified; hosted model: the slot
@@ -165,7 +165,10 @@ is released when the connection closes, and the test asserts no claim about remo
 generation), location choice idempotent per
 candidate, `valid_until` versus `retain_until` (historical view, 404 after removal, all
 IDs and records removed together), a "Change answers" resubmission creates a new result
-and leaves the old one unchanged (D46), same key and same fingerprint joins while a
+and leaves the old one unchanged (D46), a resubmission re-runs every check against its own
+`planned_start` and window with 0 additional upstream calls when the caches cover it —
+including a daylight-blocked run that a later or shorter resubmission clears, and the
+reverse (TC-002), same key and same fingerprint joins while a
 different fingerprint (including only a different interest text) is 409, idle session
 end removes everything the session owned; *hosted mode:* the daily-run charge happens
 once per job, atomically, just before the places-and-weather stage, never for

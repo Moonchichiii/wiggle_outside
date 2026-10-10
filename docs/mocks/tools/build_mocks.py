@@ -205,7 +205,7 @@ def night() -> str:
   <p class="m0"><strong>Me and the kids (3–5, 6–9)</strong> · 1 hour · Moderate · near Bergby, Uppsala län, Sweden</p>
   <details class="change"><summary>Change answers</summary>{form("filled", inner=True)}</details>
 </div>
-<p class="mock-note">Mock note: fixed copy chosen by code when a family outing would start after sunset or before sunrise (DAYLIGHT_NIGHT). When it would start in daylight but end after sunset, the heading is "Not enough daylight for this one." and the text "Try a shorter outing, or leave the adventure for tomorrow." No model call.</p>
+<p class="mock-note">Mock note: fixed copy chosen by code when a family outing would start after sunset or before sunrise (DAYLIGHT_NIGHT). When it would start in daylight but end after sunset, the heading is "Not enough daylight for this one." and the text "The outing would end after sunset. Change your answers and we’ll check the daylight and the weather again, or leave the adventure for tomorrow." (TC-002) No model call.</p>
 </section>"""
 
 

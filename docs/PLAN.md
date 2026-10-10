@@ -162,7 +162,9 @@ With several age bands selected, an activity qualifies only if it lists **every*
 - Quiz: "Who's coming along?" → "Just me" / "Me and the kids"
 - Waiting and fallback: superseded in 8.7 by the copy deck in DESIGN-SPEC §9 and the
   approved error copy in ERROR-HANDLING §2 (the busy state is static, D43).
-- Nothing found: "Nothing great nearby for the next hour. Try a longer outing or another spot?"
+- Nothing found: ~~"Nothing great nearby for the next hour. Try a longer outing or another
+  spot?"~~ superseded; it offers an edit as a fix for limits the run may never have
+  evaluated (ERROR-HANDLING §1, TC-002). Use the ERROR-HANDLING §2 copy.
 
 ## 3. What AI does and does not do
 
@@ -542,7 +544,10 @@ old result unchanged) · text in a fourth language (processed, no support claime
 Also: a lost response followed by resubmission joins the job (D43) · an output with no
 valid pick goes straight to the labelled fallback (D44).
 Also (8.20): family run after sunset or before sunrise → DAYLIGHT_NIGHT copy · family run
-starting in daylight but ending after sunset → DAYLIGHT_TOO_SHORT copy · solo run after
+starting in daylight but ending after sunset → DAYLIGHT_TOO_SHORT copy, which offers no
+shorter-outing remedy (TC-002) · a "Change answers" resubmission from a daylight-blocked
+run re-runs every check and may clear it, or newly hit a weather limit it never reached
+(TC-002) · solo run after
 dark unaffected · ages 0–2 with 3–5 at 3 °C apparent temperature (baby-eligible entries
 excluded below 5 °C) · `tree-twins` at 28 km/h excluded, `nature-bingo` at 28 km/h allowed.
 

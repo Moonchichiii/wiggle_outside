@@ -9,6 +9,8 @@ Every failure has a stable internal code, an owning layer, a truthful user messa
 
 Keep messages short, specific and calm. State the consequence, then the next action. Do not blame the user, invent a cause or estimated recovery time, promise saved answers unless they remain available, or use playful wording where a security or weather failure needs clarity. Progress text reflects work actually happening; no fake percentages, spinning forever or fictional provider activity in a replay demo.
 
+A notice names an edit as a remedy only for a limit the run actually evaluated. Where a check ended the run early, so later checks never ran, the copy says the answers will be checked again, not that a particular edit will work (TC-002). This generalises the NO_MATCHES rule in §2.
+
 Expected empty results, cancellation and successful deterministic fallback are explicit outcomes, not generic crashes. Fault tolerance never bypasses weather, age, place, model-output or security rules. All error copy comes from reviewed application text, never from Gemma or raw provider responses.
 
 ## 2. Failure and recovery matrix
@@ -29,7 +31,7 @@ Copy below is a reviewed-draft starting point. Actions must be enabled only when
 | PLACES_CACHED | “Live place information is unavailable. These places were last checked {age} ago.” | Show only cache entries permitted by freshness/eligibility rules; show uncertainty |
 | PLACES_UNAVAILABLE | “We couldn’t load nearby places.” | Only explicitly eligible generic activities if weather and all other rules pass; otherwise retry; never invent a destination |
 | DAYLIGHT_NIGHT (family path, Mats 8.20) | “**The adventures can wait till morning.** Time to put the phone down and get some rest. The outdoors will still be there tomorrow.” | 200, evaluated; answers summary and “Change answers” kept; no model call; takes precedence over WEATHER_RESTRICTED and NO_MATCHES (BACKEND-CONTRACT §1); solo path unchanged |
-| DAYLIGHT_TOO_SHORT (family path, Mats 8.20) | “**Not enough daylight for this one.** Try a shorter outing, or leave the adventure for tomorrow.” | As DAYLIGHT_NIGHT; shown when the outing would start in daylight but end after sunset |
+| DAYLIGHT_TOO_SHORT (family path, Mats 8.20; copy TC-002) | “**Not enough daylight for this one.** The outing would end after sunset. Change your answers and we’ll check the daylight and the weather again, or leave the adventure for tomorrow.” | As DAYLIGHT_NIGHT; shown when the outing would start in daylight but end after sunset. The weather limits were never evaluated on this run, so the copy promises a re-check and never offers a shorter outing as the fix (§1, TC-002) |
 | NO_MATCHES | “No activities in our list match these answers right now.” | Offer relevant edits only; a longer outing must not be presented as a fix for missing weather |
 | FEWER_MATCHES | “We found {count} matching ideas.” | Render one or two honestly; never pad to three |
 | MODEL_FALLBACK | “AI selection isn’t available right now. These picks come from our activity list.” | Successful degraded result using the same eligible pairs; no automatic regenerate loop |

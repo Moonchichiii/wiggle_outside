@@ -175,7 +175,9 @@ delimited data block (§3.6). Output schema (CONTRACTS.md §6 is canonical):
   fresh and covers the new window, the cost is one model call; a new place, a different
   time budget or expired weather also costs the provider calls whose cache keys or
   coverage changed (ARCHITECTURE §14). The model call has a clear purpose: reading the new
-  description.
+  description. Those are call counts, not checks: every resubmission re-runs the daylight,
+  weather, eligibility, season and time rules against its own window, which costs nothing
+  extra because the data is cached (TC-002).
 - The previous result is never changed. It stays readable, with all its detail pages,
   until its `retain_until`; nothing is reconstructed from the new result
   (BACKEND-CONTRACT §2).

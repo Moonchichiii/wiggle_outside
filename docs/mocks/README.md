@@ -57,4 +57,5 @@ Chromium 141.0.7390.37, axe-core 4.10.2) and, for each page:
 ## Questions for review
 
 1. Does the night screen read as intended: playful, no claim that the children are
-   asleep, no promise about tomorrow's weather?
+   asleep, no promise about tomorrow's weather, and no edit offered as a fix for a limit
+   the run never evaluated (TC-002)?

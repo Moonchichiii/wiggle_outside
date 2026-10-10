@@ -84,6 +84,15 @@ The result keeps the answers summary and "Change answers". The solo path is unch
 (solo entries keep their own daylight flags). The copy never says the children are
 asleep and never promises tomorrow's weather.
 
+**The short-circuit lasts one run (TC-002).** It is a per-run ordering rule, never a
+cached verdict, and the copy must not present an edit as a fix for a limit this run never
+reached (ERROR-HANDLING §1). A resubmission through "Change answers" is a new job
+(CONTRACTS §7) and re-runs every check — daylight, the severe, heat and per-activity
+weather rules, eligibility, season and time — against its own `planned_start` and window.
+Re-running costs no upstream calls when the caches still cover the new window
+(ARCHITECTURE §14), so the same answers submitted a few minutes later may legitimately
+get a different outcome in either direction.
+
 **Durations.** 30 min, 1 h, 2 h, half day = 4 h (D35, accepted). **Seasons** (D30):
 meteorological seasons by hemisphere; for |latitude| < 23.44° no season-restricted
 activity qualifies.

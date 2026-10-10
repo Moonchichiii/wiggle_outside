@@ -123,7 +123,7 @@ result or idea (below).
 | Still running (e.g. a second tab) | waits, bounded by the job's deadline, then as below | — |
 | Complete or Fallback (1–3 ideas, with notices such as MODEL_FALLBACK, FEWER_MATCHES, PLACES_CACHED, PLACES_UNAVAILABLE with generic ideas) | 200 | results; historical view after `valid_until` |
 | NO_MATCHES, WEATHER_RESTRICTED (evaluated; nothing qualified) | 200 | notice with the edits that could help |
-| DAYLIGHT_NIGHT, DAYLIGHT_TOO_SHORT (family path; evaluated before the weather limits, BACKEND-CONTRACT §1) | 200 | fixed copy, answers summary and "Change answers"; no model call |
+| DAYLIGHT_NIGHT, DAYLIGHT_TOO_SHORT (family path; evaluated before the weather limits, BACKEND-CONTRACT §1) | 200 | fixed copy, answers summary and "Change answers"; no model call. The verdict is not cached: a resubmission re-runs every check (TC-002) |
 | NeedsLocationChoice, not yet consumed | 200 | choice page (LOCATION_AMBIGUOUS) |
 | NeedsLocationChoice, consumed | 303 to the most recent job from that set | — |
 | LOCATION_NOT_FOUND | 422 | form page, answers kept, location error |

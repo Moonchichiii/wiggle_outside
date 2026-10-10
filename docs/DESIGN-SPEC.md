@@ -289,7 +289,7 @@ Cards fade and rise 8 px over 240 ms with an 80 ms stagger; hover lift 2 px, 120
 | Results heading | Here's what we found |
 | Fewer results | We found {count} matching ideas. |
 | Night, family path (DAYLIGHT_NIGHT) | heading: The adventures can wait till morning. — text: Time to put the phone down and get some rest. The outdoors will still be there tomorrow. |
-| Too little daylight, family path (DAYLIGHT_TOO_SHORT) | heading: Not enough daylight for this one. — text: Try a shorter outing, or leave the adventure for tomorrow. |
+| Too little daylight, family path (DAYLIGHT_TOO_SHORT, copy TC-002) | heading: Not enough daylight for this one. — text: The outing would end after sunset. Change your answers and we’ll check the daylight and the weather again, or leave the adventure for tomorrow. |
 | Gentler notice | These suggestions are gentler than the energy level you selected. |
 | Fallback label | AI selection isn't available right now. These picks come from our activity list and passed every normal check. |
 | Card practical line | {place} · {kind} · about {distance} km away · {travel} min there and back · {duration} min activity (times are estimates; distance is straight-line, stated on the detail page) |
