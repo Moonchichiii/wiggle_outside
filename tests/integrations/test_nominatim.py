@@ -139,6 +139,40 @@ async def test_the_request_is_a_typed_query_with_a_real_contact() -> None:
 
 
 @pytest.mark.asyncio
+async def test_a_typed_place_can_never_redirect_the_request() -> None:
+    """PLAN section 9: the host is fixed in settings; a user sends a value, not a URL."""
+    hostile = TypedPlace(text="https://evil.test/steal?x=1#q")
+    with respx.mock(assert_all_called=False) as router:
+        route = _search(router).mock(return_value=httpx.Response(200, json=[]))
+        async with httpx.AsyncClient() as client:
+            await _geocoder(client).resolve(hostile, DEADLINE)
+    request = route.calls[0].request
+    assert request.url.host == HOST
+    assert request.url.path == nominatim.SEARCH_PATH
+    assert request.url.params["q"] == hostile.text
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("deadline", "expected"),
+    [
+        pytest.param(NOW + 10.0, nominatim.STAGE_BUDGET_S, id="the-stage-budget-is-smaller"),
+        pytest.param(NOW + 1.5, 1.5, id="the-remaining-deadline-is-smaller"),
+    ],
+)
+async def test_the_attempt_gets_min_of_the_stage_budget_and_what_is_left(
+    deadline: float, expected: float
+) -> None:
+    with respx.mock(assert_all_called=False) as router:
+        route = _search(router).mock(return_value=httpx.Response(200, json=[]))
+        async with httpx.AsyncClient() as client:
+            await _geocoder(client).resolve(PLACE, deadline)
+    timeout = route.calls[0].request.extensions["timeout"]
+    assert timeout["read"] == pytest.approx(expected)
+    assert timeout["connect"] == pytest.approx(min(expected, nominatim.CONNECT_BUDGET_S))
+
+
+@pytest.mark.asyncio
 async def test_more_entries_than_we_allow_are_truncated() -> None:
     entry = {"lat": "60.5", "lon": "17.2", "display_name": "Somewhere, Sweden"}
     answered = await _resolve(httpx.Response(200, json=[entry] * 9))

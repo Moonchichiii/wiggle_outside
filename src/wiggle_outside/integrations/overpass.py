@@ -332,9 +332,7 @@ def _name(value: object) -> str | None:
     if not isinstance(value, str):
         return None
     text = "".join(
-        character
-        for character in unicodedata.normalize("NFC", value)
-        if character.isprintable() or character == " "
+        character for character in unicodedata.normalize("NFC", value) if character.isprintable()
     ).strip()
     return text[:NAME_MAX].strip() or None
 

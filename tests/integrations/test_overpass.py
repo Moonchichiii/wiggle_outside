@@ -173,6 +173,27 @@ async def test_no_request_text_can_reach_the_query() -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("deadline", "expected"),
+    [
+        pytest.param(NOW + 10.0, overpass.STAGE_BUDGET_S, id="the-stage-budget-is-smaller"),
+        pytest.param(NOW + 1.5, 1.5, id="the-remaining-deadline-is-smaller"),
+    ],
+)
+async def test_the_attempt_gets_min_of_the_stage_budget_and_what_is_left(
+    deadline: float, expected: float
+) -> None:
+    with respx.mock(assert_all_called=False) as router:
+        route = _interpreter(router).mock(return_value=httpx.Response(200, json={"elements": []}))
+        async with httpx.AsyncClient() as client:
+            await _places(client).nearby(AT, RADIUS_M, KINDS, deadline)
+    request = route.calls[0].request
+    assert request.extensions["timeout"]["read"] == pytest.approx(expected)
+    # The server-side timeout travels inside the query, as a whole number of seconds.
+    assert f"[timeout:{int(expected)}]" in request.content.decode()
+
+
+@pytest.mark.asyncio
 async def test_only_unknown_kinds_asks_nothing_at_all() -> None:
     answered = await _nearby(
         httpx.Response(200, json=_fixture("overpass_empty.json")),
