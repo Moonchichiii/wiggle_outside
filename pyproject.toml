@@ -32,6 +32,8 @@ dev = [
     "jsonschema>=4.26.0",
     "httpx2>=2.13.1",
     "fonttools[woff]>=4.66.1",
+    "pytest-playwright>=0.10.0",
+    "playwright>=1.63.0",
 ]
 
 [build-system]

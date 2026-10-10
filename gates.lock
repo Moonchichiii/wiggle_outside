@@ -17,7 +17,7 @@ c9629ad38d12a3527f8890eda7e4575c735fe4550c45da8fbcf4dd98f8e4378b  bunfig.toml
 absent                                                            CLAUDE.md
 432b713c40e32d126d8e63282bdbf4b6a334bbf9a08bdc543d4ed775b2ccb4e6  mypy.ini
 14ea7b7241057f46be3919221a34a96b6103c39804d4602f4d56ffc05028de43  package.json
-c5e6c70712303ced841c1b37c484c25e192edbd89d091f09c421c0c5c94aed3c  pyproject.toml
+3f6ad6891dfc92759c0d73475dd44d9322592c7181f87f6fd5eb0d0940923b2c  pyproject.toml
 789dcdffd0f021086be524ce8af242a3a79e35fc948170b858613bb3d1994f9a  pytest.ini
 3c821537c8002b7fe2a618199b18bbcb88520e57aa1fdb5fe229b114ea1e1e89  ruff.toml
 3cabf5676494152bf5a8e77ee8410f40ac06a53df5e1249a2800310d81bfc8ab  scripts/check_contrast.py
@@ -26,7 +26,7 @@ bb8248fcf2dcf124a1322d58cbb7000c3db6762b731eb62181d03e4031821ead  scripts/gates_
 4712786114f627dfad68025018a22f99630fc1c8e8533be78149d9cd1e0e9bee  scripts/release.ps1
 b70e7fe7860b53b443d8062f520cf07222615da0ecce15b462cd2c30438e3230  src/wiggle_outside/planner/activities.toml
 9d1db1cc106d445fc2f52c45a380d42300886b4084e90725b38b36dfda5ac9ef  src/wiggle_outside/planner/hooks.toml
-a1817d9840b944ffe696eca9c35a1c34ccdee524a11eff385e6d57adedb9f810  uv.lock
+30c6770c3ad4b00976e08c4dc4650cb330a40b7014cb196c3d81e08c67432624  uv.lock
 2c7adb448750f83327abcd2d9b1007e1968ce5e3cd2204b7ac1d9d897c0408bd  .github/rulesets/main.json
 bf1fdab940b3167690a77e850f4eea77fe58677d910c9028f16099b74284e878  .github/workflows/check.yml
 absent                                                            tests/policy/
