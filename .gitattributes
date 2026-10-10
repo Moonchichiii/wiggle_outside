@@ -1,0 +1,22 @@
+# Repository stores LF; working trees check out LF regardless of core.autocrlf.
+* text=auto eol=lf
+
+*.py    text eol=lf
+*.ps1   text eol=lf
+*.toml  text eol=lf
+*.md    text eol=lf
+*.json  text eol=lf
+*.css   text eol=lf
+*.js    text eol=lf
+*.html  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.lock  text eol=lf
+*.svg   text eol=lf
+uv.lock   text eol=lf
+bun.lock  text eol=lf
+
+*.png   binary
+*.jpg   binary
+*.woff2 binary
+*.ico   binary

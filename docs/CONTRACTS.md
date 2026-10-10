@@ -42,6 +42,8 @@ class Who(StrEnum): SOLO = "solo"; KIDS = "kids"
 class AgeBand(StrEnum): B0_2 = "0-2"; B3_5 = "3-5"; B6_9 = "6-9"; B10_12 = "10-12"
 class TimeBudget(IntEnum): M30 = 30; H1 = 60; H2 = 120; HALF_DAY = 240   # D35
 class Energy(StrEnum): GENTLE = "gentle"; MODERATE = "moderate"; ENERGETIC = "energetic"
+                       # display labels: Gentle / Moderate / High (DESIGN-SPEC §9, TC-001).
+                       # ENERGETIC is never shown to a user; "High" is never a stored value.
 class InterestTag(StrEnum): ...   # 14 tags, PRODUCT-FIT §3.2 (D39 only)
 class InterestStatus(StrEnum): MATCHED, NO_MATCH, UNCLEAR, NOT_PROVIDED   # model-facing
 class InterestOutcome(StrEnum): MATCHED, NO_MATCH, UNCLEAR, NOT_PROVIDED, NOT_APPLIED
@@ -336,7 +338,7 @@ Unknown field names and repeated scalar fields → 422. Values not listed → 42
 | plan | `who` | `solo`, `kids` | required |
 | plan | `age_band` (repeatable) | `0-2`, `3-5`, `6-9`, `10-12` | ≥ 1 and unique when `kids`; ignored when `solo` |
 | plan | `time` | `30`, `60`, `120`, `240` | required |
-| plan | `energy` | `gentle`, `moderate`, `energetic` | default `moderate` |
+| plan | `energy` | `gentle`, `moderate`, `energetic` | default `moderate`; rendered as Gentle / Moderate / High, never as the raw value (TC-001) |
 | plan | `location_mode` | `typed`, `coords` | default `typed`; `coords` is set by "Use my location" or carried by the prefilled "Change answers" form (D46), so a resubmission needs no new geocode |
 | plan | `place` | text 2–80 | required when `typed` |
 | plan | `lat`, `lon` | decimal | required when `coords`; rounded server-side |
@@ -489,6 +491,32 @@ utilities only; no raw hex, pixel radius or shadow values in templates or compon
 DESIGN-SPEC §1.1.
 
 ## 10. Contract-change process
+
+### 10.0 Tracked changes (TC) — changes Mats makes to the accepted baseline
+
+A change to the accepted baseline is a tracked change, not a new planning round
+(PLAN §0). Each one is recorded as `docs/decisions/tracked-changes/TC-NNN.md` with: the
+change, the reason, **the commit SHA that edits the documents**, the documents edited, any
+rules re-homed, the acceptance checks affected, and the approver. Conventions:
+
+- **Marker.** Every edited sentence, table row or cell ends with `(TC-00x)`, in the style
+  the documents already use for `(Mats 8.20)`, so baseline text and tracked text are
+  distinguishable without a diff.
+- **Two commits.** The document edits land first; the record commit follows and names the
+  edit commit's SHA. A lightweight tag `tc-00x` points at the edit commit.
+- **Baseline is immutable.** Commit `8b734cc` (baseline 8.20) is never amended, rebased or
+  force-pushed. `git diff 8b734cc -- docs/` is the complete tracked-change set.
+- A TC needs Mats for the same reasons §10.4 lists; in practice Mats initiates them.
+
+| TC | Change | Edit commit | Status |
+|---|---|---|---|
+| TC-001 | User-facing energy label "High"; internal value stays `energetic` | — | accepted (Mats) |
+| TC-002 | Daylight copy promises no cross-limit remedy; a resubmission reruns all checks | — | accepted (Mats) |
+| TC-003 | No Hermes in this build: Claude Code integrates, Codex reviews, Mats approves | — | accepted (Mats) |
+| TC-004 | `scripts/check.ps1` and `release.ps1` are the gate scripts | — | accepted (Mats) |
+| TC-005 | Package `wiggle_outside`; session cookie `__Host-wo_session` | — | accepted (Mats) |
+
+### 10.1 Contract changes raised by a package (CC)
 
 1. A package that needs a contract change stops work on the affected part and writes a
    proposal: `docs/decisions/contract-changes/CC-NNN.md` with the change, the reason, the

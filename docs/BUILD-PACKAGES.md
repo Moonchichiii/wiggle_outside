@@ -131,7 +131,9 @@ no fallbacks, `max_tokens` 256, 10,000-byte request cap, reasoning off, stage ti
 local development only (`format` schema, `num_ctx` 4096, `num_predict` 256) and gates
 nothing. Prompts
 `select.v1` and `select.v2` with the delimited data blocks; evaluation harness for H1 and
-D39, keyword baseline, the 30-phrase set as a draft for Mats's review.
+D39, keyword baseline, the 30-phrase set as a draft for Mats's review. Prompts and data
+blocks use internal enum values only, never display labels, so energy reaches the model as
+`energetic`, not "High" (TC-001).
 *Accept:* respx tests for request shape, timeout, malformed and oversized output,
 cancellation closing the stream; no place names, coordinates or OSM free text in any
 prompt (asserted); the harness runs against a recorded fixture model in CI and against
@@ -201,7 +203,9 @@ false-positive path (422, answers kept, field cleared, a real resubmission passe
 table, the presenters (CONTRACTS §8), Tailwind 4 components on the tokens, htmx 4 core with `hx-status` and the request indicator (no `hx-sse`, D43), SVG
 assets, self-hosted fonts (D41, after prerequisite P1; system fonts until then), print styles.
 *Accept:* presenter tests from fixture `PlanResult`s (times in the location's timezone,
-no padding, labels only when true); every template renders from fixture view models for each state in
+no padding, labels only when true); the energy options render the values `gentle`,
+`moderate` and `energetic` as the labels Gentle, Moderate and **High**, and no template or
+copy string contains the word "Energetic" (TC-001); every template renders from fixture view models for each state in
 DESIGN-SPEC §12; no inline script, style or handler (policy test); no raw colour or radius
 values outside `tokens.css`; contrast script passes; axe has no violations on the
 fixture pages; the DAYLIGHT_NIGHT and DAYLIGHT_TOO_SHORT pages render the §9 copy with

@@ -71,7 +71,7 @@ the unbuilt application: it is verified only by its acceptance checks.
 | D15 | Competition contract lives in `COMPETITION.md`; this plan keeps a summary. | **accepted** (baseline 8.20) |
 | D16 | When weather cannot be fetched or is stale, the app recommends nothing, says why, and offers a retry. Self-reported weather is out of v1. | **accepted** (baseline 8.20) |
 | D17 | Domain values are frozen dataclasses whose nested values are immutable too (tuples, frozensets). Protocols use PEP 695 generics only where a boundary needs a type parameter (Python ≥ 3.12; the pin is whichever D29 version Mats accepts). No Memento or undo state in v1. | **accepted** (baseline 8.20) |
-| D18 | Energy is a ceiling: Moderate includes Gentle, Energetic includes both. Ranking prefers the requested level, and the card says when picks are gentler than asked. Age compatibility stays mandatory for every selected band. | **accepted** (baseline 8.20) |
+| D18 | Energy is a ceiling: `moderate` includes `gentle`, `energetic` includes both; the user-facing labels are Gentle / Moderate / High (TC-001). Ranking prefers the requested level, and the card says when picks are gentler than asked. Age compatibility stays mandatory for every selected band. | **accepted** (baseline 8.20) |
 | D19 | Supply chain blocks on any known vulnerability, any severity, with or without a CVE ID. Scans on every PR, daily on main, and before release; a failed or unavailable scan means "not verified", never green. | **accepted** (baseline 8.20) |
 | D20 | The deployed public planner (`wiggle-outside.fly.dev`, D27) must score 145/145 (A+) on MDN HTTP Observatory, measured on the deployed response headers. 145 is the maximum. | **accepted**; release requirement, verified only on the deployed host (D27) |
 | D21 | One application worker, one SQLite worker and one open model request in v1 (ARCHITECTURE §2.1); scaling requires revisiting process-local guarantees. | **accepted** (working default, Mats 8.20) |
@@ -134,7 +134,7 @@ that outcome; they do not replace it.
 |---|---|---|
 | Who | Just me / Me + kids, with age bands 0–2, 3–5, 6–9, 10–12 (several allowed) | none, required |
 | Time from leaving to coming back | 30 min / 1 h / 2 h / half day (4 h, D35) | none, required |
-| Energy (most effort wanted; see D18) | Gentle / Moderate / Energetic | Moderate |
+| Energy (most effort wanted; see D18) | Gentle / Moderate / High (TC-001) | Moderate |
 | Where | "Use my location" or a typed town/area | none, required |
 | Anything to account for? (optional panel) | "We're bringing a stroller" (filters activities, D42) · "Prefer places reported as step-free" (ranks reported step-free places first; never a filter; never verified, D42 P) | both off |
 | What are they into? (optional, D39 only) | Free text ≤ 120 characters; inferred tags shown as display-only labels (D46) | empty |
