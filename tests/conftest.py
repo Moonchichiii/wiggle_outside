@@ -5,7 +5,7 @@ missing respx mock fails loudly instead of reaching a provider.
 """
 
 import socket
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Final, NoReturn
 
@@ -28,32 +28,59 @@ class RealHTTPAttemptedError(RuntimeError):
     """A test tried to open a real socket."""
 
 
+def _is_local(address: object) -> bool:
+    """Report whether this address is inside the machine.
+
+    asyncio's event loop opens a loopback socket pair for its own self-pipe, and on
+    Windows that happens during test setup, so blocking every socket blocks every async
+    test. An in-process ASGI client is local too. What the gate is actually for is a test
+    reaching a *provider*, which is never loopback.
+    """
+    if not isinstance(address, tuple) or not address:
+        return True  # AF_UNIX and anything else we do not recognise: not a provider.
+    host = address[0]
+    return not isinstance(host, str) or host in {
+        "127.0.0.1",
+        "::1",
+        "localhost",
+        "",
+        "0.0.0.0",  # noqa: S104  a bind target, not a destination
+    }
+
+
 @pytest.fixture(autouse=True)
 def _no_real_http(monkeypatch: pytest.MonkeyPatch) -> None:
-    def guard(*_args: object, **_kwargs: object) -> NoReturn:
+    """Fail loudly when a test reaches off the machine (PLAN section 8: no real HTTP)."""
+
+    def refuse(address: object) -> NoReturn:
         msg = (
-            "a test tried to open a real socket; mock the provider with respx "
+            f"a test tried to connect to {address!r}; mock the provider with respx "
             "(PLAN section 8: no real HTTP in tests)"
         )
         raise RealHTTPAttemptedError(msg)
 
+    def gated(real: Callable[..., object], *, address_first: bool) -> Callable[..., object]:
+        """Wrap a connect call so a non-local address is refused."""
+
+        def guard(*args: object, **kwargs: object) -> object:
+            address = args[0] if address_first else args[1]
+            if _is_local(address):
+                return real(*args, **kwargs)
+            return refuse(address)
+
+        return guard
+
     # monkeypatch undoes all of this at teardown, so the fixture needs none of its own.
-    monkeypatch.setattr(socket.socket, "connect", guard)
-    monkeypatch.setattr(socket.socket, "connect_ex", guard)
-    monkeypatch.setattr(socket, "create_connection", guard)
+    monkeypatch.setattr(socket.socket, "connect", gated(_REAL_CONNECT, address_first=False))
+    monkeypatch.setattr(socket.socket, "connect_ex", gated(_REAL_CONNECT_EX, address_first=False))
+    monkeypatch.setattr(
+        socket, "create_connection", gated(_REAL_CREATE_CONNECTION, address_first=True)
+    )
 
 
 @pytest.fixture
-def asgi_client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
-    """Build a TestClient that talks to the app in-process.
-
-    The socket guard above exists to stop a test reaching a real provider. An ASGI
-    client makes no network call at all, but the client library still touches
-    socket.socket while setting up, so the guard is lifted for this fixture only.
-    """
-    monkeypatch.setattr(socket.socket, "connect", _REAL_CONNECT)
-    monkeypatch.setattr(socket.socket, "connect_ex", _REAL_CONNECT_EX)
-    monkeypatch.setattr(socket, "create_connection", _REAL_CREATE_CONNECTION)
+def asgi_client() -> Iterator[TestClient]:
+    """Talk to the app in-process. Loopback is allowed, so the guard stays on."""
     with TestClient(create_app(Settings.from_env())) as client:
         yield client
 
