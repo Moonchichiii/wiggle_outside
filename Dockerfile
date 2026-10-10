@@ -36,7 +36,10 @@ COPY --from=ghcr.io/astral-sh/uv:0.11.29 /uv /usr/local/bin/uv
 WORKDIR /app
 
 # Runtime dependencies only, resolved from the recorded hashes.
-COPY pyproject.toml uv.lock .python-version ./
+# README.md and LICENSE come along because pyproject declares the readme and hatchling
+# reads it when it builds the project, and because an Apache-2.0 image should carry its
+# licence anyway.
+COPY pyproject.toml uv.lock .python-version README.md LICENSE ./
 RUN uv sync --frozen --no-dev --no-install-project
 
 COPY src/ ./src/
