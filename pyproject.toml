@@ -29,6 +29,7 @@ dev = [
     "respx>=0.22",
     "coverage>=7.10",
     "jsonschema>=4.26.0",
+    "httpx2>=2.13.1",
 ]
 
 [build-system]

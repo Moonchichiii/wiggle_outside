@@ -115,6 +115,19 @@ class JobState(StrEnum):
     EXPIRED = "expired"
 
 
+class Season(StrEnum):
+    """Meteorological seasons from the date and hemisphere (D30).
+
+    Equatorial locations (|lat| < 23.44 degrees) get no season-restricted activities, so
+    an entry whose `seasons` is empty runs all year.
+    """
+
+    SPRING = "spring"
+    SUMMER = "summer"
+    AUTUMN = "autumn"
+    WINTER = "winter"
+
+
 class WeatherCondition(StrEnum):
     CLEAR = "clear"
     CLOUDY = "cloudy"
@@ -195,33 +208,54 @@ class AnswersSummary:
 
 @dataclass(frozen=True, slots=True)
 class Activity:
-    """A catalogue entry (planner/activities.toml). Text is rendered verbatim."""
+    """A catalogue entry. One field per key in planner/activities.toml (CC-002).
 
-    activity_id: str
+    Text fields are rendered verbatim: no model text ever reaches a card.
+    A contract test compares these field names with the real TOML, so the two cannot
+    drift again.
+    """
+
+    activity_id: str  # TOML: id
     title: str
+    who: Who
     ages: frozenset[AgeBand]
     energy: frozenset[Energy]
-    interests: tuple[InterestTag, ...]  # 1-3 per entry
+    place_kinds: frozenset[str]  # TOML: places
     generic_ok: bool
-    activity_suits_stroller: bool
-    daylight_only: bool
+    interests: tuple[InterestTag, ...]  # 1-3 per entry
+    # TOML: minutes = [min, max], on site, travel excluded.
+    minutes_min: int
+    minutes_max: int
+    rain_ok: bool
+    max_rain_pct: int
     min_temp_c: int
     max_wind_kmh: int
-    duration_min: int
-    place_kinds: frozenset[str]
-    steps: tuple[str, ...]
+    max_temp_c: int | None  # optional; only when lower than the global heat rule
+    daylight_only: bool  # TOML: daylight
+    activity_suits_stroller: bool  # the activity only, never the route or place access
+    seasons: frozenset[Season]  # empty = all year (D30)
     optional: tuple[str, ...]
-    adapt: str
-    ask: str | None
+    steps: tuple[str, ...]
+    adapt: str  # alternatives for sight, hearing or mobility
+    ask: str | None  # kids only
     safety: str
     card: tuple[str, ...]  # empty, or exactly CARD_ITEMS for a bingo-style card
 
 
 @dataclass(frozen=True, slots=True)
 class Hook:
-    hook_id: str
+    """One fixed, reviewed sentence. No placeholders (8.12); one field per TOML key.
+
+    The three flags decide which pairs may offer it, so code can derive each pair's
+    `allowed_hook_ids` without the model seeing the rule (CC-003).
+    """
+
+    hook_id: str  # TOML: id
     text: str
-    max_energy: Energy | None = None
+    for_who: frozenset[Who]  # TOML: for
+    needs_destination: bool = False  # the sentence assumes a destination
+    generic_only: bool = False  # only for generic pairs with no destination
+    max_energy: Energy | None = None  # only when the activity's top level is at or below
 
 
 @dataclass(frozen=True, slots=True)
@@ -297,6 +331,10 @@ class WeatherWindow:
     temp_c: tuple[float, ...]
     apparent_temp_c: tuple[float, ...]
     precip_probability: tuple[int, ...]
+    # Millimetres, the preceding-hour sum. BACKEND-CONTRACT section 1 requests
+    # `precipitation` and two rules need it: `rain_ok = false` requires 0 mm, and the
+    # `dry_window` reason requires 0 mm as well as probability <= 20 % (CC-001).
+    precipitation_mm: tuple[float, ...]
     wind_kmh: tuple[float, ...]
     weather_code: tuple[int, ...]
     sunrise: datetime
