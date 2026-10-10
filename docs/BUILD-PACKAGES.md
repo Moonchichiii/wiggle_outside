@@ -88,7 +88,8 @@ frozen review files.
 | WP6 | Planner orchestration | `planner/plan_outing.py`, `planner/fallback.py`, `planner/jobs.py`, `tests/planner/**` except the catalogue test | M0; WP1 and WP2 merged |
 | WP7 | Web, security, transport | `web/routes/**`, `web/security.py`, `tests/web/**` | M0 (builds against a fake `PlannerService`) |
 | WP8 | Templates and frontend | `web/templates/**`, `web/copy.py`, `web/presenters.py`, `frontend/css/**` except `tokens.css`, `frontend/js/**`, `frontend/svg/**`, `frontend/fonts/**`, `tests/templates/**` | M0; three mock screens approved by Mats |
-| WP9 | CI, gates and deployment config (protected) | `scripts/**` (PowerShell 7; TC-004), `.github/**`, `tests/policy/**`, `ruff.toml`, `mypy.ini`, `pytest.ini`, `.importlinter`, `biome.json`, `.djlintrc`, `gates.lock`, **`Dockerfile`, `fly.toml`, `docs/evidence/deploy.md`** | Initial gates: built together with WP0 as milestone M0. Later gate additions: M0 |
+| WP9a | CI and gates, minimum set (protected) | `scripts/check.ps1`, `scripts/release.ps1`, `scripts/check_contrast.py`, `scripts/gates_lock.ps1`, `ruff.toml`, `mypy.ini`, `pytest.ini`, `.importlinter`, `gates.lock`, one `.github/workflows/` file with the `check` job | built together with WP0 as milestone M0 (TC-006) |
+| WP9b | CI and gates, follow-up (protected) | the rest of `.github/**`, `tests/policy/**`, `biome.json`, `.djlintrc`, the Stylelint config, coverage thresholds, the seeded-violation proofs, **`Dockerfile`, `fly.toml`, `docs/evidence/deploy.md`** | M0; **runs in parallel with WP1–WP8** (TC-006). Deployment files before release |
 | WP10 | Evidence and write-up | `docs/evidence/**` **except** WP5's `model-eval.md` and `model-smoke.md` and WP9's `deploy.md`, `docs/post/**`, `analysis/**` | runs alongside; final parts after the release candidate |
 
 Each owned path exists only once in this table. Any file not listed belongs to the
@@ -98,17 +99,23 @@ integration owner.
 
 **Milestone M0 = WP0 + initial WP9.** WP0 and the initial gates are one bootstrap
 milestone with one owner (the integration owner), built and accepted together, so neither
-waits for the other. Order inside M0: manifests and configs → `check.ps1` with the
-initial gates (ruff, mypy, import-linter, pytest, contract tests, policy tests, Bun build,
-canonical audit) → contracts and stubs until the gates pass → CI workflows → `gates.lock`.
-No package agent starts before M0 is accepted and Mats has signed the baseline.
+waits for the other. **M0 is time-boxed and reduced (TC-006).** Order inside M0:
+manifests and lockfiles → `check.ps1` with ruff, mypy, import-linter, pytest and the
+contract tests → contracts and stubs until the gates pass → one CI workflow with the
+`check` job → `gates.lock`. **WP9b** carries the rest (frontend gates and the Bun/Tailwind
+build, policy tests, coverage thresholds, `gate-integrity`, the dependency-review,
+security and supply-chain workflows, and the seeded-violation proofs) and runs in parallel
+with WP1–WP8, not after them. No package agent starts before M0 is accepted and Mats has
+signed the baseline. Until WP9b lands, nothing is released, deployed or described as
+supply-chain verified (TC-006).
 
 **WP0 Contracts and skeleton.** Every type, enum, protocol, schema, form and view model
 in CONTRACTS.md; app factory with lifespan; settings; stubs that import cleanly.
-*Accept (as part of M0):* `scripts/check.ps1` green on the skeleton; contract tests pass
-(ErrorCode equals the ERROR-HANDLING table, schema fixtures valid and invalid, route and
-form-field lists, token names present); import-linter layers in force; lockfiles resolve
-offline from the recorded hashes.
+*Accept (as part of M0, reduced by TC-006):* `scripts/check.ps1` green on the skeleton;
+contract tests pass (ErrorCode equals the ERROR-HANDLING table, schema fixtures valid and
+invalid, route and form-field lists, token names present); import-linter contracts in
+force; lockfiles resolve offline from the recorded hashes; one CI workflow runs the
+`check` job on `pull_request` without secrets; `gates.lock` written and signed by Mats.
 
 **WP1 Core rules.** Answers to constraints; activity eligibility (ages, energy ceiling
 D18, weather, daylight, hemisphere seasons D30, time D35 and BACKEND-CONTRACT §8); pair
@@ -250,9 +257,16 @@ claimed from these checks.
 
 **WP9 CI and gates.** `check.ps1`, `release.ps1`, `check_contrast.py`, workflows, policy
 tests, the canonical audit (ARCHITECTURE §13.3), `gates.lock`.
-*Accept (initial gates as part of M0):* each gate fails on a seeded violation and passes
-on the skeleton; workflows run on `pull_request` without secrets; Mats signs `gates.lock`
-at bootstrap. Later gate changes are protected inputs (§2.1; Mats reviews each).
+*Accept (WP9a, as part of M0; TC-006):* `check.ps1` runs ruff, mypy, import-linter,
+pytest and the contract tests, and is green on the skeleton; one workflow runs the `check`
+job on `pull_request` without secrets; `gates.lock` lists the §2.1 protected inputs and
+Mats signs the commit that adds it.
+*Accept (WP9b, in parallel with WP1–WP8):* every gate in PLAN §8 present and green;
+**each gate fails on a seeded violation** and passes on the skeleton; the canonical audit
+(ARCHITECTURE §13.3) runs and records package-identity coverage; `gate-integrity` compares
+protected inputs with `main`'s `gates.lock`; the Bun/Tailwind production build and the
+frontend gates run. Until this is done, no gate coverage is claimed beyond the five gates
+in WP9a. Later gate changes are protected inputs (§2.1; Mats reviews each).
 *Accept (deployment files, before release; deploying needs Mats's spending approval):*
 `Dockerfile` builds the release image with one uvicorn worker and no model key;
 `fly.toml` mounts the volume at `/data`, has no autoscaling and checks `/healthz`;
@@ -270,7 +284,7 @@ candidate (§6).
 ## 4. Order and concurrency
 
 ```
-M0 = WP0 + initial WP9 (integration owner, one milestone)
+M0 = WP0 + WP9a (integration owner, one milestone; TC-006)
    │
    ├── WP1 ──┐
    ├── WP2 ──┼── WP6 ──┐
@@ -278,10 +292,11 @@ M0 = WP0 + initial WP9 (integration owner, one milestone)
    ├── WP4 ──────────── ├── integration (main.py wiring) ── release candidate ── WP10 final
    ├── WP5 ──────────── │
    ├── WP7 (fake planner)│
-   └── WP8 (after mock approval)
+   ├── WP8 (after mock approval)
+   └── WP9b (remaining gates, in parallel; TC-006)
 ```
 
-- After M0 is accepted, WP1, WP2, WP3, WP4, WP5 and WP7 run at the same time. WP8 joins
+- After M0 is accepted, WP1, WP2, WP3, WP4, WP5, WP7 and WP9b run at the same time. WP8 joins
   as soon as Mats approves the mock screens.
 - WP6 starts when WP1 and WP2 are merged; it uses fake ports, so it does not wait for
   WP3, WP4 or WP5.

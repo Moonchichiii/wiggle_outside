@@ -368,7 +368,11 @@ after, read in full) and his published principles:
 
 ## 8. Quality gates
 
-**Hard, automated (fail the build)**
+**Hard, automated (fail the build).** The full set below is the target. **M0 ships five of
+them — ruff, mypy, import-linter, pytest and the contract tests — and WP9b adds the rest
+in parallel with WP1–WP8 (TC-006, BUILD-PACKAGES §3.1). Nothing is released, deployed or
+called supply-chain verified until WP9b is green.**
+
 - `ruff format --check`; `ruff check` with `select = ["ALL"]` and a justified ignore list
   (`D1`, `COM812`, `ISC001`, `CPY001`; tests also ignore `S101`, `PLR2004`).
 - mypy strict, `warn_unreachable`, extra error codes; `disallow_any_explicit` in `core`
@@ -591,7 +595,7 @@ check gates anything.
 | # | Step | Done when |
 |---|---|---|
 | 1 | Design review | This set is reconciled, Mats's pending choices are made, three mock screens approved; CONTRACTS and BUILD-PACKAGES accepted |
-| 2 | Bootstrap milestone M0 | WP0 and the initial WP9 gates together (BUILD-PACKAGES §4): repository, contracts, lockfiles, configs, `check.ps1`, CI, `gates.lock`; Mats signs the baseline. Then WP1–WP5, WP7 and WP8 run in parallel |
+| 2 | Bootstrap milestone M0 (time-boxed, TC-006) | WP0 and WP9a together (BUILD-PACKAGES §3.1): repository, contracts, lockfiles, configs, `check.ps1` with five gates, one CI workflow, `gates.lock`; Mats signs the baseline. Then WP1–WP5, WP7, WP8 and WP9b run in parallel |
 | 3 | Hosted model smoke (needs Mats's spending approval and a key) | The pinned OpenRouter endpoint returns valid picks on fixture pairs within `max_tokens` 256 and the 10,000-byte request cap; `usage` and latency recorded; reasoning tokens zero. Runs in parallel with steps 4–5; without approval, steps 4–5 continue on fixtures |
 | 4 | Deterministic flow | Quiz → catalogue → fixture places and weather → cards → print, no model |
 | 5 | Real sources | Nominatim, Overpass, Open-Meteo under BACKEND-CONTRACT budgets |
