@@ -21,7 +21,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
-from typing import TYPE_CHECKING, ClassVar, Final
+from typing import TYPE_CHECKING, ClassVar, Final, override
 
 import httpx
 
@@ -33,12 +33,18 @@ from wiggle_outside.core.result import (
     QuotaOrUnavailable,
     TransportFailure,
 )
-from wiggle_outside.core.types import MAX_CANDIDATES, PLACE_TEXT_MAX, Coordinates, GeocodeHit
+from wiggle_outside.core.types import (
+    MAX_CANDIDATES,
+    PLACE_TEXT_MAX,
+    Coordinates,
+    GeocodeHit,
+    GeocodeHits,
+)
 from wiggle_outside.planner.ports import Geocoder, ProviderName
 from wiggle_outside.settings import GEOCODE_BUDGET_S
 
 if TYPE_CHECKING:
-    from wiggle_outside.core.types import GeocodeHits, TypedPlace
+    from wiggle_outside.core.types import TypedPlace
     from wiggle_outside.settings import Settings
 
 SEARCH_PATH: Final = "/search"
@@ -92,6 +98,7 @@ class NominatimGeocoder(Geocoder):
     def user_agent(self) -> str:
         return f"{USER_AGENT_PRODUCT} ({self.contact_email})"
 
+    @override
     async def resolve(self, place: TypedPlace, deadline: float) -> Outcome[GeocodeHits]:
         fetched = await self._fetch(place.text, deadline)
         if not isinstance(fetched, _Body):
@@ -110,14 +117,14 @@ class NominatimGeocoder(Geocoder):
             "addressdetails": "0",
             "accept-language": ACCEPT_LANGUAGE,
         }
-        return await _read(
-            self.client,
+        request = self.client.build_request(
+            "GET",
             self.base_url.rstrip("/") + SEARCH_PATH,
             params=params,
             headers={"User-Agent": self.user_agent, "Accept": "application/json"},
-            budget=budget,
-            max_bytes=self.max_bytes,
+            timeout=httpx.Timeout(budget, connect=min(budget, CONNECT_BUDGET_S)),
         )
+        return await _read(self.client, request, max_bytes=self.max_bytes)
 
 
 def from_settings(client: httpx.AsyncClient, settings: Settings) -> NominatimGeocoder:
@@ -131,29 +138,23 @@ def from_settings(client: httpx.AsyncClient, settings: Settings) -> NominatimGeo
 
 async def _read(
     client: httpx.AsyncClient,
-    url: str,
+    request: httpx.Request,
     *,
-    params: dict[str, str],
-    headers: dict[str, str],
-    budget: float,
     max_bytes: int,
 ) -> _Fetched:
-    timeout = httpx.Timeout(budget, connect=min(budget, CONNECT_BUDGET_S))
+    """One attempt: no redirect is followed, and the stream is always closed."""
     try:
-        async with client.stream(
-            "GET",
-            url,
-            params=params,
-            headers=headers,
-            timeout=timeout,
-            follow_redirects=False,
-        ) as response:
+        response = await client.send(request, stream=True, follow_redirects=False)
+        try:
             if response.status_code != HTTP_OK:
                 return _status_outcome(response.status_code, response.headers.get("retry-after"))
             return _capped(await _collect(response, max_bytes))
+        finally:
+            # Cancellation closes the stream here and then propagates, because
+            # asyncio.CancelledError is a BaseException and is never caught below
+            # (CONTRACTS section 1).
+            await response.aclose()
     except httpx.HTTPError:
-        # asyncio.CancelledError is a BaseException and is never caught here, so
-        # cancellation propagates instead of becoming an outcome (CONTRACTS section 1).
         return TransportFailure()
 
 
@@ -191,7 +192,7 @@ def _retry_after_seconds(raw: str | None) -> float | None:
         pass
     try:
         when = parsedate_to_datetime(text)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
     if when.tzinfo is None:
         when = when.replace(tzinfo=UTC)
@@ -201,7 +202,7 @@ def _retry_after_seconds(raw: str | None) -> float | None:
 def _hits(payload: bytes) -> Outcome[GeocodeHits]:
     try:
         decoded: object = json.loads(payload)
-    except (UnicodeDecodeError, json.JSONDecodeError):
+    except UnicodeDecodeError, json.JSONDecodeError:
         return Malformed()
     if not isinstance(decoded, list):
         return Malformed()
@@ -213,7 +214,7 @@ def _hits(payload: bytes) -> Outcome[GeocodeHits]:
         if hit is None:
             return Malformed()
         found.append(hit)
-    return Ok(_GeocodeHits(hits=tuple(found)))
+    return Ok(GeocodeHits(hits=tuple(found)))
 
 
 def _hit(entry: object) -> GeocodeHit | None:
@@ -230,7 +231,7 @@ def _coords(lat: object, lon: object) -> Coordinates | None:
     """jsonv2 sends the coordinates as strings; Coordinates rounds and range-checks them."""
     try:
         values = (float(_numeric(lat)), float(_numeric(lon)))
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
     try:
         return Coordinates(lat=values[0], lon=values[1])
