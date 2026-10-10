@@ -60,15 +60,24 @@ families, no italics, no external font service. Preload only a file that measura
 helps the first render (to be measured; likely Switzer only). Shantell Sans is
 **superseded**.
 
-**Checks before approval** (none done yet; they need the actual files):
-1. Glyph coverage for Swedish and French: å ä ö Å Ä Ö é è ê ë à â ç î ï ô û ù ü ÿ œ Œ æ
-   « » ’ – —, checked with a script over the font's character map.
-2. The licence supplied with the files: web embedding, self-hosting, and redistribution
-   in a **public** repository. If public redistribution is not allowed, the files stay
-   out of the repository and are added at deploy time from private storage, and the
-   README says so. Licence text and attribution travel with the assets.
-3. Mobile readability and layout shift: the mocks re-rendered with the real files at
-   320 and 390 px, comparing the swap from the fallback.
+**Checks, done (TC-007).** The files are the two *variable* faces from fontshare.com
+— `CabinetGrotesk-Variable.woff2` (41.9 KB) and `Switzer-Variable.woff2` (43.2 KB),
+both `wght` 100–900, 85 KB together rather than the 64 KB estimated above, and not the
+single static ExtraBold this section first assumed.
+1. **Glyph coverage: passes.** `scripts/check_fonts.py` reads each character map and
+   compares it with the set above plus the copy deck's · and …. Both faces cover all of
+   it (Cabinet 465 glyphs / 405 codepoints, Switzer 386 / 385).
+2. **Licence: Fontshare Font Licence 2.0.** Self-hosting on our own site is permitted;
+   putting the font files in a public repository is **not**. So they are gitignored,
+   `frontend/fonts/README.md` records their origin and the rule, and `Dockerfile` copies
+   `frontend/fonts/` when the build context supplies it from private storage.
+3. **Layout shift: neutralised at the source.** Measured against the real Segoe UI,
+   Switzer's x-height is 6.2 % larger and its line box 7.5 % shorter than the fallback's,
+   and Cabinet's line box is 13.5 % shorter. `tokens.css` therefore declares
+   metric-matched fallback faces whose `size-adjust` and ascent/descent/line-gap
+   overrides come from these files' own metrics, so the swap does not move the layout. A
+   browser-measured CLS figure is still outstanding and belongs with WP9b's Playwright
+   work.
 
 | Token | Size / line height | Use |
 |---|---|---|

@@ -16,3 +16,9 @@ data/
 out/
 frontend/dist/
 src/wiggle_outside/web/static/
+
+# Fonts: the Fontshare Font Licence 2.0 permits self-hosting but forbids
+# redistributing the files in a public repository (TC-007). They are supplied at
+# deploy time from private storage; frontend/fonts/README.md says how.
+frontend/fonts/*
+!frontend/fonts/README.md

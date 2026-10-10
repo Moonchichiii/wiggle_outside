@@ -34,6 +34,12 @@ nothing is released or described as supply-chain verified.
 
 Requires [uv](https://docs.astral.sh/uv/), [bun](https://bun.sh/) and PowerShell 7.
 
+The two headline fonts (Cabinet Grotesk and Switzer, both from
+[fontshare.com](https://www.fontshare.com/)) are **not in this repository**: the
+Fontshare Font Licence 2.0 allows self-hosting them but not redistributing the files
+publicly. See [`frontend/fonts/README.md`](frontend/fonts/README.md). The app renders
+correctly without them, on the metric-matched system-font fallback.
+
 ```powershell
 uv sync --all-groups
 ./scripts/check.ps1

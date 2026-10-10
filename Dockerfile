@@ -1,0 +1,62 @@
+# Release image. ONE uvicorn worker (D21), no model key baked in (DEPLOYMENT section 3).
+#
+# NOT YET A VERIFIED RELEASE IMAGE. WP9b's acceptance is separate and unmet: no image
+# scan by digest, no canonical audit, no deploy evidence (TC-006). This exists now because
+# the fonts need a home in it (TC-007) and because the frontend build has to be part of
+# the image rather than committed.
+
+# --- Frontend build: bun only, no npm or npx (DESIGN-SPEC section 11) ----------------
+FROM oven/bun:1.4.2-alpine AS frontend
+
+WORKDIR /build
+COPY package.json bun.lock bunfig.toml ./
+RUN bun install --frozen-lockfile
+
+# frontend/ carries css/, js/, svg/ and fonts/. The fonts are gitignored under the
+# Fontshare licence (TC-007), so they are present only when the build context supplies
+# them from private storage; copying the whole directory means the build works either
+# way, and without them tokens.css falls back to the system stack.
+COPY frontend/ ./frontend/
+COPY src/ ./src/
+RUN bun run build:css
+
+
+# --- Runtime ------------------------------------------------------------------------
+FROM python:3.14-slim AS runtime
+
+# No build tools, no uv cache, no dev or analysis groups in the image.
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_NO_CACHE=1
+
+COPY --from=ghcr.io/astral-sh/uv:0.11.29 /uv /usr/local/bin/uv
+
+WORKDIR /app
+
+# Runtime dependencies only, resolved from the recorded hashes.
+COPY pyproject.toml uv.lock .python-version ./
+RUN uv sync --frozen --no-dev --no-install-project
+
+COPY src/ ./src/
+# The built stylesheet and the fonts, from the frontend stage.
+COPY --from=frontend /build/src/wiggle_outside/web/static/ ./src/wiggle_outside/web/static/
+COPY --from=frontend /build/frontend/fonts/ ./frontend/fonts/
+
+RUN uv sync --frozen --no-dev
+
+# Fly mounts the volume at /data (fly.toml).
+RUN mkdir -p /data && \
+    adduser --system --no-create-home --uid 10001 wiggle && \
+    chown -R wiggle:nogroup /data /app
+USER wiggle
+
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD ["/app/.venv/bin/python", "-c", \
+         "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/healthz').read()==b'ok' else 1)"]
+
+# One worker (D21). The model key is a runtime secret, never an image layer.
+CMD ["/app/.venv/bin/uvicorn", "wiggle_outside.main:create_app", "--factory", \
+     "--host", "0.0.0.0", "--port", "8080", "--workers", "1", "--no-server-header"]

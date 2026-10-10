@@ -1,0 +1,23 @@
+# Keep the image small and never ship build or dev material.
+.git
+.github
+.claude
+.venv
+node_modules
+__pycache__
+*.py[cod]
+.mypy_cache
+.ruff_cache
+.pytest_cache
+.coverage
+htmlcov
+out
+analysis
+docs
+tests
+data
+.env
+
+# NOT excluded, deliberately: frontend/fonts/*.woff2. They are gitignored under the
+# Fontshare licence (TC-007) but must reach the image when they are present in the
+# build context.
