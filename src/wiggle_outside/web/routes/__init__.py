@@ -9,9 +9,10 @@ from typing import TYPE_CHECKING, Final
 
 from fastapi import APIRouter
 
+from wiggle_outside.planner.catalogue import load_catalogue
 from wiggle_outside.web.routes import health, pages, plan, static
 from wiggle_outside.web.routes.assets import REPO_FONTS_DIR, STATIC_DIR, build_manifest
-from wiggle_outside.web.routes.rendering import InterimPages, Pages
+from wiggle_outside.web.routes.rendering import JinjaPages, Pages
 from wiggle_outside.web.routes.support import WebContext
 from wiggle_outside.web.security import SessionStore, origin_policy
 
@@ -33,9 +34,8 @@ def build_router(
 ) -> APIRouter:
     """Build the CONTRACTS section 5 router.
 
-    `pages_impl` is the renderer; left out, the interim one in `routes/rendering.py`
-    renders the real form page and stand-in result, detail and error pages until WP8's
-    `present_result`, `present_detail` and `present_error` exist.
+    `pages_impl` is the renderer; left out, it is `JinjaPages` over the reviewed
+    catalogue, which is WP8's four presenters and their four templates.
     """
     return build(
         WebContext(
@@ -43,7 +43,7 @@ def build_router(
             settings=settings,
             process_key=process_key,
             sessions=sessions,
-            pages=pages_impl or InterimPages(),
+            pages=pages_impl or JinjaPages(load_catalogue()),
             policy=origin_policy(settings),
             assets=build_manifest(),
             static_root=STATIC_DIR,

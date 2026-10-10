@@ -15,6 +15,7 @@ from web_support import (
 )
 
 from wiggle_outside.planner.ports import Busy
+from wiggle_outside.web import copy
 from wiggle_outside.web.forms import canonical_form, fingerprint
 
 
@@ -35,7 +36,9 @@ def test_the_same_key_with_different_answers_is_a_conflict(harness: Harness) -> 
     refused = harness.post("/plan", harness.body(tokens, place="Uppsala"))
 
     assert refused.status_code == 409
-    assert "Start a new search" in refused.text
+    # CONTRACTS section 3 calls this action "Start a new search"; WP8's approved copy
+    # labels it RETURN_TO_FORM. Raised as a copy proposal; the recovery itself is here.
+    assert f'href="/">{copy.RETURN_TO_FORM}' in refused.text
 
 
 def test_the_same_key_with_different_interest_text_is_a_conflict(harness: Harness) -> None:

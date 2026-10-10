@@ -29,13 +29,16 @@ from wiggle_outside.core.types import (
     PlanResult,
     Source,
     TimeBudget,
+    WeatherCondition,
+    WeatherSummary,
     Who,
 )
+from wiggle_outside.planner.catalogue import load_catalogue
 from wiggle_outside.planner.ports import Busy, Conflict, JobRef, NotFound, PlannerService
 from wiggle_outside.settings import Settings
 from wiggle_outside.web.routes import WebContext, build
 from wiggle_outside.web.routes.assets import REPO_FONTS_DIR, STATIC_DIR, build_manifest
-from wiggle_outside.web.routes.rendering import InterimPages
+from wiggle_outside.web.routes.rendering import JinjaPages
 from wiggle_outside.web.security import SessionStore, origin_policy
 
 if TYPE_CHECKING:
@@ -147,12 +150,27 @@ def plan_result(
             stroller=False,
             step_free=False,
         ),
-        weather=None,
+        weather=_weather(now) if ideas else None,
         planned_start=now,
         planned_end=now + timedelta(hours=1),
         valid_until=now + timedelta(hours=1),
         retain_until=now + timedelta(hours=2),
         error=error,
+    )
+
+
+def _weather(now: datetime) -> WeatherSummary:
+    """Build the weather summary a result with ideas always carries (D16)."""
+    return WeatherSummary(
+        fetched_at=now,
+        tz="Europe/Stockholm",
+        window_start=now,
+        window_end=now + timedelta(hours=1),
+        condition=WeatherCondition.CLOUDY,
+        temp_min_c=11,
+        temp_max_c=12,
+        max_precip_probability=20,
+        max_wind_kmh=15,
     )
 
 
@@ -247,7 +265,7 @@ def build_harness(
         settings=chosen,
         process_key=PROCESS_KEY,
         sessions=store,
-        pages=InterimPages(),
+        pages=JinjaPages(load_catalogue()),
         policy=origin_policy(chosen),
         assets=build_manifest(static_root) if static_root.is_dir() else {},
         static_root=static_root,
