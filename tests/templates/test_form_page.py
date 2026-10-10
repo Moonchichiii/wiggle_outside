@@ -12,9 +12,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 from markupsafe import escape
-from parse import Document, read
 
 from fixtures import CANDIDATES, CARRIED_ANSWERS, D39_OFF, D39_ON, FORM_ERRORS, SESSION
+from parse import Document, read
 from wiggle_outside.core.types import DeploymentMode, Energy
 from wiggle_outside.web import copy
 from wiggle_outside.web.presenters import build_environment, present_form, render_form
