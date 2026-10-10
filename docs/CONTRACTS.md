@@ -514,7 +514,7 @@ rules re-homed, the acceptance checks affected, and the approver. Conventions:
 | TC-002 | Daylight copy promises no cross-limit remedy; a resubmission reruns all checks | `6917ca4` | accepted (Mats) |
 | TC-003 | No Hermes in this build: Claude Code integrates, Codex reviews, Mats approves | `5251a9e` | accepted (Mats) |
 | TC-004 | `scripts/check.ps1` and `release.ps1` are the gate scripts | `bb4ff07` | accepted (Mats) |
-| TC-005 | Package `wiggle_outside`; session cookie `__Host-wo_session` | — | accepted (Mats) |
+| TC-005 | Package `wiggle_outside`; session cookie `__Host-wo_session` | `1187030` | accepted (Mats) |
 
 ### 10.1 Contract changes raised by a package (CC)
 
