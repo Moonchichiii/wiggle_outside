@@ -1,0 +1,50 @@
+[
+  {
+    "place_id": 166800485,
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "node",
+    "osm_id": 367870080,
+    "lat": "60.9290646",
+    "lon": "17.0410031",
+    "category": "place",
+    "type": "village",
+    "place_rank": 19,
+    "importance": 0.14672281910429538,
+    "addresstype": "village",
+    "name": "Bergby",
+    "display_name": "Bergby, Gävleborg, Sweden",
+    "boundingbox": ["60.9090646", "60.9490646", "17.0210031", "17.0610031"]
+  },
+  {
+    "place_id": 166371114,
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "node",
+    "osm_id": 7474008540,
+    "lat": "60.5022417",
+    "lon": "17.1958104",
+    "category": "place",
+    "type": "village",
+    "place_rank": 19,
+    "importance": 0.1333914267185473,
+    "addresstype": "village",
+    "name": "Bergby",
+    "display_name": "Bergby, Uppsala län, Sweden",
+    "boundingbox": ["60.4822417", "60.5222417", "17.1758104", "17.2158104"]
+  },
+  {
+    "place_id": 167496275,
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "node",
+    "osm_id": 5695284943,
+    "lat": "60.2213508",
+    "lon": "20.2314902",
+    "category": "place",
+    "type": "hamlet",
+    "place_rank": 20,
+    "importance": 0.13339099031052107,
+    "addresstype": "hamlet",
+    "name": "Bergby",
+    "display_name": "Bergby, Åland, Finland",
+    "boundingbox": ["60.2013508", "60.2413508", "20.2114902", "20.2514902"]
+  }
+]
