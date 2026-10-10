@@ -1,4 +1,4 @@
-# Touchgrass error handling and recovery — baseline 8.20
+# Wiggle Outside error handling and recovery — baseline 8.20
 
 Status: DRAFT planning contract, 9 October 2026. Requested by Mats. No application code or runtime verification is implied.
 Read with [PLAN.md](PLAN.md), [ARCHITECTURE.md](ARCHITECTURE.md) and [COMPETITION.md](COMPETITION.md). ([HERMES-P0.md](HERMES-P0.md) is a superseded appendix, TC-003.)

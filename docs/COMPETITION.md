@@ -1,4 +1,4 @@
-# Touchgrass: competition contract
+# Wiggle Outside: competition contract
 
 Moved out of PLAN.md in round 4 (one file, one responsibility). Sections keep their
 original 14.x numbers so earlier references still resolve. Verified against the live

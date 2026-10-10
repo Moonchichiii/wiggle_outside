@@ -341,7 +341,7 @@ Geocode 3 s → places and weather concurrently 4 s → queue and model 11 s (no
 the Saturday smoke test before lock.
 
 ### 13.2 Session, CSRF and transport (D31, accepted)
-`__Host-tg_session`: random opaque ID, Secure, HttpOnly, SameSite=Strict, Path=/, no Domain,
+`__Host-wo_session` (TC-005): random opaque ID, Secure, HttpOnly, SameSite=Strict, Path=/, no Domain,
 mapped to server-side state holding the CSRF token and owned job IDs (bounded by section 4).
 Every form, plain or enhanced, carries the token; comparison uses `hmac.compare_digest`;
 Origin is checked. htmx 4 (core only; the `hx-sse` extension is not used since D43); status

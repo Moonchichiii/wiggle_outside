@@ -72,13 +72,14 @@ them.
 
 ## 3. Packages
 
-`src/touchgrass/` is the working package path. D40 is accepted (8.18), so WP0 decides
-the final package and repository name at bootstrap and renames before any other package
-starts; user-facing copy says "Wiggle Outside".
+`src/wiggle_outside/` is the package path (TC-005: the D40 bootstrap answer, decided
+before kör so no package agent ever sees the old name). Repository `wiggle_outside`;
+user-facing copy says "Wiggle Outside". The working title `touchgrass` survives only in
+frozen review files.
 
 | WP | Package | Owned paths | Waits for |
 |---|---|---|---|
-| WP0 | Contracts and skeleton | `pyproject.toml`, `uv.lock`, `package.json`, `bun.lock`, `bunfig.toml`, `.python-version`, `.env.example`, `README.md`, `LICENSE`, `SECURITY.md`, `src/touchgrass/main.py`, `settings.py`, `core/types.py`, `core/errors.py`, `core/result.py`, `planner/ports.py`, `planner/schema/**`, `web/forms.py`, `web/views.py`, `frontend/css/tokens.css`, `tests/contract/**`, `tests/conftest.py`, `tests/fixtures/views.py`, `tests/fixtures/walkthrough.py`, empty module stubs for every other path | Mats's kör; D39/D40/D41 answers (stubs follow them) |
+| WP0 | Contracts and skeleton | `pyproject.toml`, `uv.lock`, `package.json`, `bun.lock`, `bunfig.toml`, `.python-version`, `.env.example`, `README.md`, `LICENSE`, `SECURITY.md`, `src/wiggle_outside/main.py`, `settings.py`, `core/types.py`, `core/errors.py`, `core/result.py`, `planner/ports.py`, `planner/schema/**`, `web/forms.py`, `web/views.py`, `frontend/css/tokens.css`, `tests/contract/**`, `tests/conftest.py`, `tests/fixtures/views.py`, `tests/fixtures/walkthrough.py`, empty module stubs for every other path | Mats's kör; D39/D40/D41 answers (stubs follow them) |
 | WP1 | Core rules | `core/answers.py`, `core/activities.py`, `core/places.py`, `core/weather.py`, `core/ideas.py`, `core/ranking.py`, `tests/core/**` | M0 |
 | WP2 | Catalogue and hooks | `planner/catalogue.py`, `planner/activities.toml`, `planner/hooks.toml` (content from docs/drafts as approved by Mats), `tests/planner/test_catalogue.py` | M0; catalogue review by Mats |
 | WP3 | Provider adapters | `integrations/nominatim.py`, `integrations/overpass.py`, `integrations/open_meteo.py`, `tests/integrations/test_{nominatim,overpass,open_meteo}.py`, `tests/fixtures/providers/**` | M0 |

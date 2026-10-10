@@ -17,7 +17,7 @@ Path shown: the plain form (no JavaScript). Enhanced-path differences are noted 
 ## Fixture data
 
 - Deployment mode `hosted_live` (the primary build path, round 8.19); timezone of the place Europe/Stockholm (UTC+2) on Sat 10 Oct 2026.
-- Session `S1` (cookie `__Host-tg_session`), CSRF token `T1`.
+- Session `S1` (cookie `__Host-wo_session`, TC-005), CSRF token `T1`.
 - Hosted counters at the start: daily allowance C = 0 for 2026-10-10 UTC; the network is
   well under its A, B and B2 limits (no 429 on this path).
 - Answers: kids, ages 3–5 and 6–9, 1 hour, moderate energy, typed place "Bergby",

@@ -28,7 +28,7 @@
 >
 > Round 8.6 adds [PRODUCT-FIT.md](PRODUCT-FIT.md) (purpose, AI value, competition table) and [DESIGN-SPEC.md](DESIGN-SPEC.md) (implementable UI specification). Round 8.5 reconciled the 10 October [BACKEND-REVIEW.md](BACKEND-REVIEW.md) (B01–B16). Backend rules live in [BACKEND-CONTRACT.md](BACKEND-CONTRACT.md); status per finding is at the end of BACKEND-REVIEW. No approval or build authorisation is implied.
 
-# Touchgrass: engineering plan
+# Wiggle Outside: engineering plan
 
 Status: **final build specification, baseline round 8.20** (Sat 10 Oct 2026). Approving this baseline and saying "kör" are separate actions by Mats. Changes after the baseline are tracked changes (CONTRACTS §10), not new planning rounds.
 Design discussion comes before any repository or application code; the build starts only after
@@ -93,7 +93,7 @@ the unbuilt application: it is verified only by its acceptance checks.
 | D37 | Unknown admission fees: (a) verified free only (`fee=no`), or (b) exclude places tagged `fee=yes` and label unknown fees "Admission not verified". **Chosen (8.20): (b)**: exclude places tagged `fee=yes`; label unknown fees "Admission not verified" (full label); `fee=no` is described as "reported free admission", never as verified; the post says so too. | **accepted: option (b)** (Mats 8.20) |
 | D38 | Model endpoint for local development and testing only (production model access is D48): a dedicated Ollama instance or a scoped proxy that allows only generation for the pinned model, bound to host loopback (ARCHITECTURE §7, TC-003). No shared service is reconfigured silently. | **deferred** (Mats 8.20); gates nothing |
 | D39 | Optional "What are they into?" field (≤ 120 characters). In the same single model call that ranks the eligible pairs, Gemma infers at most three tags from a fixed 14-tag vocabulary (or no match / unclear); code validates tags and picks and derives `matches_interest` itself. Evaluated in English, Swedish and French only. Tags are shown as inferred, display-only labels; changing them is an explicit resubmission through "Change answers" (D46). Interests affect ranking only, never eligibility. Free text is untrusted data, never logged or cached; it goes to the model only (through OpenRouter to the pinned model provider in the hosted product) and never to the place or weather providers (ARCHITECTURE §2 recipient table). Contract: PRODUCT-FIT §3. Tests hypothesis H1. | **accepted by Mats 8.18** |
-| D40 | Product name "Wiggle Outside" (replaces the working title touchgrass in user-facing copy; repository name decided at bootstrap). | **accepted by Mats 8.18** |
+| D40 | Product name "Wiggle Outside" (replaces the working title touchgrass in user-facing copy). **Bootstrap answer (TC-005):** repository `wiggle_outside`, Python package `src/wiggle_outside/`, session cookie `__Host-wo_session`. Decided before kör, so no package agent works against the old name. | **accepted by Mats 8.18**; names **accepted** (TC-005) |
 | D41 | Typography (revised 8.17): Cabinet Grotesk ExtraBold for headings and activity titles, Switzer Variable for body (400), labels (500) and buttons (600); two self-hosted WOFF2 files supplied by Mats, `font-display: swap`, system fallbacks. Pending: glyph coverage, licence for public-repository redistribution, layout-shift check (DESIGN-SPEC §1.2). Shantell Sans superseded. | **accepted** (Mats 8.20); implementation **blocked** on prerequisite P1 (font files and licence); system fonts are the documented fallback |
 | D42 | The optional panel separates two needs. "We're bringing a stroller" keeps only activities with `activity_suits_stroller = true`. Step-free access is a **preference (P, chosen 8.20)**, labelled "Prefer places reported as step-free": places OpenStreetMap reports as step-free rank first; unknown access can still appear and is labelled "Step-free access not verified". Stroller suitability stays separate. (The requirement variant R is not built.) | **accepted: preference (P)** (Mats 8.20) |
 | D43 | v1 has no live progress stream (SSE) and no user-facing Stop. POST `/plan` waits and answers 303 to the result; with JavaScript a busy state shows at once; no polling. Kept: the deadline, the bounded model queue, internal cancellation and cleanup at deadline and shutdown, duplicate-submission protection, recovery after a lost response (resubmit joins the same job) and model-slot ownership until inference finished or cancellation is verified. (Simplicity review S1.) | decided by Mats 8.11 |
@@ -304,11 +304,11 @@ stream.
 ### 6.1 Tree
 
 ```
-touchgrass/
+wiggle_outside/
 ├─ README.md · LICENSE (Apache-2.0) · SECURITY.md · .env.example
 ├─ docs/  PLAN.md · COMPETITION.md · ARCHITECTURE.md · decisions/  (HERMES-P0.md: appendix)
 │         deliveries/ · post/ · evidence/ · drafts/
-├─ src/touchgrass/
+├─ src/wiggle_outside/
 │  ├─ main.py               build and wire; lifespan
 │  ├─ settings.py           one typed Settings; split only when a group earns its own file
 │  ├─ core/

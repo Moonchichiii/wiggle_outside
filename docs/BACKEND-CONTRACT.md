@@ -1,4 +1,4 @@
-# Touchgrass backend contract — baseline 8.20
+# Wiggle Outside backend contract — baseline 8.20
 
 Status: DRAFT, 10 October 2026. Owning document for weather, results, location choice,
 resource bounds, sessions, shared fetches, validation, places, geocoding privacy and
