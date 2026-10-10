@@ -105,6 +105,9 @@ def deterministic_ideas(
 
 
 def _key(pair: Pair, inputs: RankingInputs) -> tuple[int, int, int]:
+    # PRODUCT-FIT names distance, energy match, season and variety but not their
+    # order. This order is WP1's choice, pending review; season is already an
+    # eligibility filter and variety is applied in `select`.
     activity = inputs.activities[pair.activity_id]
     interest = PREFERRED if matches_tags(activity, inputs.tags) else NOT_PREFERRED
     energy = PREFERRED if inputs.energy in activity.energy else NOT_PREFERRED

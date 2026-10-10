@@ -181,6 +181,7 @@ def _place_candidates(
     plan: PairPlan,
 ) -> Iterator[PairCandidate]:
     # One round per place keeps the 12 pairs spread over places and entries.
+    # No document fixes the fill order; this one is WP1's choice, pending review.
     by_place = {place.place_id: _for_place(activities, place, plan) for place in ranked}
     depth = max(len(by_place[place.place_id]) for place in ranked)
     for index in range(depth):

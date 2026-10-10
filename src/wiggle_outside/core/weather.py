@@ -29,6 +29,8 @@ DRY_WINDOW_MAX_PCT: Final = 20
 DRY_MM: Final = 0.0
 
 # The WMO codes Open-Meteo documents. A code outside this map fails closed.
+# No document gives the code-to-condition mapping: this one is WP1's choice,
+# with Mats to confirm it. It reproduces the WALKTHROUGH step 6 summary.
 CONDITION_BY_CODE: Final[dict[int, WeatherCondition]] = {
     0: WeatherCondition.CLEAR,
     1: WeatherCondition.CLEAR,
@@ -61,6 +63,7 @@ CONDITION_BY_CODE: Final[dict[int, WeatherCondition]] = {
 }
 
 # Least to most significant; the summary reports the most significant sample used.
+# The order is WP1's choice too, pending the same review.
 CONDITION_SEVERITY: Final[tuple[WeatherCondition, ...]] = (
     WeatherCondition.CLEAR,
     WeatherCondition.CLOUDY,
@@ -135,7 +138,12 @@ def used_samples(window: WeatherWindow, outing: OutingWindow) -> Samples | None:
 
 
 def summarise(window: WeatherWindow, outing: OutingWindow, samples: Samples) -> WeatherSummary:
-    """Derive the stored summary from the samples used, never from the whole forecast."""
+    """Derive the stored summary from the samples used, never from the whole forecast.
+
+    The temperatures are the apparent ones, rounded to the nearest degree: the
+    WALKTHROUGH fixture carries no `temperature_2m` and only this reading gives its
+    stated 11-12 degrees. WP1's choice, pending review.
+    """
     apparent = tuple(instant.apparent_temp_c for instant in samples.instants)
     return WeatherSummary(
         fetched_at=window.fetched_at,
