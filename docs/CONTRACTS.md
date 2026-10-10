@@ -510,7 +510,7 @@ rules re-homed, the acceptance checks affected, and the approver. Conventions:
 
 | TC | Change | Edit commit | Status |
 |---|---|---|---|
-| TC-001 | User-facing energy label "High"; internal value stays `energetic` | — | accepted (Mats) |
+| TC-001 | User-facing energy label "High"; internal value stays `energetic` | `7f443e6` | accepted (Mats) |
 | TC-002 | Daylight copy promises no cross-limit remedy; a resubmission reruns all checks | — | accepted (Mats) |
 | TC-003 | No Hermes in this build: Claude Code integrates, Codex reviews, Mats approves | — | accepted (Mats) |
 | TC-004 | `scripts/check.ps1` and `release.ps1` are the gate scripts | — | accepted (Mats) |
