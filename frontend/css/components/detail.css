@@ -1,0 +1,100 @@
+/* The detail view: sections, steps, the bingo grid and the dated print context.
+   DESIGN-SPEC sections 2, 3, 6 and 9, matching the approved mock 04-detail-bingo.html.
+   The print rules live in print.css. Tokens only. */
+
+.wo-detail {
+  max-width: var(--container-measure);
+}
+
+.wo-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.wo-detail-title {
+  margin: 0 0 var(--spacing-s2);
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  font-weight: 800;
+  line-height: var(--text-xl--line-height);
+}
+
+.wo-detail-intro {
+  margin: 0 0 var(--spacing-s4);
+  font-family: var(--font-heading);
+  overflow-wrap: anywhere;
+}
+
+.wo-detail-section,
+.wo-bingo-section {
+  margin-bottom: var(--spacing-s5);
+}
+
+.wo-detail-heading {
+  margin: 0 0 var(--spacing-s2);
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  line-height: var(--text-lg--line-height);
+}
+
+.wo-reasons {
+  margin: 0 0 var(--spacing-s3);
+  padding-left: 1.2em;
+}
+
+.wo-match {
+  display: flex;
+  gap: var(--spacing-s2);
+  align-items: flex-start;
+  margin: 0;
+  font-weight: 600;
+}
+
+.wo-steps {
+  margin: 0;
+  padding-left: 1.4em;
+}
+
+.wo-steps li {
+  margin-bottom: var(--spacing-s2);
+}
+
+.wo-detail-times {
+  margin: 0 0 var(--spacing-s3);
+}
+
+/* The bingo grid: 3 x 3 bordered cells, each at least 44 px tall (section 2). */
+.wo-bingo {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.wo-bingo td {
+  height: 64px;
+  padding: var(--spacing-s2);
+  background: var(--color-card);
+  border: var(--border-width-ink) solid var(--color-ink);
+  font-size: var(--text-sm);
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* On screen the print context is useful too: it is the only place that says which day and
+   which timezone these times belong to. */
+.wo-print-context {
+  margin: var(--spacing-s4) 0 0;
+  padding-top: var(--spacing-s3);
+  border-top: var(--border-width-ink) solid var(--color-ink);
+  font-weight: 600;
+}
+
+.wo-source-line {
+  margin: var(--spacing-s4) 0 0;
+}
+
+.wo-print-help {
+  margin: var(--spacing-s3) 0 0;
+}

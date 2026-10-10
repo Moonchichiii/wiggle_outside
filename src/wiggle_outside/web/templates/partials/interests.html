@@ -1,0 +1,12 @@
+{# The D39 interest labels (DESIGN-SPEC sections 2, 6 and 9; D46). Receives InterestsView.
+
+   The tags are inferred, not confirmed. They are plain text in a box: no buttons, no
+   crosses, nothing that looks removable. They are changed only by resubmitting the
+   prefilled form under "Change answers", which the note says. #}
+
+{% macro interests(view) -%}
+<div class="wo-interests">
+<p class="wo-interests-line"><strong>{{ view.heading }}</strong> {{ copy.INTERESTS_LIST_JOIN.join(view.labels) }}{{ copy.INTERESTS_LIST_END }}</p>
+<p class="wo-soft wo-interests-note">{{ view.note }}</p>
+</div>
+{%- endmacro %}

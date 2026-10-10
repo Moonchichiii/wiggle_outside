@@ -1,0 +1,104 @@
+{# GET /results/{job_id}. Receives ResultPage as `page` (CONTRACTS section 8).
+   Approved layout: mock 03-results.html, and mock 05-night.html for the daylight pages.
+
+   One column at every width, in the DESIGN-SPEC section 6 order: heading -> answers
+   summary with "Change answers" -> the shared weather line, once -> notices and the
+   fallback label -> interest labels -> zero to three cards. The editable form is not
+   shown beside the results: there is one task on screen.
+
+   No per-card weather. No empty slots and no padding: whatever `page.ideas` holds is
+   what renders, including nothing.
+
+   Works with no JavaScript: "Change answers" is a native <details> and every control is
+   inside its own form. #}
+{% extends "base.html" %}
+{% from "macros/icon.html" import icon %}
+{% from "partials/fieldsets.html" import plan_form with context %}
+{% from "partials/notice.html" import notice, lede with context %}
+{% from "partials/interests.html" import interests with context %}
+{% from "partials/idea_card.html" import idea_card with context %}
+
+{# DAYLIGHT_NIGHT and DAYLIGHT_TOO_SHORT replace the results heading with fixed copy and
+   show no cards and no weather promise (DESIGN-SPEC section 12, TC-002). The presenter
+   signals that by putting the fixed heading in `heading` and the fixed body first in
+   `notices`, so the body reads as a sentence under its heading rather than as a box. #}
+{% set fixed_copy = page.heading != copy.RESULTS_HEADING %}
+
+{# The masthead keeps the intro on every page (mocks 03 and 05). It is page chrome, not
+   result data, which is why it comes from the copy table rather than the view model. #}
+{% block intro %}
+<p class="wo-intro">{{ copy.INTRO }}</p>
+{% endblock %}
+
+{% block main %}
+<section class="wo-results" aria-labelledby="results-heading">
+<h2 class="wo-results-heading" id="results-heading" tabindex="-1">{{ page.heading }}</h2>
+{% if fixed_copy and page.notices %}
+{{ lede(page.notices[0]) }}
+{% endif %}
+
+{% if page.is_historical and page.historical_text %}
+<div class="wo-notice wo-notice-alert" id="historical" tabindex="-1">
+{{ icon("alert") }}
+<div class="wo-notice-body">
+<p class="wo-notice-text">{{ page.historical_text }}</p>
+<div class="wo-notice-actions"><a class="wo-btn wo-btn-secondary" href="{{ page.plan_again.url }}">{{ page.plan_again.label }}</a></div>
+</div>
+</div>
+{% endif %}
+
+<div class="wo-answers">
+{# The approved mock emphasises who and the ages and leaves the rest of the line plain,
+   so the first segment of the summary line is the bold one. The separator is the copy
+   table's, so the split follows the string the presenter actually built. #}
+{% for line in page.answers.lines %}
+{% if loop.first %}
+{% set parts = line.split(copy.ANSWERS_JOIN) %}
+<p class="wo-answers-line"><strong>{{ parts[0] }}</strong>{{ copy.ANSWERS_JOIN }}{{ parts[1:] | join(copy.ANSWERS_JOIN) }}</p>
+{% else %}
+<p class="wo-answers-line">{{ line }}</p>
+{% endif %}
+{% endfor %}
+<details class="wo-change">
+<summary class="wo-change-summary">{{ page.answers.change_label }}</summary>
+{{ plan_form(page.edit_form) }}
+</details>
+</div>
+
+{% if page.weather %}
+<div class="wo-weather">
+{{ icon(page.weather.icon, "wo-icon-48", 48) }}
+<p class="wo-weather-line">{{ page.weather.line }}</p>
+</div>
+{% endif %}
+
+{% for view in page.notices %}
+{% if not (fixed_copy and loop.first) %}
+{{ notice(view) }}
+{% endif %}
+{% endfor %}
+
+{% if page.source_label %}
+{# The labelled fallback (DESIGN-SPEC section 7): catalogue picks after every normal
+   check, said plainly, never hidden. #}
+<div class="wo-notice wo-notice-info wo-source">
+{{ icon("info") }}
+<div class="wo-notice-body">
+<p class="wo-notice-text">{{ page.source_label }}</p>
+</div>
+</div>
+{% endif %}
+
+{% if page.interests %}
+{{ interests(page.interests) }}
+{% endif %}
+
+{% if page.ideas %}
+<div class="wo-cards">
+{% for idea in page.ideas %}
+{{ idea_card(idea) }}
+{% endfor %}
+</div>
+{% endif %}
+</section>
+{% endblock %}

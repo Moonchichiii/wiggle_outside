@@ -15,13 +15,14 @@ escapes so the gate stays quiet and the intent stays visible.
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
-from wiggle_outside.core.errors import ErrorCode
+from wiggle_outside.core.errors import ErrorCode, NoticeId
 from wiggle_outside.core.types import (
     AgeBand,
     DeploymentMode,
     Energy,
     InterestTag,
     TimeBudget,
+    WeatherCondition,
     Who,
 )
 
@@ -32,6 +33,9 @@ if TYPE_CHECKING:
 # reviewer, and the age ranges in DESIGN-SPEC section 9 are en dashes, not hyphens.
 EN_DASH: Final = chr(0x2013)
 ELLIPSIS: Final = chr(0x2026)
+MIDDLE_DOT: Final = chr(0x00B7)
+DEGREE: Final = chr(0x00B0)
+COPYRIGHT_SIGN: Final = chr(0x00A9)
 
 # --- Page chrome (section 9) -------------------------------------------------------
 
@@ -335,3 +339,182 @@ ERROR_HEADINGS: Final[Mapping[ErrorCode, str]] = MappingProxyType(
 
 CHANGE_ANSWERS: Final = "Change answers"
 RESULTS_HEADING: Final = "Here's what we found"
+
+# --- The results page (section 9) ----------------------------------------------------
+
+# The answers summary reads "Me and the kids (3-5, 6-9) - 1 hour - Moderate - near Bergby",
+# with the middle dot as the separator and the ages only when there are any.
+ANSWERS_WITH_AGES: Final = "{who} ({ages})"
+ANSWERS_NEAR: Final = "near {label}"
+ANSWERS_JOIN: Final = f" {MIDDLE_DOT} "
+AGES_JOIN: Final = ", "
+
+PLAN_AGAIN: Final = "Plan again"
+HISTORICAL: Final = (
+    f"This information is no longer current. Planned for {{date}}, {{start}}{EN_DASH}{{end}}, "
+    f"weather checked at {{time}}. Plan again for fresh ideas."
+)
+
+# --- The shared weather line, shown once above the ideas ------------------------------
+
+WEATHER_LINE: Final = "Weather for {window}, checked at {time}: {summary}"
+WEATHER_WINDOW: Final = f"{{start}}{EN_DASH}{{end}}"
+WEATHER_SUMMARY: Final = "{condition}{rain}, {temperature}, wind up to {wind} km/h."
+WEATHER_RAIN: Final = " (up to {percent} %)"
+WEATHER_TEMPERATURE_RANGE: Final = f"{{low}}{EN_DASH}{{high}} {DEGREE}C"
+WEATHER_TEMPERATURE_ONE: Final = f"{{value}} {DEGREE}C"
+
+# The forecast in words. The condition is the worst instant in the window, so
+# "cloudy with showers possible" keeps the cloud in the sentence rather than promising rain.
+WEATHER_CONDITIONS: Final[Mapping[WeatherCondition, str]] = MappingProxyType(
+    {
+        WeatherCondition.CLEAR: "clear",
+        WeatherCondition.CLOUDY: "cloudy",
+        WeatherCondition.SHOWERS_POSSIBLE: "cloudy with showers possible",
+        WeatherCondition.RAIN_LIKELY: "rain likely",
+        WeatherCondition.FOG: "fog",
+        WeatherCondition.SNOW: "snow",
+    }
+)
+
+# DESIGN-SPEC section 5 names six weather glyphs: sun, cloud, rain, wind, sunset and
+# thermometer. There is no snow or fog glyph, so both take the cloud; the text, never the
+# icon, states the weather, and every icon is decorative and aria-hidden.
+WEATHER_ICONS: Final[Mapping[WeatherCondition, str]] = MappingProxyType(
+    {
+        WeatherCondition.CLEAR: "sun",
+        WeatherCondition.CLOUDY: "cloud",
+        WeatherCondition.SHOWERS_POSSIBLE: "rain",
+        WeatherCondition.RAIN_LIKELY: "rain",
+        WeatherCondition.FOG: "cloud",
+        WeatherCondition.SNOW: "cloud",
+    }
+)
+
+# --- Interest labels (D39, D46): plain text, never controls --------------------------
+
+INTERESTS_HEADING_BY_WHO: Final[Mapping[Who, str]] = MappingProxyType(
+    {
+        Who.SOLO: "We think you're into:",
+        Who.KIDS: "We think they're into:",
+    }
+)
+INTERESTS_LIST_JOIN: Final = ", "
+INTERESTS_LIST_END: Final = "."
+# The legend named here is the one the interests field actually carries, so the
+# instruction points at a control the person can find under "Change answers".
+INTERESTS_NOTE: Final = 'To change these, edit "{legend}" under Change answers.'
+
+# hooks.toml's derived reason `matches_interest`, rendered from validated tags only.
+INTEREST_MATCH: Final = "Matches the interests: {tags}."
+
+# --- Idea cards (section 9, tightened in 8.12) ---------------------------------------
+
+CARD_LINK: Final = "Read the full activity"
+# A visually hidden suffix, so three identical link texts still name their own card.
+CARD_LINK_CONTEXT: Final = ": {title}"
+PRACTICAL_JOIN: Final = f" {MIDDLE_DOT} "
+DISTANCE: Final = "about {km} km away"
+# The detail page says where the number comes from; the card keeps the line short and the
+# detail page carries the qualification (DESIGN-SPEC section 9).
+DISTANCE_STRAIGHT_LINE_SUFFIX: Final = " in a straight line"
+TIMES: Final = f"{{travel}} min there and back {MIDDLE_DOT} {{duration}} min activity"
+DETAIL_TIMES: Final = "About {times} (estimates)"
+
+# OSM place kinds as words. A kind that is not listed falls back to the tag with its
+# underscores replaced, because the kind is provider data, not our vocabulary.
+PLACE_KIND_LABELS: Final[Mapping[str, str]] = MappingProxyType(
+    {
+        "park": "park",
+        "forest": "forest",
+        "nature_reserve": "nature area",
+        "picnic_site": "picnic site",
+        "playground": "playground",
+    }
+)
+# A generic pair carries an explicit absent destination (PLAN section 3).
+PLACE_KIND_GENERIC: Final = "near you"
+
+# Uncertainty labels (D37, D42 P, BACKEND-CONTRACT section 8). Only the ones that apply.
+FEE_UNKNOWN: Final = "Admission not verified"
+FEE_REPORTED_FREE: Final = "Reported free admission"
+STEP_FREE_UNKNOWN: Final = "Step-free access not verified"
+STEP_FREE_REPORTED: Final = "OpenStreetMap reports step-free access"
+
+# --- The detail and print views (sections 6, 9 and 10) -------------------------------
+
+DETAIL_WHY: Final = "Why this idea"
+DETAIL_STEPS: Final = "What to do"
+DETAIL_OPTIONAL: Final = "Nice to have"
+DETAIL_ADAPT: Final = "Another way to play"
+DETAIL_SAFETY: Final = "Safety"
+DETAIL_ASK: Final = "Ask on the way home"
+BINGO_HEADING: Final = "Your bingo card"
+BACK_TO_RESULTS: Final = "Back to results"
+PRINT_LABEL: Final = "Print this card"
+# The plain-browser route, named in words so the page never depends on a script to print.
+PRINT_HELP: Final = ERROR_MESSAGES[ErrorCode.PRINT_HELP]
+
+PRINT_CONTEXT: Final = (
+    f"Planned for {{date}}, {{start}}{EN_DASH}{{end}} ({{tz}}), near {{location}}."
+)
+PRINT_WEATHER: Final = "Weather checked at {time} on {date}; times are estimates."
+PRINT_SOURCE: Final = (
+    f"Place data {COPYRIGHT_SIGN} OpenStreetMap contributors; weather from Open-Meteo."
+)
+PRINT_NOTE: Final = "Check the weather again before you go if plans change."
+
+# --- Notices that are not rows of the ERROR-HANDLING table ---------------------------
+
+# NoticeId.REPLAY is deliberately absent: the replay demo is inactive (D24 superseded by
+# D48), so there is no reviewed copy for it and the presenter renders nothing for it.
+NOTICE_MESSAGES: Final[Mapping[NoticeId, str]] = MappingProxyType(
+    {
+        NoticeId.GENTLER_THAN_ASKED: (
+            "These suggestions are gentler than the energy level you selected."
+        ),
+        NoticeId.INTEREST_NO_MATCH: (
+            "We couldn't match that to our activity list, so these ideas aren't sorted by "
+            "interests."
+        ),
+        NoticeId.INTEREST_UNCLEAR: (
+            "We weren't sure what that meant, so these ideas aren't sorted by interests."
+        ),
+        NoticeId.INTEREST_NOT_APPLIED: (
+            "We couldn't read the interests this time, so these ideas aren't sorted by them."
+        ),
+        NoticeId.INTERESTS_USED_BY_FALLBACK: (
+            "These picks are sorted by our activity list using the interests above."
+        ),
+    }
+)
+
+# --- The error page ------------------------------------------------------------------
+
+# ERROR-HANDLING section 5 wants a specific action label, and REQUEST_TOO_LARGE's own copy
+# already says "Return to the form", so that is the wording for the one action an error
+# page can always offer.
+RETURN_TO_FORM: Final = "Return to the form"
+
+# D49, DEPLOYMENT section 2.3: the daily allowance rolls over at 00:00 UTC and nothing
+# else resets it, so SERVICE_LIMIT_REACHED's reset time is this constant rather than a
+# value a presenter has to be told.
+SERVICE_RESET_TIME: Final = "00:00 UTC"
+
+# The short weekday and month names, so a rendered date never depends on the process
+# locale. CONTRACTS section 8 fixes the shape: "Sat 10 Oct 2026".
+WEEKDAYS: Final[tuple[str, ...]] = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+MONTHS: Final[tuple[str, ...]] = (
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+)

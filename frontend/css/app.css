@@ -8,6 +8,11 @@
 @import "./components/layout.css";
 @import "./components/form.css";
 @import "./components/notice.css";
+@import "./components/results.css";
+@import "./components/card.css";
+@import "./components/detail.css";
+/* Last, so the print rules win on cascade order instead of on `!important`. */
+@import "./components/print.css";
 
 /* Tailwind v4 scans these for utility class names. */
 @source "../../src/wiggle_outside/web/templates";
