@@ -9,8 +9,8 @@ from support import (
     ALL_BANDS,
     ALL_ENERGIES,
     ALL_SEASONS,
+    HOOKS,
     KIDS_ACTIVITY,
-    OPEN_LIMITS,
     SOLO_ACTIVITY,
     kids_conditions,
     kids_constraints,
@@ -19,19 +19,23 @@ from support import (
 
 from wiggle_outside.core.activities import (
     TROPICS_LAT_DEG,
-    Season,
+    activity_limits,
     ages_ok,
+    allowed_hook_ids,
     daylight_ok,
+    eligible,
     energy_ok,
     fits_time,
     hemisphere_season,
+    hook_allowed,
     is_eligible,
     season_allows,
     stroller_ok,
+    top_energy,
+    who_ok,
 )
 from wiggle_outside.core.answers import allowed_energies
-from wiggle_outside.core.types import AgeBand, Energy
-from wiggle_outside.core.weather import WeatherLimits
+from wiggle_outside.core.types import AgeBand, Energy, Hook, Season, Who
 
 STOCKHOLM_LAT = 60.5
 CAPE_TOWN_LAT = -33.9
@@ -64,8 +68,7 @@ def test_an_entry_qualifies_only_if_it_lists_every_selected_band(
     listed: frozenset[AgeBand],
 ) -> None:
     activity = dataclasses.replace(KIDS_ACTIVITY, ages=listed)
-    expected = (not listed) if not selected else selected <= listed
-    assert ages_ok(activity, selected) is expected
+    assert ages_ok(activity, selected) is (selected <= listed)
 
 
 def test_mixed_bands_need_an_entry_listing_both() -> None:
@@ -75,9 +78,18 @@ def test_mixed_bands_need_an_entry_listing_both() -> None:
     assert not ages_ok(narrower, both)
 
 
-def test_a_solo_run_takes_only_entries_with_no_bands() -> None:
+def test_the_audience_decides_which_entries_a_run_sees() -> None:
+    # `who` states it (CC-002); it is no longer inferred from the band list being empty.
+    assert who_ok(KIDS_ACTIVITY, with_kids=True)
+    assert not who_ok(KIDS_ACTIVITY, with_kids=False)
+    assert who_ok(SOLO_ACTIVITY, with_kids=False)
+    assert not who_ok(SOLO_ACTIVITY, with_kids=True)
+    assert KIDS_ACTIVITY.who is Who.KIDS
+    assert SOLO_ACTIVITY.who is Who.SOLO
+
+
+def test_a_solo_run_selects_no_bands() -> None:
     assert ages_ok(SOLO_ACTIVITY, frozenset())
-    assert not ages_ok(KIDS_ACTIVITY, frozenset())
 
 
 # --- the energy ceiling (D18) -------------------------------------------------------
@@ -220,7 +232,7 @@ def test_a_pair_qualifies_only_if_travel_plus_duration_fits(
     *,
     expected: bool,
 ) -> None:
-    activity = dataclasses.replace(KIDS_ACTIVITY, duration_min=duration)
+    activity = dataclasses.replace(KIDS_ACTIVITY, minutes_min=duration)
     assert fits_time(activity, budget_min=budget, travel_min=travel) is expected
 
 
@@ -228,53 +240,166 @@ def test_a_pair_qualifies_only_if_travel_plus_duration_fits(
 
 
 def test_an_eligible_entry_passes_every_rule() -> None:
-    assert is_eligible(
-        KIDS_ACTIVITY,
-        kids_constraints(),
-        kids_conditions(),
-        OPEN_LIMITS,
-        NO_SEASONS,
-    )
+    assert is_eligible(KIDS_ACTIVITY, kids_constraints(), kids_conditions())
 
 
 @pytest.mark.parametrize(
     "broken",
     [
+        {"who": Who.SOLO},
         {"ages": frozenset({AgeBand.B6_9})},
         {"energy": frozenset({Energy.ENERGETIC})},
-        {"duration_min": 61},
+        {"minutes_min": 61},
+        {"min_temp_c": 30},
+        {"max_wind_kmh": 1},
+        {"max_rain_pct": 1},
+        {"max_temp_c": 1},
+        {"seasons": frozenset({Season.SUMMER})},
     ],
 )
 def test_one_failing_rule_excludes_the_entry(broken: dict[str, object]) -> None:
     activity = dataclasses.replace(KIDS_ACTIVITY, **broken)
-    assert not is_eligible(activity, kids_constraints(), kids_conditions(), OPEN_LIMITS, NO_SEASONS)
+    assert not is_eligible(activity, kids_constraints(), kids_conditions())
 
 
 def test_the_night_run_excludes_a_daylight_only_entry() -> None:
     at_night = dataclasses.replace(kids_conditions(), in_daylight=False)
-    assert not is_eligible(KIDS_ACTIVITY, kids_constraints(), at_night, OPEN_LIMITS, NO_SEASONS)
+    assert not is_eligible(KIDS_ACTIVITY, kids_constraints(), at_night)
 
 
 def test_a_stroller_run_excludes_an_unsuitable_entry() -> None:
     with_stroller = dataclasses.replace(kids_constraints(), stroller=True)
     unsuitable = dataclasses.replace(KIDS_ACTIVITY, activity_suits_stroller=False)
-    assert not is_eligible(unsuitable, with_stroller, kids_conditions(), OPEN_LIMITS, NO_SEASONS)
-    assert is_eligible(KIDS_ACTIVITY, with_stroller, kids_conditions(), OPEN_LIMITS, NO_SEASONS)
+    assert not is_eligible(unsuitable, with_stroller, kids_conditions())
+    assert is_eligible(KIDS_ACTIVITY, with_stroller, kids_conditions())
 
 
-def test_a_weather_limit_excludes_the_entry() -> None:
-    conditions = dataclasses.replace(kids_conditions(), samples=samples(apparent=(3.0,)))
-    baby_limits = WeatherLimits(min_temp_c=5, max_wind_kmh=30, max_rain_pct=60, rain_ok=True)
-    assert not is_eligible(
-        KIDS_ACTIVITY,
-        kids_constraints(),
-        conditions,
-        baby_limits,
-        NO_SEASONS,
-    )
+def test_the_entrys_own_temperature_floor_excludes_it() -> None:
+    # Ages 0-2 at 3 degrees apparent: baby-eligible entries need 5 (PLAN section 13).
+    cold = dataclasses.replace(kids_conditions(), samples=samples(apparent=(3.0,)))
+    assert KIDS_ACTIVITY.min_temp_c == 5
+    assert not is_eligible(KIDS_ACTIVITY, kids_constraints(), cold)
+    milder = dataclasses.replace(KIDS_ACTIVITY, min_temp_c=0)
+    assert is_eligible(milder, kids_constraints(), cold)
+
+
+def test_an_out_of_season_entry_is_excluded_by_its_own_seasons() -> None:
+    autumn_only = dataclasses.replace(KIDS_ACTIVITY, seasons=frozenset({Season.AUTUMN}))
+    assert is_eligible(autumn_only, kids_constraints(), kids_conditions())
+    southern = dataclasses.replace(kids_conditions(), lat=CAPE_TOWN_LAT)
+    assert not is_eligible(autumn_only, kids_constraints(), southern)
+    tropical = dataclasses.replace(kids_conditions(), lat=NAIROBI_LAT)
+    assert not is_eligible(autumn_only, kids_constraints(), tropical)
+    assert is_eligible(KIDS_ACTIVITY, kids_constraints(), tropical)
 
 
 def test_the_step_free_preference_never_filters() -> None:
     # D42 P: the preference changes ranking only, so eligibility is identical.
     preferred = dataclasses.replace(kids_constraints(), prefer_step_free=True)
-    assert is_eligible(KIDS_ACTIVITY, preferred, kids_conditions(), OPEN_LIMITS, NO_SEASONS)
+    assert is_eligible(KIDS_ACTIVITY, preferred, kids_conditions())
+
+
+def test_eligible_keeps_catalogue_order_and_drops_the_rest() -> None:
+    kept = dataclasses.replace(KIDS_ACTIVITY, activity_id="kept")
+    dropped = dataclasses.replace(KIDS_ACTIVITY, activity_id="dropped", minutes_min=61)
+    found = eligible((dropped, kept), kids_constraints(), kids_conditions())
+    assert [entry.activity_id for entry in found] == ["kept"]
+
+
+# --- the entry's own weather limits (CC-002) ----------------------------------------
+
+
+def test_activity_limits_come_from_the_entry() -> None:
+    limits = activity_limits(KIDS_ACTIVITY)
+    assert limits.min_temp_c == KIDS_ACTIVITY.min_temp_c
+    assert limits.max_wind_kmh == KIDS_ACTIVITY.max_wind_kmh
+    assert limits.max_rain_pct == KIDS_ACTIVITY.max_rain_pct
+    assert limits.rain_ok is KIDS_ACTIVITY.rain_ok
+    assert limits.max_temp_c == KIDS_ACTIVITY.max_temp_c
+
+
+def test_an_optional_ceiling_reaches_the_limits() -> None:
+    capped = dataclasses.replace(KIDS_ACTIVITY, max_temp_c=25)
+    assert activity_limits(capped).max_temp_c == 25
+
+
+# --- the hooks a pair may offer (CC-003) --------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("levels", "expected"),
+    [
+        (frozenset({Energy.GENTLE}), Energy.GENTLE),
+        (frozenset({Energy.GENTLE, Energy.MODERATE}), Energy.MODERATE),
+        (frozenset({Energy.GENTLE, Energy.ENERGETIC}), Energy.ENERGETIC),
+        (frozenset(), None),
+    ],
+)
+def test_top_energy_is_the_highest_level_listed(
+    levels: frozenset[Energy],
+    expected: Energy | None,
+) -> None:
+    assert top_energy(levels) is expected
+
+
+def test_a_hook_needing_a_destination_is_not_offered_to_a_generic_pair() -> None:
+    hook = Hook(
+        hook_id="h",
+        text="t",
+        for_who=frozenset({Who.KIDS}),
+        needs_destination=True,
+    )
+    assert hook_allowed(hook, KIDS_ACTIVITY, has_place=True)
+    assert not hook_allowed(hook, KIDS_ACTIVITY, has_place=False)
+
+
+def test_a_generic_only_hook_is_offered_only_without_a_destination() -> None:
+    hook = Hook(hook_id="h", text="t", for_who=frozenset({Who.KIDS}), generic_only=True)
+    assert hook_allowed(hook, KIDS_ACTIVITY, has_place=False)
+    assert not hook_allowed(hook, KIDS_ACTIVITY, has_place=True)
+
+
+def test_the_audience_gates_the_hook() -> None:
+    kids_only = Hook(hook_id="h", text="t", for_who=frozenset({Who.KIDS}))
+    assert hook_allowed(kids_only, KIDS_ACTIVITY, has_place=True)
+    assert not hook_allowed(kids_only, SOLO_ACTIVITY, has_place=True)
+
+
+@pytest.mark.parametrize(
+    ("levels", "expected"),
+    [
+        (frozenset({Energy.GENTLE}), True),
+        (frozenset({Energy.GENTLE, Energy.MODERATE}), False),
+        (frozenset({Energy.ENERGETIC}), False),
+    ],
+)
+def test_max_energy_compares_against_the_entrys_top_level(
+    levels: frozenset[Energy],
+    *,
+    expected: bool,
+) -> None:
+    hook = Hook(
+        hook_id="slow-reset",
+        text="t",
+        for_who=frozenset({Who.SOLO}),
+        needs_destination=True,
+        max_energy=Energy.GENTLE,
+    )
+    activity = dataclasses.replace(SOLO_ACTIVITY, energy=levels)
+    assert hook_allowed(hook, activity, has_place=True) is expected
+
+
+def test_allowed_hook_ids_for_a_kids_pair_with_a_place() -> None:
+    assert allowed_hook_ids(HOOKS, KIDS_ACTIVITY, has_place=True) == frozenset(
+        {"expedition", "pocket-adventure"}
+    )
+
+
+def test_allowed_hook_ids_for_a_generic_kids_pair() -> None:
+    assert allowed_hook_ids(HOOKS, KIDS_ACTIVITY, has_place=False) == frozenset({"no-destination"})
+
+
+def test_allowed_hook_ids_for_a_gentle_solo_pair_with_a_place() -> None:
+    assert allowed_hook_ids(HOOKS, SOLO_ACTIVITY, has_place=True) == frozenset(
+        {"expedition", "quick-escape", "slow-reset"}
+    )

@@ -123,20 +123,12 @@ def ceil_hour(at: datetime) -> datetime:
     return floored if floored == at else floored + HOUR
 
 
-def used_samples(
-    window: WeatherWindow,
-    outing: OutingWindow,
-    precipitation_mm: tuple[float, ...],
-) -> Samples | None:
-    """Select the samples an outing window uses, or None if the arrays fail validation.
-
-    `precipitation_mm` is passed separately until `WeatherWindow` carries the millimetre
-    array BACKEND-CONTRACT section 1 requests (CC-001 in the WP1 report).
-    """
-    if not _arrays_usable(window, precipitation_mm):
+def used_samples(window: WeatherWindow, outing: OutingWindow) -> Samples | None:
+    """Select the samples an outing window uses, or None if the arrays fail validation."""
+    if not _arrays_usable(window):
         return None
     instants = tuple(_select_instants(window, outing))
-    intervals = tuple(_select_intervals(window, outing, precipitation_mm))
+    intervals = tuple(_select_intervals(window, outing))
     if not instants or not intervals:
         return None
     return Samples(instants=instants, intervals=intervals)
@@ -252,7 +244,7 @@ def _worst_condition(instants: tuple[Instant, ...]) -> WeatherCondition:
     return CONDITION_SEVERITY[max(ranks)]
 
 
-def _arrays_usable(window: WeatherWindow, precipitation_mm: tuple[float, ...]) -> bool:
+def _arrays_usable(window: WeatherWindow) -> bool:
     if not window.times:
         return False
     expected = len(window.times)
@@ -260,9 +252,9 @@ def _arrays_usable(window: WeatherWindow, precipitation_mm: tuple[float, ...]) -
         len(window.temp_c),
         len(window.apparent_temp_c),
         len(window.precip_probability),
+        len(window.precipitation_mm),
         len(window.wind_kmh),
         len(window.weather_code),
-        len(precipitation_mm),
     )
     if any(length != expected for length in lengths):
         return False
@@ -272,7 +264,7 @@ def _arrays_usable(window: WeatherWindow, precipitation_mm: tuple[float, ...]) -
         window.temp_c,
         window.apparent_temp_c,
         window.wind_kmh,
-        precipitation_mm,
+        window.precipitation_mm,
     )
 
 
@@ -294,15 +286,11 @@ def _select_instants(window: WeatherWindow, outing: OutingWindow) -> Iterator[In
             )
 
 
-def _select_intervals(
-    window: WeatherWindow,
-    outing: OutingWindow,
-    precipitation_mm: tuple[float, ...],
-) -> Iterator[Interval]:
+def _select_intervals(window: WeatherWindow, outing: OutingWindow) -> Iterator[Interval]:
     for index, at in enumerate(window.times):
         if at - HOUR < outing.end and at > outing.start:
             yield Interval(
                 ends_at=at,
                 probability=window.precip_probability[index],
-                precipitation_mm=precipitation_mm[index],
+                precipitation_mm=window.precipitation_mm[index],
             )

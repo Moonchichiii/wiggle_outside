@@ -4,7 +4,7 @@ import dataclasses
 import itertools
 
 import pytest
-from support import KIDS_ACTIVITY, SOLO_ACTIVITY
+from support import HOOKS, KIDS_ACTIVITY, SOLO_ACTIVITY
 
 from wiggle_outside.core.places import (
     WALK_KMH_ALONE,
@@ -216,6 +216,37 @@ def test_pairs_carry_the_distance_and_travel_of_their_place() -> None:
     assert only.travel_min == travel_min(only.distance_m or 0, with_kids=True)
 
 
+def test_the_pair_duration_is_the_clamped_remainder() -> None:
+    # 20-60 minutes on site; travel is 0 at the origin (CC-002 wires the clamp through).
+    here = place("here")
+    assert (KIDS_ACTIVITY.minutes_min, KIDS_ACTIVITY.minutes_max) == (20, 60)
+    hour = pair_candidates((KIDS_ACTIVITY,), (here,), PLAN)[0]
+    assert hour.duration_min == 60
+    half_hour = dataclasses.replace(PLAN, budget_min=30)
+    assert pair_candidates((KIDS_ACTIVITY,), (here,), half_hour)[0].duration_min == 30
+    half_day = dataclasses.replace(PLAN, budget_min=240)
+    assert pair_candidates((KIDS_ACTIVITY,), (here,), half_day)[0].duration_min == 60
+
+
+def test_travel_comes_out_of_the_pair_duration() -> None:
+    far = place("far", lat=60.5 + STEP_DEG)
+    half_day = dataclasses.replace(PLAN, budget_min=240)
+    only = pair_candidates((KIDS_ACTIVITY,), (far,), half_day)[0]
+    assert only.duration_min == selected_duration(
+        budget_min=240,
+        travel=only.travel_min,
+        minutes_min=KIDS_ACTIVITY.minutes_min,
+        minutes_max=KIDS_ACTIVITY.minutes_max,
+    )
+
+
+def test_a_generic_pair_duration_is_clamped_too() -> None:
+    generic_ready = dataclasses.replace(KIDS_ACTIVITY, generic_ok=True)
+    only = pair_candidates((generic_ready,), (), dataclasses.replace(PLAN, budget_min=30))[0]
+    assert only.travel_min == 0
+    assert only.duration_min == 30
+
+
 def test_an_activity_that_cannot_fit_the_budget_makes_no_pair() -> None:
     far = place("far", lat=61.5)
     assert pair_candidates((KIDS_ACTIVITY,), (far,), PLAN) == ()
@@ -247,7 +278,7 @@ def test_no_places_falls_back_to_generic_pairs() -> None:
 
 
 def test_a_generic_pair_still_has_to_fit_the_budget() -> None:
-    long_entry = dataclasses.replace(SOLO_ACTIVITY, duration_min=61)
+    long_entry = dataclasses.replace(SOLO_ACTIVITY, minutes_min=61, minutes_max=90)
     assert pair_candidates((long_entry,), (), PLAN) == ()
 
 
@@ -261,36 +292,45 @@ def test_every_place_being_paid_leaves_the_generic_path() -> None:
 # --- Pair construction --------------------------------------------------------------
 
 
+def no_reasons(_: PairCandidate) -> frozenset[str]:
+    """`Reason.when` is reviewer prose; core.ideas supplies the real sets (CC-003)."""
+    return frozenset()
+
+
+def generic_candidate(activity_id: str = "nature-bingo") -> PairCandidate:
+    return PairCandidate(
+        activity=dataclasses.replace(KIDS_ACTIVITY, activity_id=activity_id),
+        place=None,
+        distance_m=None,
+        travel_min=0,
+        duration_min=20,
+    )
+
+
 def test_pair_ids_are_sequential_and_idea_ids_come_from_the_factory() -> None:
     tokens = iter(ids(3))
-    candidates = tuple(
-        PairCandidate(
-            activity=dataclasses.replace(KIDS_ACTIVITY, activity_id=f"a{index}"),
-            place=None,
-            distance_m=None,
-            travel_min=0,
-            duration_min=20,
-        )
-        for index in range(3)
-    )
-    pairs = to_pairs(candidates, lambda: next(tokens), lambda _: (frozenset({"h"}), frozenset()))
+    candidates = tuple(generic_candidate(f"a{index}") for index in range(3))
+    pairs = to_pairs(candidates, HOOKS, lambda: next(tokens), no_reasons)
     assert [pair.pair_id for pair in pairs] == ["p1", "p2", "p3"]
     assert [pair.idea_id for pair in pairs] == ids(3)
     assert [pair.activity_id for pair in pairs] == ["a0", "a1", "a2"]
-    assert all(pair.allowed_hook_ids == frozenset({"h"}) for pair in pairs)
 
 
 def test_the_id_factory_is_called_once_per_pair() -> None:
     counter = itertools.count()
-    candidates = tuple(
-        PairCandidate(
-            activity=KIDS_ACTIVITY,
-            place=None,
-            distance_m=None,
-            travel_min=0,
-            duration_min=20,
-        )
-        for _ in range(5)
-    )
-    pairs = to_pairs(candidates, lambda: f"i{next(counter)}", lambda _: (frozenset(), frozenset()))
+    candidates = tuple(generic_candidate() for _ in range(5))
+    pairs = to_pairs(candidates, HOOKS, lambda: f"i{next(counter)}", no_reasons)
     assert len({pair.idea_id for pair in pairs}) == len(pairs)
+
+
+def test_each_pair_carries_the_hooks_its_destination_allows() -> None:
+    here = place("here")
+    with_place = dataclasses.replace(generic_candidate(), place=here, distance_m=0)
+    pairs = to_pairs((with_place, generic_candidate()), HOOKS, lambda: "i", no_reasons)
+    assert pairs[0].allowed_hook_ids == frozenset({"expedition", "pocket-adventure"})
+    assert pairs[1].allowed_hook_ids == frozenset({"no-destination"})
+
+
+def test_the_reason_sets_come_from_the_injected_function() -> None:
+    pairs = to_pairs((generic_candidate(),), HOOKS, lambda: "i", lambda _: frozenset({"close_by"}))
+    assert pairs[0].allowed_reason_ids == frozenset({"close_by"})

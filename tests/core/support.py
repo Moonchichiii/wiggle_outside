@@ -9,7 +9,7 @@ apparent values.
 from datetime import UTC, datetime
 from typing import Final
 
-from wiggle_outside.core.activities import Conditions, Season
+from wiggle_outside.core.activities import Conditions
 from wiggle_outside.core.answers import Constraints, OutingWindow
 from wiggle_outside.core.types import (
     Activity,
@@ -17,11 +17,13 @@ from wiggle_outside.core.types import (
     Answers,
     Coordinates,
     Energy,
+    Hook,
+    Season,
     TimeBudget,
     WeatherWindow,
     Who,
 )
-from wiggle_outside.core.weather import Instant, Interval, Samples, WeatherLimits
+from wiggle_outside.core.weather import Instant, Interval, Samples
 
 DAY: Final = (2026, 10, 10)
 TIMES: Final = tuple(datetime(*DAY, hour, tzinfo=UTC) for hour in (8, 9, 10, 11))
@@ -49,6 +51,7 @@ BOUNDARY_WINDOW: Final = WeatherWindow(
     temp_c=tuple(value + 1.0 for value in APPARENT),
     apparent_temp_c=APPARENT,
     precip_probability=PROBABILITY,
+    precipitation_mm=PRECIPITATION_MM,
     wind_kmh=WIND,
     weather_code=CODES,
     sunrise=SUNRISE,
@@ -59,18 +62,24 @@ BOUNDARY_WINDOW: Final = WeatherWindow(
 KIDS_ACTIVITY: Final = Activity(
     activity_id="nature-bingo",
     title="Nature bingo",
+    who=Who.KIDS,
     ages=frozenset({AgeBand.B0_2, AgeBand.B3_5, AgeBand.B6_9, AgeBand.B10_12}),
     energy=frozenset({Energy.GENTLE, Energy.MODERATE}),
-    interests=(),
+    place_kinds=frozenset({"park"}),
     generic_ok=False,
-    activity_suits_stroller=True,
-    daylight_only=True,
+    interests=(),
+    minutes_min=20,
+    minutes_max=60,
+    rain_ok=True,
+    max_rain_pct=60,
     min_temp_c=5,
     max_wind_kmh=30,
-    duration_min=20,
-    place_kinds=frozenset({"park"}),
-    steps=("Look for a bird.",),
+    max_temp_c=None,
+    daylight_only=True,
+    activity_suits_stroller=True,
+    seasons=frozenset(),
     optional=(),
+    steps=("Look for a bird.",),
     adapt="Listen instead.",
     ask="Which was hardest?",
     safety="Stay on the path.",
@@ -80,26 +89,64 @@ KIDS_ACTIVITY: Final = Activity(
 SOLO_ACTIVITY: Final = Activity(
     activity_id="slow-reset",
     title="Slow reset",
+    who=Who.SOLO,
     ages=frozenset(),
     energy=frozenset({Energy.GENTLE}),
-    interests=(),
+    place_kinds=frozenset({"any"}),
     generic_ok=True,
-    activity_suits_stroller=False,
-    daylight_only=False,
+    interests=(),
+    minutes_min=20,
+    minutes_max=45,
+    rain_ok=False,
+    max_rain_pct=40,
     min_temp_c=0,
     max_wind_kmh=30,
-    duration_min=20,
-    place_kinds=frozenset({"any"}),
-    steps=("Walk slowly.",),
+    max_temp_c=None,
+    daylight_only=False,
+    activity_suits_stroller=False,
+    seasons=frozenset(),
     optional=(),
+    steps=("Walk slowly.",),
     adapt="Sit instead.",
     ask=None,
     safety="Mind the traffic.",
     card=(),
 )
 
-# Limits no sample in the fixture breaks.
-OPEN_LIMITS: Final = WeatherLimits(min_temp_c=-50, max_wind_kmh=100, max_rain_pct=100, rain_ok=True)
+# The gating flags of docs/drafts/hooks.toml, in its own order (CC-003).
+HOOKS: Final = (
+    Hook(
+        hook_id="expedition",
+        text="Today's mission is waiting for you there.",
+        for_who=frozenset({Who.KIDS, Who.SOLO}),
+        needs_destination=True,
+    ),
+    Hook(
+        hook_id="pocket-adventure",
+        text="A pocket-sized adventure for right now.",
+        for_who=frozenset({Who.KIDS}),
+        needs_destination=True,
+    ),
+    Hook(
+        hook_id="quick-escape",
+        text="A small escape for right now.",
+        for_who=frozenset({Who.SOLO}),
+        needs_destination=True,
+    ),
+    Hook(
+        hook_id="slow-reset",
+        text="A slow reset: no rush, nothing to prove.",
+        for_who=frozenset({Who.SOLO}),
+        needs_destination=True,
+        max_energy=Energy.GENTLE,
+    ),
+    Hook(
+        hook_id="no-destination",
+        text="No particular place needed: start on the paths near you.",
+        for_who=frozenset({Who.KIDS, Who.SOLO}),
+        generic_only=True,
+    ),
+)
 
 KIDS_ANSWERS: Final = Answers(
     who=Who.KIDS,

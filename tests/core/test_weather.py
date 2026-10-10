@@ -9,7 +9,6 @@ from support import (
     APPARENT,
     BOUNDARY_WINDOW,
     OUTING,
-    PRECIPITATION_MM,
     SUNRISE,
     SUNSET,
     TIMES,
@@ -48,7 +47,7 @@ ON_THE_HOUR = OutingWindow(start=TIMES[0], end=TIMES[1])
 
 
 def used(window: OutingWindow = OUTING) -> tuple[tuple[datetime, ...], tuple[datetime, ...]]:
-    chosen = used_samples(BOUNDARY_WINDOW, window, PRECIPITATION_MM)
+    chosen = used_samples(BOUNDARY_WINDOW, window)
     assert chosen is not None
     return (
         tuple(instant.at for instant in chosen.instants),
@@ -91,7 +90,7 @@ def test_window_ending_on_the_hour_uses_one_interval() -> None:
 def test_window_outside_the_arrays_has_no_samples() -> None:
     earlier = TIMES[0] - timedelta(days=2)
     far = OutingWindow(start=earlier, end=earlier + timedelta(hours=1))
-    assert used_samples(BOUNDARY_WINDOW, far, PRECIPITATION_MM) is None
+    assert used_samples(BOUNDARY_WINDOW, far) is None
 
 
 # --- validation fails closed --------------------------------------------------------
@@ -109,26 +108,38 @@ def test_window_outside_the_arrays_has_no_samples() -> None:
         {"weather_code": (3, 3, 80, 4)},
         {"apparent_temp_c": (10.6, 11.4, math.nan, 12.2)},
         {"wind_kmh": (12.0, 14.0, math.inf, 20.0)},
+        {"precipitation_mm": (0.0, 0.0)},
+        {"precipitation_mm": (0.0, 0.0, math.nan, 0.4)},
+        {"precipitation_mm": (0.0, 0.0, math.inf, 0.4)},
     ],
 )
 def test_invalid_arrays_fail_closed(broken: dict[str, object]) -> None:
     window = dataclasses.replace(BOUNDARY_WINDOW, **broken)
-    assert used_samples(window, OUTING, PRECIPITATION_MM) is None
+    assert used_samples(window, OUTING) is None
 
 
 def test_precipitation_length_mismatch_fails_closed() -> None:
-    assert used_samples(BOUNDARY_WINDOW, OUTING, (0.0, 0.0)) is None
+    window = dataclasses.replace(BOUNDARY_WINDOW, precipitation_mm=(0.0, 0.0))
+    assert used_samples(window, OUTING) is None
 
 
 def test_non_finite_precipitation_fails_closed() -> None:
-    assert used_samples(BOUNDARY_WINDOW, OUTING, (0.0, 0.0, math.nan, 0.4)) is None
+    window = dataclasses.replace(BOUNDARY_WINDOW, precipitation_mm=(0.0, 0.0, math.nan, 0.4))
+    assert used_samples(window, OUTING) is None
+
+
+def test_the_millimetre_array_reaches_the_intervals() -> None:
+    chosen = used_samples(BOUNDARY_WINDOW, OUTING)
+    assert chosen is not None
+    # The samples used are the 09:00 and 10:00 intervals: 0.0 mm and 0.1 mm.
+    assert tuple(interval.precipitation_mm for interval in chosen.intervals) == (0.0, 0.1)
 
 
 # --- the stored summary -------------------------------------------------------------
 
 
 def test_summary_comes_from_the_samples_used() -> None:
-    chosen = used_samples(BOUNDARY_WINDOW, OUTING, PRECIPITATION_MM)
+    chosen = used_samples(BOUNDARY_WINDOW, OUTING)
     assert chosen is not None
     summary = summarise(BOUNDARY_WINDOW, OUTING, chosen)
     assert summary.condition is WeatherCondition.SHOWERS_POSSIBLE
@@ -264,7 +275,7 @@ def test_limits_satisfied_needs_every_limit() -> None:
 
 
 def test_the_walkthrough_window_passes_a_rain_ready_entry() -> None:
-    chosen = used_samples(BOUNDARY_WINDOW, OUTING, PRECIPITATION_MM)
+    chosen = used_samples(BOUNDARY_WINDOW, OUTING)
     assert chosen is not None
     rain_ready = WeatherLimits(min_temp_c=5, max_wind_kmh=30, max_rain_pct=60, rain_ok=True)
     dry_only = WeatherLimits(min_temp_c=5, max_wind_kmh=30, max_rain_pct=60, rain_ok=False)

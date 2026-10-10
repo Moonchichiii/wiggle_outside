@@ -8,6 +8,7 @@ import math
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final
 
+from wiggle_outside.core.activities import allowed_hook_ids
 from wiggle_outside.core.types import (
     MAX_PAIRS,
     MAX_PLACES,
@@ -19,6 +20,8 @@ from wiggle_outside.core.types import (
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
+
+    from wiggle_outside.core.types import Hook
 
 EARTH_RADIUS_M: Final = 6_371_008.8
 WALK_KMH_WITH_KIDS: Final = 3.0
@@ -116,13 +119,17 @@ def pair_candidates(
 
 def to_pairs(
     candidates: tuple[PairCandidate, ...],
+    hooks: tuple[Hook, ...],
     new_idea_id: Callable[[], str],
-    allowed: Callable[[PairCandidate], tuple[frozenset[str], frozenset[str]]],
+    allowed_reason_ids: Callable[[PairCandidate], frozenset[str]],
 ) -> tuple[Pair, ...]:
-    """Return one `Pair` per candidate, numbered `p1`..`p12`, with an injected `idea_id`."""
+    """Return one `Pair` per candidate, numbered `p1`..`p12`, with an injected `idea_id`.
+
+    `allowed_reason_ids` is injected because `Reason.when` is reviewer prose, not an
+    expression: the per-reason conditions live in `core.ideas` (CC-003).
+    """
     pairs: list[Pair] = []
     for index, candidate in enumerate(candidates, start=1):
-        hook_ids, reason_ids = allowed(candidate)
         pairs.append(
             Pair(
                 pair_id=f"p{index}",
@@ -132,8 +139,12 @@ def to_pairs(
                 distance_m=candidate.distance_m,
                 travel_min=candidate.travel_min,
                 duration_min=candidate.duration_min,
-                allowed_hook_ids=hook_ids,
-                allowed_reason_ids=reason_ids,
+                allowed_hook_ids=allowed_hook_ids(
+                    hooks,
+                    candidate.activity,
+                    has_place=candidate.place is not None,
+                ),
+                allowed_reason_ids=allowed_reason_ids(candidate),
             )
         )
     return tuple(pairs)
@@ -153,14 +164,14 @@ def _generic_candidates(
         if fits_budget(
             budget_min=plan.budget_min,
             travel=GENERIC_TRAVEL_MIN,
-            minutes_min=activity.duration_min,
+            minutes_min=activity.minutes_min,
         ):
             yield PairCandidate(
                 activity=activity,
                 place=None,
                 distance_m=None,
                 travel_min=GENERIC_TRAVEL_MIN,
-                duration_min=activity.duration_min,
+                duration_min=_duration_for(activity, plan.budget_min, GENERIC_TRAVEL_MIN),
             )
 
 
@@ -192,15 +203,22 @@ def _for_place(
             place=place,
             distance_m=metres,
             travel_min=travel,
-            # One value until the catalogue carries `minutes = [min, max]` (CC-002):
-            # with a min and a max this is `selected_duration(...)`.
-            duration_min=activity.duration_min,
+            duration_min=_duration_for(activity, plan.budget_min, travel),
         )
         for activity in activities
         if place_kind_matches(activity, place)
         and fits_budget(
             budget_min=plan.budget_min,
             travel=travel,
-            minutes_min=activity.duration_min,
+            minutes_min=activity.minutes_min,
         )
+    )
+
+
+def _duration_for(activity: Activity, budget_min: int, travel: int) -> int:
+    return selected_duration(
+        budget_min=budget_min,
+        travel=travel,
+        minutes_min=activity.minutes_min,
+        minutes_max=activity.minutes_max,
     )
