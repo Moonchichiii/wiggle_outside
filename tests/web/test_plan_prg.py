@@ -5,7 +5,7 @@ from typing import Final
 
 from web_support import ANSWERS, Harness
 
-from wiggle_outside.web.security import HTML_CACHE_CONTROL, SESSION_COOKIE
+from wiggle_outside.web.security import DEV_SESSION_COOKIE, HTML_CACHE_CONTROL
 
 DETAIL_URL: Final = re.compile(r"/results/[^\"]+/ideas/[^\"]+")
 
@@ -15,7 +15,9 @@ def test_the_form_page_creates_a_session_and_renders_the_form(harness: Harness) 
 
     assert page.status_code == 200
     assert 'action="/plan"' in page.text
-    assert SESSION_COOKIE in page.cookies or SESSION_COOKIE in harness.client.cookies
+    # The harness runs in development mode, where the cookie drops the __Host-
+    # prefix so a browser on plain HTTP will actually keep it (TC-008).
+    assert DEV_SESSION_COOKIE in page.cookies or DEV_SESSION_COOKIE in harness.client.cookies
     assert page.headers["cache-control"] == HTML_CACHE_CONTROL
     assert len(harness.sessions) == 1
 

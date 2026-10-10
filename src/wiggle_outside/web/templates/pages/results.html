@@ -31,6 +31,8 @@
 {% endblock %}
 
 {% block main %}
+{# Every page sits in the cream panel (the approved board, TC-008). #}
+<div class="wo-panel">
 <section class="wo-results" aria-labelledby="results-heading">
 <h2 class="wo-results-heading" id="results-heading" tabindex="-1">{{ page.heading }}</h2>
 {% if fixed_copy and page.notices %}
@@ -101,4 +103,5 @@
 </div>
 {% endif %}
 </section>
+</div>
 {% endblock %}

@@ -35,10 +35,11 @@
   font-size: var(--text-base);
 }
 
-/* The board sets the whole thing in one narrow card, not a wide page. */
+/* The board sets the whole thing in one narrow card, not a wide page: every page -
+   form, results, error, night - is this one column. */
 .wo-masthead,
 .wo-column {
-  max-width: 34rem;
+  max-width: var(--wo-panel-w);
 }
 
 /* --- The card ---------------------------------------------------------------------- */
@@ -321,4 +322,76 @@
   .wo-tiles {
     gap: var(--spacing-s1);
   }
+}
+
+/* Every page is the one cream panel. A panel nested inside another - the plan form
+   inside "Change answers" - is a section of it, not a second card. */
+.wo-panel {
+  max-width: var(--wo-panel-w);
+  margin-inline: auto;
+}
+
+.wo-panel .wo-panel {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* --- Tile metrics for the 480 px panel ---------------------------------------------- */
+
+/* The panel is narrower than the page used to be, so the tiles have to be measured for
+   it. Four across gives each tile about 102 px; three about 138 px. */
+.wo-tiles-three .wo-tile,
+.wo-tiles-four .wo-tile {
+  gap: 6px;
+  padding-inline: 6px;
+}
+
+.wo-tiles-three .wo-tile > .wo-icon,
+.wo-tiles-four .wo-tile > .wo-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.wo-tiles-three .wo-tile-label {
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+/* "Half day (4 h)" cannot fit on one line in a 102 px tile at a readable size, so the
+   four-across labels wrap instead of being clipped. The grid keeps the row even. */
+.wo-tiles-four .wo-tile-label {
+  font-size: 0.875rem;
+  white-space: normal;
+  line-height: 1.15;
+}
+
+/* Measured, not guessed: in a 137 px energy tile the label needs 62 px and flex was
+   shrinking it to 57, which clipped "Moderate". Tighter padding plus no shrink gives it
+   69 px. */
+.wo-tiles-three .wo-tile,
+.wo-tiles-four .wo-tile {
+  padding-inline: 8px;
+}
+
+.wo-tiles-three .wo-tile-label {
+  flex: none;
+}
+
+/* The board gives the results page the same big heading as the form. */
+.wo-results-heading {
+  margin: 0 0 var(--spacing-s2);
+  font-family: var(--font-heading);
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+}
+
+/* The drawing had been reserving more width than it uses, which wrapped the fact rows
+   more than the board does. */
+.wo-card[data-illo] {
+  padding-right: 96px;
+  background-size: 84px 77px;
 }

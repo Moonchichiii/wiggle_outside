@@ -12,6 +12,7 @@ from web_support import ANSWERS, FOREIGN_ORIGIN, Harness, build_harness, harness
 from wiggle_outside.core.types import DeploymentMode
 from wiggle_outside.preview_planner import PreviewPlanner
 from wiggle_outside.web.security import (
+    DEV_SESSION_COOKIE,
     HSTS,
     HTML_CACHE_CONTROL,
     MAX_BODY_BYTES,
@@ -46,10 +47,10 @@ def hosted() -> Iterator[Harness]:
 # --- The cookie (D31, TC-005) -------------------------------------------------------
 
 
-def test_the_session_cookie_is_host_prefixed_secure_httponly_and_strict(
-    harness: Harness,
+def test_the_product_cookie_is_host_prefixed_secure_httponly_and_strict(
+    hosted: Harness,
 ) -> None:
-    raw = harness.client.get("/").headers["set-cookie"]
+    raw = hosted.client.get("/", headers={"Host": "wiggle-outside.fly.dev"}).headers["set-cookie"]
 
     assert raw.startswith(f"{SESSION_COOKIE}=")
     assert "Secure" in raw
@@ -59,12 +60,26 @@ def test_the_session_cookie_is_host_prefixed_secure_httponly_and_strict(
     assert "Domain" not in raw  # __Host- forbids it
 
 
+def test_development_drops_only_the_prefix_and_secure(harness: Harness) -> None:
+    # A browser rejects `__Host-` and Secure on http://localhost, so the session would
+    # never persist and every POST would be 403 (TC-008). Everything else is unchanged.
+    raw = harness.client.get("/").headers["set-cookie"]
+
+    assert raw.startswith(f"{DEV_SESSION_COOKIE}=")
+    assert not raw.startswith("__Host-")
+    assert "Secure" not in raw
+    assert "HttpOnly" in raw
+    assert "SameSite=strict" in raw.replace("SameSite=Strict", "SameSite=strict")
+    assert "Path=/" in raw
+    assert "Domain" not in raw
+
+
 def test_the_session_id_is_not_derived_from_anything_the_client_sent(
     harness: Harness,
 ) -> None:
-    first = harness.client.get("/").cookies[SESSION_COOKIE]
+    first = harness.client.get("/").cookies[DEV_SESSION_COOKIE]
     harness.client.cookies.clear()
-    second = harness.client.get("/").cookies[SESSION_COOKIE]
+    second = harness.client.get("/").cookies[DEV_SESSION_COOKIE]
 
     assert first != second
     assert len(first) >= 40  # token_urlsafe(32)
@@ -213,13 +228,13 @@ def test_an_unknown_host_header_is_refused(harness: Harness) -> None:
 def test_an_unknown_session_id_is_never_adopted(harness: Harness) -> None:
     tokens = harness.start()
     harness.client.cookies.clear()
-    harness.client.cookies.set(SESSION_COOKIE, "not-a-session")
+    harness.client.cookies.set(DEV_SESSION_COOKIE, "not-a-session")
 
     refused = harness.post("/plan", harness.body(tokens))
 
     assert refused.status_code == 403
     # A fresh session is issued, so a resubmission can work; the old ID is not adopted.
-    assert refused.cookies[SESSION_COOKIE] != "not-a-session"
+    assert refused.cookies[DEV_SESSION_COOKIE] != "not-a-session"
 
 
 def test_a_missing_csrf_token_is_refused(harness: Harness) -> None:
@@ -381,3 +396,18 @@ def test_an_idempotency_key_with_a_different_fingerprint_is_refused_by_the_sessi
     assert session.remember("key", "digest-a")
     assert session.remember("key", "digest-a")
     assert not session.remember("key", "digest-b")
+
+
+def test_a_form_post_is_accepted_with_the_referrer_policy_we_send(harness: Harness) -> None:
+    """The header and the origin rule must not contradict each other.
+
+    `Referrer-Policy: no-referrer` makes Chromium send `Origin: null` on a form POST,
+    and BACKEND-CONTRACT section 5 refuses a null Origin with 403 - so with both rules
+    in force no submission could ever succeed, in the hosted product as much as
+    locally. This pins the header; a browser-level check belongs to WP9b's journeys.
+    """
+    page = harness.client.get("/")
+
+    assert page.headers["referrer-policy"] == "same-origin"
+    # Same-origin requests therefore carry an Origin, and the POST is accepted.
+    assert harness.plan().status_code == 303

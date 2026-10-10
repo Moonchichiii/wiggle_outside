@@ -25,7 +25,6 @@ from wiggle_outside.web.security import (
     HTTP_FORBIDDEN,
     HTTP_OK,
     HTTP_UNSUPPORTED_MEDIA_TYPE,
-    SESSION_COOKIE,
     OriginPolicy,
     Session,
     SessionStore,
@@ -36,6 +35,7 @@ from wiggle_outside.web.security import (
     media_type_allowed,
     origin_allowed,
     read_limited,
+    session_cookie_name,
     set_session_cookie,
 )
 from wiggle_outside.web.views import AssetRef, FormContext, SessionView
@@ -134,7 +134,7 @@ def refuse_session(context: WebContext, *, fresh: bool) -> Response:
     """403 SESSION_INVALID. An unknown session ID is never adopted; a new one is issued."""
     response = _refuse(context, ErrorCode.SESSION_INVALID, HTTP_FORBIDDEN)
     if fresh:
-        set_session_cookie(response, context.sessions.create().session_id)
+        set_session_cookie(response, context.sessions.create().session_id, context.settings.mode)
     return response
 
 
@@ -162,7 +162,7 @@ async def admit_post(context: WebContext, request: Request) -> Admitted | Respon
         return _refuse(context, ErrorCode.INPUT_INVALID, HTTP_BAD_REQUEST)
     if not origin_allowed(request, context.policy):
         return refuse_session(context, fresh=False)
-    session = context.sessions.get(request.cookies.get(SESSION_COOKIE))
+    session = context.sessions.get(request.cookies.get(session_cookie_name(context.settings.mode)))
     if session is None:
         return refuse_session(context, fresh=True)
     tokens = values.get("csrf_token", [])

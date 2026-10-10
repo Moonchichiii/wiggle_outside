@@ -31,12 +31,12 @@ from wiggle_outside.web.routes.support import (
 from wiggle_outside.web.security import (
     HTTP_BAD_REQUEST,
     HTTP_NOT_FOUND,
-    SESSION_COOKIE,
     Session,
     host_allowed,
     html_page,
     page_headers,
     see_other,
+    session_cookie_name,
     set_session_cookie,
 )
 
@@ -83,11 +83,11 @@ def _render_form(context: WebContext, request: Request) -> Response:
     """Render the form page, opening a session when the request has none."""
     if not host_allowed(request, context.policy):
         return error_page(context, ErrorOutcome(ErrorCode.INPUT_INVALID, HTTP_BAD_REQUEST))
-    session = context.sessions.get(request.cookies.get(SESSION_COOKIE))
+    session = context.sessions.get(request.cookies.get(session_cookie_name(context.settings.mode)))
     if session is None:
         session = context.sessions.create()
     response = render_form_page(context, form_context(context, session))
-    set_session_cookie(response, session.session_id)
+    set_session_cookie(response, session.session_id, context.settings.mode)
     return response
 
 
@@ -115,7 +115,7 @@ async def _owned(
     """Return this session's job in a terminal state, or the uniform 404."""
     if not host_allowed(request, context.policy):
         return error_page(context, ErrorOutcome(ErrorCode.INPUT_INVALID, HTTP_BAD_REQUEST))
-    session = context.sessions.get(request.cookies.get(SESSION_COOKIE))
+    session = context.sessions.get(request.cookies.get(session_cookie_name(context.settings.mode)))
     if session is None:
         return _not_found(context)
     result = context.planner.get(session.session_id, job_id)

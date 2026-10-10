@@ -8,64 +8,43 @@ Playwright is a dev dependency; WP9b owns the CSP, axe and journey runs that use
 real. This is an eyeball aid, not a check.
 """
 
-import re
 import sys
 from pathlib import Path
 from typing import Final
 
-import httpx
 from playwright.sync_api import sync_playwright
 
 OUT: Final = Path(__file__).resolve().parent.parent / "out"
 BASE: Final = "https://127.0.0.1:8443"
 URL: Final = BASE + "/"
-SESSION_COOKIE: Final = "__Host-wo_session"
-HTTP_SEE_OTHER: Final = 303
+# The night page needs a daylight-blocked planner; see scripts/night_server.py.
+NIGHT_BASE: Final = "https://127.0.0.1:8444"
+NIGHT_URL: Final = NIGHT_BASE + "/"
 WIDTHS: Final = (390, 1440)
 TALL: Final = 1100
 
 
-def result_url_and_cookie() -> tuple[str, str]:
-    """Reach a results page, then hand the browser the session that owns it.
+def submit_form(page: object, *, invalid: bool = False) -> None:
+    """Drive the real browser journey: fill the form and submit it.
 
-    The browser cannot do the POST itself here: the local certificate is self-signed, so
-    Chrome treats the page as an untrusted origin, sends `Origin: null` and withholds the
-    `__Host-` cookie — and the app correctly refuses that with 403 SESSION_INVALID. That
-    is the capture rig, not the product: over a real certificate the browser journey
-    works, and `tests/web` drives the same POST 192 ways. So the session is established
-    with httpx and injected, and what gets screenshotted is the real rendered page.
+    No injected session and no out-of-band POST: with `Referrer-Policy: same-origin`
+    (TC-008) the browser's own submission is accepted, so what is screenshotted is what
+    a person would actually get. `invalid` leaves the age bands empty, which is the
+    422 the form must re-render in place.
     """
-    with httpx.Client(verify=False, base_url=BASE, follow_redirects=False) as client:  # noqa: S501
-        form = client.get("/").text
-        token = re.search(r'name="csrf_token" value="([^"]+)"', form)
-        key = re.search(r'name="idempotency_key" value="([^"]+)"', form)
-        if token is None or key is None:
-            msg = "the form page carried no csrf token or idempotency key"
-            raise RuntimeError(msg)
-        posted = client.post(
-            "/plan",
-            headers={"Origin": BASE},
-            data={
-                "csrf_token": token.group(1),
-                "idempotency_key": key.group(1),
-                "who": "kids",
-                "age_band": "3-5",
-                "time": "60",
-                "energy": "moderate",
-                "location_mode": "typed",
-                "place": "Bergby",
-                "hp_note": "",
-            },
-        )
-        if posted.status_code != HTTP_SEE_OTHER:
-            msg = f"POST /plan answered {posted.status_code}, not a redirect"
-            raise RuntimeError(msg)
-        return posted.headers["location"], client.cookies[SESSION_COOKIE]
+    page.check('input[name="who"][value="kids"]')  # type: ignore[attr-defined]
+    if not invalid:
+        page.check('input[name="age_band"][value="3-5"]')  # type: ignore[attr-defined]
+        page.check('input[name="time"][value="60"]')  # type: ignore[attr-defined]
+    page.fill('input[name="place"]', "Bergby")  # type: ignore[attr-defined]
+    page.click('button[type="submit"]')  # type: ignore[attr-defined]
+    page.wait_for_load_state("networkidle")  # type: ignore[attr-defined]
 
 
 def main() -> int:
-    args = [a for a in sys.argv[1:] if a != "--results"]
-    results = "--results" in sys.argv
+    flags = {"--results": "results", "--errors": "errors", "--night": "night"}
+    args = [a for a in sys.argv[1:] if a not in flags]
+    mode = next((name for flag, name in flags.items() if flag in sys.argv), "form")
     widths = [int(a) for a in args] or list(WIDTHS)
     OUT.mkdir(exist_ok=True)
     with sync_playwright() as play:
@@ -77,27 +56,14 @@ def main() -> int:
                 viewport={"width": width, "height": TALL},
                 ignore_https_errors=True,
             )
-            page.goto(URL, wait_until="networkidle")
+            page.goto(NIGHT_URL if mode == "night" else URL, wait_until="networkidle")
             # The fonts must have swapped in before the shot, or the screenshot shows
             # the fallback and the comparison is meaningless.
             page.wait_for_timeout(400)
-            if results:
-                target_url, session = result_url_and_cookie()
-                page.context.add_cookies(
-                    [
-                        {
-                            "name": SESSION_COOKIE,
-                            "value": session,
-                            "domain": "127.0.0.1",
-                            "path": "/",
-                            "secure": True,
-                            "sameSite": "Strict",
-                        }
-                    ]
-                )
-                page.goto(BASE + target_url, wait_until="networkidle")
+            if mode in {"results", "errors", "night"}:
+                submit_form(page, invalid=mode == "errors")
                 page.wait_for_timeout(300)
-            target = OUT / f"shot-{'results' if results else 'form'}-{width}.png"
+            target = OUT / f"shot-{mode}-{width}.png"
             page.screenshot(path=str(target), full_page=True)
             print(f"{target}  ({width} px)")
             page.close()

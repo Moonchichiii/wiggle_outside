@@ -487,7 +487,7 @@ with zero violations; negative tests prove inline script, `eval` and a foreign c
 are blocked. The integration runner proves provider calls work through the server
 allowlist. No wildcard, `unsafe-inline` or `unsafe-eval` is ever added to make a test pass.
 Other headers: HSTS with preload on the demo, `X-Content-Type-Options: nosniff`,
-`Referrer-Policy: no-referrer`, `Cross-Origin-Opener-Policy: same-origin`,
+`Referrer-Policy: same-origin` (**TC-008**: `no-referrer` makes Chromium send `Origin: null` on a form POST, which BACKEND-CONTRACT §5 refuses with 403, so no submission could ever succeed; `same-origin` still sends nothing cross-origin), `Cross-Origin-Opener-Policy: same-origin`,
 `Cross-Origin-Resource-Policy: same-origin`, a restrictive `Permissions-Policy` that allows
 geolocation for self only, and `__Host-` prefixed, Secure, HttpOnly, SameSite=Strict cookies.
 

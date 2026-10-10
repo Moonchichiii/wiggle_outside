@@ -13,7 +13,7 @@ from fastapi import FastAPI
 
 from wiggle_outside.core.types import DeploymentMode
 from wiggle_outside.planner.catalogue import load_catalogue
-from wiggle_outside.planner.ports import Ranker
+from wiggle_outside.planner.ports import PlannerService, Ranker
 from wiggle_outside.preview_planner import PreviewPlanner
 from wiggle_outside.settings import Settings
 from wiggle_outside.web.routes import WebContext, build
@@ -69,7 +69,8 @@ def build_state(settings: Settings | None = None) -> AppState:
     )
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None, planner: PlannerService | None = None) -> FastAPI:
+    """Build the app. `planner` is injected until WP6 lands (PLAN section 7)."""
     state = build_state(settings)
 
     @asynccontextmanager
@@ -89,7 +90,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(
         build(
             WebContext(
-                planner=PreviewPlanner(),
+                planner=planner or PreviewPlanner(),
                 settings=state.settings,
                 process_key=state.process_key,
                 sessions=SessionStore(),

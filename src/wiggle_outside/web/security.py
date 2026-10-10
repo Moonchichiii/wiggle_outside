@@ -47,7 +47,11 @@ HTTP_SERVICE_UNAVAILABLE: Final = 503
 
 # --- Session and token sizes (CONTRACTS section 1, D31) -----------------------------
 
-SESSION_COOKIE: Final = "__Host-wo_session"  # TC-005
+SESSION_COOKIE: Final = "__Host-wo_session"  # TC-005; the product cookie
+# Development over plain HTTP cannot use it: a browser rejects both the `__Host-`
+# prefix and the Secure attribute on an insecure origin, so the session never
+# persists and every POST becomes 403 SESSION_INVALID (TC-008).
+DEV_SESSION_COOKIE: Final = "wo_session"
 TOKEN_BYTES: Final = 32  # session and CSRF
 ID_BYTES: Final = 16  # idempotency key
 
@@ -169,7 +173,12 @@ def security_headers(mode: DeploymentMode) -> dict[str, str]:
     headers = {
         "Content-Security-Policy": content_security_policy(mode),
         "X-Content-Type-Options": "nosniff",
-        "Referrer-Policy": "no-referrer",
+        # NOT no-referrer, though PLAN section 9 first said so: Chromium sends
+        # `Origin: null` on a form POST under no-referrer, and BACKEND-CONTRACT
+        # section 5 refuses a null Origin with 403 - so every submission failed, in
+        # the hosted product as much as locally. same-origin sends no referrer
+        # cross-origin, which is what the privacy rule was for (TC-008).
+        "Referrer-Policy": "same-origin",
         "Cross-Origin-Opener-Policy": "same-origin",
         "Cross-Origin-Resource-Policy": "same-origin",
         "Permissions-Policy": PERMISSIONS_POLICY,
@@ -206,14 +215,27 @@ def plain_text(body: str, mode: DeploymentMode) -> Response:
     return PlainTextResponse(body, headers=page_headers(mode))
 
 
-def set_session_cookie(response: Response, session_id: str) -> None:
-    """D31 and TC-005: `__Host-` prefixed, so Secure, Path=/ and no Domain."""
+def session_cookie_name(mode: DeploymentMode) -> str:
+    """Name the session cookie: `__Host-` in the product, plain in development."""
+    return SESSION_COOKIE if mode is DeploymentMode.HOSTED_LIVE else DEV_SESSION_COOKIE
+
+
+def set_session_cookie(
+    response: Response, session_id: str, mode: DeploymentMode = DeploymentMode.HOSTED_LIVE
+) -> None:
+    """D31 and TC-005: `__Host-` prefixed, so Secure, Path=/ and no Domain.
+
+    Development drops the prefix and Secure, and only those two: HttpOnly, SameSite and
+    Path are unchanged, and the hosted product is untouched. Without this a browser on
+    http://localhost silently discards the cookie and every submission is refused.
+    """
+    hosted = mode is DeploymentMode.HOSTED_LIVE
     response.set_cookie(
-        SESSION_COOKIE,
+        session_cookie_name(mode),
         session_id,
         max_age=ABSOLUTE_SECONDS,
         path="/",
-        secure=True,
+        secure=hosted,
         httponly=True,
         samesite="strict",
     )
