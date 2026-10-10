@@ -1,0 +1,18 @@
+{# Text field with a visible label, an optional hint and an optional inline error
+   (DESIGN-SPEC section 2). The error is text with an icon, never colour alone. #}
+{% from "macros/icon.html" import icon %}
+
+{% macro field_error(anchor, message) -%}
+<p class="wo-field-error" id="{{ anchor }}-error">{{ icon("alert") }}<span>{{ message }}</span></p>
+{%- endmacro %}
+
+{% macro text_field(name, id, label, value, hint="", hint_id="", error=none, maxlength=0, autocomplete="", label_class="wo-field-label") -%}
+<label class="{{ label_class }}" for="{{ id }}">{{ label }}</label>
+{% if hint %}
+<p class="wo-hint" id="{{ hint_id }}">{{ hint }}</p>
+{% endif %}
+<input class="wo-field" type="text" id="{{ id }}" name="{{ name }}" value="{{ value }}"{% if maxlength %} maxlength="{{ maxlength }}"{% endif %}{% if autocomplete %} autocomplete="{{ autocomplete }}"{% endif %}{% if error %} aria-invalid="true"{% endif %}{% if hint_id or error %} aria-describedby="{{ hint_id }}{% if hint_id and error %} {% endif %}{% if error %}{{ id }}-error{% endif %}"{% endif %}>
+{% if error %}
+{{ field_error(id, error.message) }}
+{% endif %}
+{%- endmacro %}

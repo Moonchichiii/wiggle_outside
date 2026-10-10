@@ -1,0 +1,19 @@
+{# Radio and checkbox tiles (DESIGN-SPEC section 2). The native control stays; the
+   label wraps it, so the accessible name is the legend plus the visible label. #}
+{% from "macros/icon.html" import icon %}
+
+{% macro tile(group, option, control, id="", describedby="") -%}
+<label class="wo-tile">
+<input type="{{ control }}" name="{{ group }}" value="{{ option.value }}"{% if id %} id="{{ id }}"{% endif %}{% if option.checked %} checked{% endif %}{% if describedby %} aria-describedby="{{ describedby }}"{% endif %}>
+{% if option.icon %}{{ icon(option.icon) }}{% endif %}
+<span class="wo-tile-label">{{ option.label }}</span>
+</label>
+{%- endmacro %}
+
+{% macro tiles(group, options, control, columns, anchor="", describedby="", invalid=false) -%}
+<div class="wo-tiles wo-tiles-{{ columns }}{% if invalid %} is-invalid{% endif %}">
+{% for option in options %}
+{{ tile(group, option, control, anchor if loop.first else "", describedby if loop.first else "") }}
+{% endfor %}
+</div>
+{%- endmacro %}

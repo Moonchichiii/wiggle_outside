@@ -7,14 +7,22 @@ import integrations or storage (import-linter contracts 5 and 6).
 import secrets
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
 from fastapi import FastAPI
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 
 from wiggle_outside.core.types import DeploymentMode
 from wiggle_outside.planner.ports import Ranker
 from wiggle_outside.settings import Settings
+from wiggle_outside.web.presenters import (
+    build_environment,
+    present_form,
+    render_form,
+    with_assets,
+)
+from wiggle_outside.web.views import AssetRef, SessionView
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -81,14 +89,44 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         openapi_url=None,
     )
 
-    # WP7 owns web/routes/**; it registers the CONTRACTS section 5 table here. Until then
-    # only the two endpoints the host needs exist, so the app starts and reports honestly.
+    # BOOTSTRAP PREVIEW, replaced by WP7.
+    #
+    # CONTRACTS section 5 gives GET / to web/routes/**, which WP7 owns and has not built.
+    # This serves WP8's form template so the page can be looked at, and it is deliberately
+    # not the real route: no session, no CSRF token, no security headers, no CSP, and the
+    # form posts nowhere. WP7 deletes this and registers the real table.
+    @app.get("/", response_class=HTMLResponse)
+    async def preview_form() -> str:
+        return render_form(
+            build_environment(),
+            with_assets(
+                present_form(
+                    values=None,
+                    errors={},
+                    session=SessionView(
+                        # Placeholders, not secrets: the real session and token are WP7's.
+                        csrf_token="preview-not-a-real-token",  # noqa: S106
+                        idempotency_key="preview-not-a-real-key",
+                    ),
+                    candidates=None,
+                    mode=state.settings.mode,
+                    d39_enabled=state.settings.d39_enabled,
+                ),
+                {"css": AssetRef(url="/preview/app.css", integrity="")},
+            ),
+        )
+
+    @app.get("/preview/app.css", include_in_schema=False)
+    async def preview_css() -> FileResponse:
+        built = Path(__file__).parent / "web" / "static" / "app.css"
+        return FileResponse(built, media_type="text/css")
+
     @app.get("/healthz", response_class=PlainTextResponse)
     async def healthz() -> str:
         return "ok"
 
     @app.get("/readyz", response_class=PlainTextResponse)
     async def readyz() -> str:
-        return f"app: ready\nmodel: {state.model_status}\n"
+        return readiness_body(state)
 
     return app

@@ -1,0 +1,111 @@
+{# The plan form's fieldsets (DESIGN-SPEC sections 2, 6 and 9). Every string comes from
+   web/copy.py; every control is inside a <label> or named by its <legend>.
+   Keyboard order: who, ages, time, energy, where, location, interests, submit. #}
+{% from "macros/tile.html" import tiles %}
+{% from "macros/field.html" import text_field, field_error %}
+{% from "macros/button.html" import secondary %}
+
+{% macro described_by(hint_id, anchor, error) -%}
+{%- if hint_id and error %}{{ hint_id }} {{ anchor }}-error{% elif hint_id %}{{ hint_id }}{% elif error %}{{ anchor }}-error{% endif -%}
+{%- endmacro %}
+
+{% macro tile_group(legend, hint, hint_id, name, options, control, columns, anchor, error) -%}
+<fieldset class="wo-fieldset">
+<legend class="wo-legend">{{ legend }}</legend>
+{% if hint %}
+<p class="wo-hint" id="{{ hint_id }}">{{ hint }}</p>
+{% endif %}
+{{ tiles(name, options, control, columns, anchor, described_by(hint_id if hint else "", anchor, error) | trim, error is not none) }}
+{% if error %}
+{{ field_error(anchor, error.message) }}
+{% endif %}
+</fieldset>
+{%- endmacro %}
+
+{% macro who(page) -%}
+{{ tile_group(copy.WHO_LEGEND, "", "", "who", page.who, "radio", "two", "who-first",
+              page.field_errors.get("who")) }}
+{%- endmacro %}
+
+{% macro ages(page) -%}
+{{ tile_group(copy.AGES_LEGEND, copy.AGES_HINT, "ages-hint", "age_band", page.ages,
+              "checkbox", "four", "age-first", page.field_errors.get("age_band")) }}
+{%- endmacro %}
+
+{% macro time_budget(page) -%}
+{{ tile_group(copy.TIME_LEGEND, "", "", "time", page.time, "radio", "two", "time-first",
+              page.field_errors.get("time")) }}
+{%- endmacro %}
+
+{% macro energy(page) -%}
+{# TC-001: the values stay gentle / moderate / energetic, the labels read Gentle /
+   Moderate / High. Both come from the Option view model, never from this template. #}
+{{ tile_group(copy.ENERGY_LEGEND, copy.ENERGY_HINT, "energy-hint", "energy", page.energy,
+              "radio", "three", "energy-first", page.field_errors.get("energy")) }}
+{%- endmacro %}
+
+{% macro where(page) -%}
+<fieldset class="wo-fieldset">
+<legend class="wo-legend">{{ copy.WHERE_LEGEND }}</legend>
+{{ secondary(copy.USE_MY_LOCATION, "button", "location-pin") }}
+{% if page.coords and page.location_label %}
+<p class="wo-carried">{{ page.location_label }}{{ copy.CARRIED_LOCATION_SUFFIX }}</p>
+{{ text_field("place", "place", copy.CARRIED_LOCATION_ALTERNATIVE, page.place,
+              page.place_hint, "place-hint", page.field_errors.get("place"), 80,
+              "address-level2") }}
+{% else %}
+{{ text_field("place", "place", copy.PLACE_LABEL, page.place, page.place_hint,
+              "place-hint", page.field_errors.get("place"), 80, "address-level2") }}
+{% endif %}
+</fieldset>
+{%- endmacro %}
+
+{% macro interests(page) -%}
+{% if page.interests_text is not none %}
+{% set chosen = page.who | selectattr("checked") | map(attribute="value") | list %}
+{% set legend = copy.INTERESTS_LEGEND_BY_WHO["solo" if "solo" in chosen else "kids"] %}
+<fieldset class="wo-fieldset">
+<legend class="wo-legend">{{ legend }} <span class="wo-soft">{{ copy.INTERESTS_OPTIONAL }}</span></legend>
+<p class="wo-hint" id="interests-hint">{{ copy.INTERESTS_HINT }}</p>
+{{ text_field("interests_text", "interests", legend, page.interests_text, "",
+              "interests-hint", page.field_errors.get("interests_text"), 120, "off",
+              "wo-vh") }}
+</fieldset>
+{% endif %}
+{%- endmacro %}
+
+{% macro extras(page) -%}
+{# D42: two controls with different effects. Step-free is a preference, never a filter. #}
+<details class="wo-more">
+<summary class="wo-more-summary">{{ copy.OPTIONAL_SUMMARY }}</summary>
+<label class="wo-checkrow"><input type="checkbox" name="stroller" value="1"{% if page.stroller %} checked{% endif %}><span>{{ copy.STROLLER_LABEL }}</span></label>
+<label class="wo-checkrow"><input type="checkbox" name="step_free" value="1" aria-describedby="step-free-hint"{% if page.step_free %} checked{% endif %}><span>{{ copy.STEP_FREE_LABEL }}</span></label>
+<p class="wo-hint" id="step-free-hint">{{ copy.STEP_FREE_HINT }}</p>
+</details>
+{%- endmacro %}
+
+{% macro honeypot() -%}
+{# D49, DEPLOYMENT section 4: present in every plan form, hidden from keyboard and
+   screen readers, excluded from the fingerprint. #}
+<div class="wo-vh" aria-hidden="true"><label for="hp_note">{{ copy.HONEYPOT_LABEL }}</label><input type="text" id="hp_note" name="hp_note" value="" tabindex="-1" autocomplete="off"></div>
+{%- endmacro %}
+
+{% macro location_choice(page) -%}
+{% if page.candidates %}
+{# BACKEND-CONTRACT section 3: at most five candidates; the town field stays editable. #}
+<form class="wo-panel wo-choice-form" method="post" action="/location-choice">
+<input type="hidden" name="csrf_token" value="{{ page.session.csrf_token }}">
+<fieldset class="wo-fieldset">
+<legend class="wo-legend">{{ copy.LOCATION_CHOICE_LEGEND }}</legend>
+{% if page.candidates_expire_at %}
+<p class="wo-hint" id="candidates-hint">{{ copy.LOCATION_CHOICE_EXPIRES.format(time=page.candidates_expire_at) }}</p>
+{% endif %}
+{{ tiles("candidate_id", page.candidates, "radio", "one", "candidate-first",
+         "candidates-hint" if page.candidates_expire_at else "", false) }}
+</fieldset>
+<div class="wo-actions">
+<button class="wo-btn wo-btn-primary" type="submit">{{ copy.SUBMIT }}</button>
+</div>
+</form>
+{% endif %}
+{%- endmacro %}

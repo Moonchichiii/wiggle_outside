@@ -1,0 +1,52 @@
+/* Notices, the error summary and inline field errors (DESIGN-SPEC section 2).
+   Meaning never rests on colour: every one carries an icon and words. */
+
+.wo-notice {
+  display: flex;
+  gap: var(--spacing-s3);
+  margin-bottom: var(--spacing-s4);
+  padding: var(--spacing-s4);
+  background: var(--color-card);
+  border: var(--border-width-ink) solid var(--color-ink);
+  border-left-width: 6px;
+
+  @apply wonk-tile;
+}
+
+.wo-notice-alert {
+  background: var(--color-alert);
+}
+
+.wo-notice-success {
+  background: var(--color-success);
+}
+
+.wo-notice-heading {
+  margin: 0 0 var(--spacing-s1);
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  line-height: var(--text-lg--line-height);
+}
+
+.wo-notice-list {
+  margin: 0;
+  padding-left: 1.2em;
+  list-style: disc;
+}
+
+.wo-notice-list a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.wo-field-error {
+  display: flex;
+  gap: var(--spacing-s2);
+  align-items: flex-start;
+  margin: var(--spacing-s2) 0 0;
+  color: var(--color-error);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}

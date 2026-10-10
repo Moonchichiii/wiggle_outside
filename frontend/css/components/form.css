@@ -1,0 +1,290 @@
+/* The plan form: panel, fieldsets, tiles, fields and buttons.
+   DESIGN-SPEC sections 2, 3, 4 and 6, matching the approved mocks 01-form.html and
+   01b-form-error.html. Tokens only; corners come from the tokens.css utilities. */
+
+.wo-panel {
+  padding: var(--spacing-s4) var(--spacing-s5);
+  background: var(--color-card);
+  border: var(--border-width-ink) solid var(--color-ink);
+  box-shadow: var(--shadow-card);
+
+  @apply wonk-card;
+}
+
+@media (width < 30rem) {
+  .wo-panel {
+    padding: var(--spacing-s4);
+  }
+}
+
+.wo-choice-form {
+  margin-bottom: var(--spacing-s5);
+}
+
+.wo-fieldset {
+  min-width: 0;
+  margin: 0 0 var(--spacing-s4);
+  padding: 0;
+  border: 0;
+}
+
+.wo-legend {
+  margin-bottom: var(--spacing-s2);
+  padding: 0;
+  font-size: var(--text-base);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.wo-hint {
+  margin: 0 0 var(--spacing-s2);
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+/* Tiles. Who and time two per row from 360 px; ages four and energy three across
+   (section 6, "Form (compacted in 8.9)" and the 8.19 mocks). */
+.wo-tiles {
+  display: grid;
+  grid-template-columns: repeat(var(--wo-cols, 1), minmax(0, 1fr));
+  gap: var(--spacing-s2);
+}
+
+.wo-tiles-one {
+  --wo-cols: 1;
+}
+
+.wo-tiles-two {
+  --wo-cols: 1;
+}
+
+.wo-tiles-three {
+  --wo-cols: 3;
+}
+
+.wo-tiles-four {
+  --wo-cols: 4;
+}
+
+@media (width >= 22.5rem) {
+  .wo-tiles-two {
+    --wo-cols: 2;
+  }
+}
+
+.wo-tile {
+  position: relative;
+  display: flex;
+  gap: var(--spacing-s2);
+  align-items: center;
+  min-height: 48px;
+  padding: var(--spacing-s2) var(--spacing-s3);
+  background: var(--color-card);
+  border: var(--border-width-ink) solid var(--color-ink);
+  font-weight: 500;
+  cursor: pointer;
+
+  @apply wonk-tile;
+}
+
+.wo-tile input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--color-link);
+}
+
+.wo-tile-label {
+  min-width: 0;
+}
+
+/* Selected: a real border and a fill, so the state survives forced colours. */
+.wo-tile:has(input:checked) {
+  padding: 7px 11px;
+  background: var(--color-sage);
+  border: 3px solid var(--color-link);
+}
+
+@media (hover: hover) {
+  .wo-tile:hover {
+    background: color-mix(in srgb, var(--color-butter) 50%, var(--color-card));
+  }
+}
+
+.wo-tile:has(input:focus-visible) {
+  outline: var(--outline-width-focus) solid var(--color-link);
+  outline-offset: var(--outline-offset-focus);
+}
+
+@media (forced-colors: active) {
+  .wo-tile:has(input:checked) {
+    outline: var(--outline-width-focus) solid Highlight;
+  }
+}
+
+/* Below 30 rem the decorative tile icons are hidden and the four- and three-across
+   groups stack the control above the label, so "10-12" never wraps (section 6). */
+@media (width < 30rem) {
+  .wo-tile > .wo-icon {
+    display: none;
+  }
+
+  .wo-tiles-three .wo-tile,
+  .wo-tiles-four .wo-tile {
+    flex-direction: column;
+    gap: var(--spacing-s1);
+    justify-content: center;
+    min-height: 64px;
+    padding: var(--spacing-s2) var(--spacing-s1);
+    text-align: center;
+  }
+
+  .wo-tiles-three .wo-tile:has(input:checked),
+  .wo-tiles-four .wo-tile:has(input:checked) {
+    padding: 7px 3px;
+  }
+
+  .wo-tiles-four .wo-tile-label {
+    white-space: nowrap;
+  }
+}
+
+/* Text fields. */
+.wo-field-label {
+  display: block;
+  margin: var(--spacing-s3) 0 var(--spacing-s1);
+  font-weight: 500;
+}
+
+.wo-field {
+  width: 100%;
+  min-height: 48px;
+  padding: var(--spacing-s2) var(--spacing-s3);
+  background: var(--color-card);
+  color: var(--color-ink);
+  border: var(--border-width-ink) solid var(--color-ink);
+  font: inherit;
+
+  @apply wonk-field;
+}
+
+@media (hover: hover) {
+  .wo-field:hover {
+    border-color: var(--color-link);
+  }
+}
+
+.wo-field[aria-invalid="true"],
+.wo-tiles.is-invalid .wo-tile {
+  border-color: var(--color-error);
+}
+
+.wo-carried {
+  margin: var(--spacing-s3) 0 0;
+  font-weight: 500;
+}
+
+/* The optional panel (D42): two controls with different effects, on separate rows. */
+.wo-more {
+  margin-bottom: var(--spacing-s4);
+}
+
+.wo-more-summary {
+  display: list-item;
+  min-height: 44px;
+  font-weight: 600;
+  line-height: 44px;
+  cursor: pointer;
+}
+
+.wo-checkrow {
+  display: flex;
+  gap: var(--spacing-s3);
+  align-items: center;
+  min-height: 48px;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-ink) 25%, transparent);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.wo-checkrow input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--color-link);
+}
+
+/* Buttons (section 2): 48 px tall, visible label, wraps instead of truncating. */
+.wo-btn {
+  display: inline-flex;
+  gap: var(--spacing-s2);
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: var(--spacing-s3) var(--spacing-s5);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 1.3;
+  text-decoration: none;
+  cursor: pointer;
+
+  @apply wonk-button;
+}
+
+.wo-btn-primary {
+  background: var(--color-action);
+  color: var(--color-card);
+  border: var(--border-width-ink) solid var(--color-action);
+  box-shadow: var(--shadow-card);
+}
+
+@media (hover: hover) {
+  .wo-btn-primary:hover {
+    background: var(--color-action-hover);
+    border-color: var(--color-action-hover);
+  }
+}
+
+.wo-btn-primary:active {
+  translate: 0 1px;
+  box-shadow: none;
+}
+
+.wo-btn-primary[aria-busy="true"] {
+  background: var(--color-action-hover);
+  border-color: var(--color-action-hover);
+}
+
+.wo-btn-secondary {
+  background: var(--color-card);
+  color: var(--color-ink);
+  border: var(--border-width-ink) solid var(--color-ink);
+}
+
+@media (hover: hover) {
+  .wo-btn-secondary:hover {
+    background: var(--color-butter);
+  }
+}
+
+.wo-actions {
+  display: flex;
+  gap: var(--spacing-s3);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.wo-plan-form .wo-actions .wo-btn-primary {
+  width: 100%;
+}
+
+/* D43: the static busy note, revealed by the htmx request indicator. */
+.wo-busy {
+  margin: var(--spacing-s3) 0 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+}

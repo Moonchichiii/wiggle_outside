@@ -1,0 +1,11 @@
+{# Primary and secondary buttons (DESIGN-SPEC section 2): 48 px tall, visible label,
+   wraps instead of truncating. The busy label is static markup; htmx only toggles it. #}
+{% from "macros/icon.html" import icon %}
+
+{% macro primary(label, control="submit") -%}
+<button class="wo-btn wo-btn-primary" type="{{ control }}">{{ label }}</button>
+{%- endmacro %}
+
+{% macro secondary(label, control="button", icon_name="") -%}
+<button class="wo-btn wo-btn-secondary" type="{{ control }}">{% if icon_name %}{{ icon(icon_name) }}{% endif %}{{ label }}</button>
+{%- endmacro %}

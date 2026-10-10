@@ -1,0 +1,13 @@
+/* The stylesheet the build compiles (package.json: bun run build:css).
+   tokens.css is the single source of colour, type, space, corners, shadow and focus
+   (DESIGN-SPEC section 1, CONTRACTS section 9). Everything below is component CSS for
+   the parts the utilities genuinely repeat, and it uses the tokens only: no raw hex,
+   no pixel radius, no literal shadow. */
+
+@import "./tokens.css";
+@import "./components/layout.css";
+@import "./components/form.css";
+@import "./components/notice.css";
+
+/* Tailwind v4 scans these for utility class names. */
+@source "../../src/wiggle_outside/web/templates";

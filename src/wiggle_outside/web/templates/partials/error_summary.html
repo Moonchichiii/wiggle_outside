@@ -1,0 +1,19 @@
+{# Error summary (DESIGN-SPEC section 2): a notice on alert, a list of links to the
+   fields, focusable once after a failed submission. #}
+{% from "macros/icon.html" import icon %}
+
+{% macro error_summary(summary) -%}
+{% if summary %}
+<div class="wo-notice wo-notice-alert" role="alert" tabindex="-1" id="error-summary">
+{{ icon("alert") }}
+<div>
+<h2 class="wo-notice-heading">{{ copy.ERROR_SUMMARY_HEADING }}</h2>
+<ul class="wo-notice-list">
+{% for item in summary %}
+<li><a href="#{{ item.anchor }}">{{ item.message }}</a></li>
+{% endfor %}
+</ul>
+</div>
+</div>
+{% endif %}
+{%- endmacro %}

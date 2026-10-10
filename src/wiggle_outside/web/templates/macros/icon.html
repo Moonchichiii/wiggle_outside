@@ -1,0 +1,4 @@
+{# DESIGN-SPEC section 5: decorative icons, aria-hidden, currentColor, from one sprite. #}
+{% macro icon(name, extra="") -%}
+<svg class="wo-icon{% if extra %} {{ extra }}{% endif %}" aria-hidden="true" focusable="false"><use href="#i-{{ name }}"></use></svg>
+{%- endmacro %}

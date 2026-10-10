@@ -1,0 +1,30 @@
+{# The page shell. Receives PageMeta through `page` (CONTRACTS section 8).
+   No inline script, style or event handler anywhere (DESIGN-SPEC section 11). #}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ page.meta.title }}{% endblock %}</title>
+{% for name, asset in page.meta.assets.items() %}
+{% if name.endswith(".css") %}
+<link rel="stylesheet" href="{{ asset.url }}"{% if asset.integrity %} integrity="{{ asset.integrity }}"{% endif %}>
+{% endif %}
+{% endfor %}
+</head>
+<body class="wo-body">
+{% include "partials/icon_sprite.html" %}
+<div class="wo-page">
+{% include "partials/doodles.html" %}
+<header class="wo-masthead">
+<h1 class="wo-title">{{ page.meta.title }}</h1>
+{% block intro %}{% endblock %}
+</header>
+<main class="wo-column" id="main">
+{% block main %}{% endblock %}
+</main>
+</div>
+{# External, hashed scripts only; never an inline one. #}
+{% block scripts %}{% endblock %}
+</body>
+</html>
