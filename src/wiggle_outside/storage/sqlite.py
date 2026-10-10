@@ -82,6 +82,11 @@ class DatabaseClosedError(RuntimeError):
     """The owned connection is gone, so the caller bypasses the cache."""
 
 
+# A storage problem, not a bug: callers absorb these. ThreadOwnershipError is deliberately
+# not here - a broken invariant is something to surface, not something to absorb.
+STORAGE_ERRORS: Final = (sqlite3.Error, OSError, DatabaseClosedError)
+
+
 def read_fresh(conn: sqlite3.Connection, digest: str, now: float) -> bytes | None:
     """Return a fresh payload and touch it for the LRU order. Expired entries are a miss."""
     row = conn.execute(

@@ -5,7 +5,6 @@ oversized entry is a bypass, not a failure: the request still runs and still obe
 budget (section 14). Every call goes to the one owned SQLite thread.
 """
 
-import sqlite3
 from datetime import UTC
 from functools import partial
 from typing import TYPE_CHECKING
@@ -14,9 +13,9 @@ from wiggle_outside.storage.counters import CACHE_BYPASSED, CACHE_HIT, CACHE_MIS
 from wiggle_outside.storage.keys import digest_of
 from wiggle_outside.storage.sqlite import (
     DEFAULT_BOUNDS,
+    STORAGE_ERRORS,
     Bounds,
     Database,
-    DatabaseClosedError,
     Entry,
     read_fresh,
     write_entry,
@@ -26,10 +25,6 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from wiggle_outside.planner.ports import CacheKey, Clock, Counters
-
-# A bypass, not an error. A broken invariant (ThreadOwnershipError) is deliberately not
-# here: that is a bug to surface, not a disk problem to absorb.
-_STORAGE_ERRORS = (sqlite3.Error, OSError, DatabaseClosedError)
 
 
 def epoch(moment: datetime) -> float:
@@ -60,7 +55,7 @@ class SqliteCache:
         work = partial(read_fresh, digest=digest_of(key), now=epoch(now))
         try:
             payload = await self._db.run(work)
-        except _STORAGE_ERRORS:
+        except STORAGE_ERRORS:
             self._counters.incr(CACHE_BYPASSED, stage)
             return None
         self._counters.incr(CACHE_HIT if payload is not None else CACHE_MISS, stage)
@@ -81,7 +76,7 @@ class SqliteCache:
         work = partial(write_entry, entry=entry, bounds=self._bounds, db_path=self._db.path)
         try:
             await self._db.run(work)
-        except _STORAGE_ERRORS:
+        except STORAGE_ERRORS:
             self._counters.incr(CACHE_BYPASSED, stage)
             return
         self._counters.incr(CACHE_STORED, stage)

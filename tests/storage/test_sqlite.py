@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from wiggle_outside.storage.quota import CREATE_QUOTA
 from wiggle_outside.storage.sqlite import (
     BUSY_TIMEOUT_MS,
     MEMORY_PATH,
@@ -182,7 +183,7 @@ def test_a_schema_version_change_leaves_the_quota_table_alone(tmp_path: Path) ->
     # The cache is disposable; a hosted quota table is not (DEPLOYMENT section 2.3).
     conn = migrated(str(tmp_path / "cache.sqlite"))
     try:
-        conn.execute("CREATE TABLE quota (utc_day TEXT PRIMARY KEY, runs INTEGER NOT NULL)")
+        conn.execute(CREATE_QUOTA)
         conn.execute("INSERT INTO quota VALUES ('2026-10-10', 7)")
         conn.execute("PRAGMA user_version = 0")
         migrate(conn)
