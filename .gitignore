@@ -1,0 +1,17 @@
+.venv/
+node_modules/
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+.env
+data/
+out/
+frontend/dist/
+src/wiggle_outside/web/static/

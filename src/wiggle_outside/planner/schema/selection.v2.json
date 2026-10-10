@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "selection.v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["interests", "interest_status", "picks"],
+  "properties": {
+    "interests": {
+      "type": "array",
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "enum": ["animals", "birds", "bugs", "trees", "colours", "shapes",
+                 "stories", "running", "building", "sounds", "drawing",
+                 "sky", "quiet", "puddles"]
+      }
+    },
+    "interest_status": {"enum": ["matched", "no_match", "unclear", "not_provided"]},
+    "picks": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["pair_id", "hook_id", "reason_ids"],
+        "properties": {
+          "pair_id": {"type": "string"},
+          "hook_id": {"type": "string"},
+          "reason_ids": {
+            "type": "array",
+            "maxItems": 2,
+            "uniqueItems": true,
+            "items": {"type": "string"}
+          }
+        }
+      }
+    }
+  }
+}

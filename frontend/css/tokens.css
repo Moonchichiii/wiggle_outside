@@ -1,0 +1,91 @@
+/* Design tokens. Canonical values: DESIGN-SPEC section 1. Implemented once, here.
+   Templates use token utilities only: no raw hex, pixel radius or shadow values in
+   templates or component CSS (CONTRACTS section 9).
+   scripts/check_contrast.py reads this file and recomputes every pair in section 1.1. */
+
+@import "tailwindcss";
+
+@theme {
+  /* --- Colour (section 1.1). Text on sage, peach, alert and success is ink only. --- */
+  --color-oatmeal: #f2ede4;
+  --color-card: #fffcf6;
+  --color-ink: #191c20;
+  --color-ink-soft: #42464d;
+  --color-sage: #d3e0d0;
+  --color-peach: #f7d6c8;
+  --color-butter: #fae8c3;
+  --color-alert: #ead5d1;
+  --color-success: #d7e4d7;
+  --color-action: #2c5234;
+  --color-action-hover: #22412a;
+  --color-link: #1e4a85;
+  --color-error: #8a2a17;
+
+  /* --- Type scale (section 1.2). Sizes and line heights are paired. --- */
+  --text-sm: 1rem;
+  --text-sm--line-height: 1.6;
+  --text-base: 1.125rem;
+  --text-base--line-height: 1.6;
+  --text-lg: 1.4rem;
+  --text-lg--line-height: 1.35;
+  --text-xl: 1.75rem;
+  --text-xl--line-height: 1.25;
+  --text-2xl: 2.2rem;
+  --text-2xl--line-height: 1.15;
+
+  /* D41 is blocked on prerequisite P1 (font files and licence), so the documented
+     fallback stack is the whole stack until Mats supplies the WOFF2 files. */
+  --font-heading: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+
+  /* --- Space (section 1.3) --- */
+  --spacing-s1: 4px;
+  --spacing-s2: 8px;
+  --spacing-s3: 12px;
+  --spacing-s4: 16px;
+  --spacing-s5: 24px;
+  --spacing-s6: 32px;
+  --spacing-s7: 48px;
+  --spacing-s8: 64px;
+
+  /* --- Border, shadow, focus (sections 1.3 and 1.4) --- */
+  --border-width-ink: 2px;
+  --shadow-card: 3px 3px 0 rgb(25 28 32 / 0.16);
+  --outline-width-focus: 3px;
+  --outline-offset-focus: 2px;
+
+  /* --- Reading measure (section 1.2) --- */
+  --container-measure: 40rem;
+}
+
+/* Corners, one per component type (section 1.3). The layout grid stays straight;
+   only corners are irregular. */
+@utility wonk-card {
+  border-radius: 16px 6px 14px 8px / 8px 14px 6px 16px;
+}
+
+@utility wonk-button {
+  border-radius: 10px 14px 8px 12px;
+}
+
+@utility wonk-tile {
+  border-radius: 12px 8px 14px 6px;
+}
+
+@utility wonk-field {
+  border-radius: 6px 10px 8px 12px;
+}
+
+/* Focus is never removed (section 1.4). Forced colours uses the system highlight. */
+@layer base {
+  :focus-visible {
+    outline: var(--outline-width-focus) solid var(--color-link);
+    outline-offset: var(--outline-offset-focus);
+  }
+
+  @media (forced-colors: active) {
+    :focus-visible {
+      outline-color: Highlight;
+    }
+  }
+}

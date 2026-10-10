@@ -1,0 +1,39 @@
+[project]
+name = "wiggle-outside"
+version = "0.1.0"
+description = "Find a realistic outdoor activity near you, right now."
+readme = "README.md"
+requires-python = "==3.14.*"
+license = "Apache-2.0"
+
+# ARCHITECTURE section 6: six runtime dependencies. PLAN section 8 caps direct runtime
+# dependencies at 8; adding one needs a recorded dependency-budget decision.
+dependencies = [
+    "fastapi>=0.119",
+    "uvicorn>=0.38",
+    "pydantic>=2.12",
+    "httpx>=0.28",
+    "jinja2>=3.1.6",
+    "python-multipart>=0.0.20",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14",
+    "mypy>=1.18",
+    "import-linter>=2.3",
+    "pytest>=8.4",
+    "pytest-asyncio>=1.2",
+    "pytest-randomly>=4.0",
+    "pytest-timeout>=2.4",
+    "respx>=0.22",
+    "coverage>=7.10",
+    "jsonschema>=4.26.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wiggle_outside"]

@@ -1,0 +1,63 @@
+; PLAN section 6: six contracts. Layers web -> planner -> core; integrations and storage
+; beside planner; core imports no framework; the integrations are independent; only
+; main.py reaches integrations or storage.
+[importlinter]
+root_package = wiggle_outside
+include_external_packages = True
+
+[importlinter:contract:1]
+name = Layers: web above planner above core
+type = layers
+layers =
+    wiggle_outside.web
+    wiggle_outside.planner
+    wiggle_outside.core
+
+[importlinter:contract:2]
+name = integrations and storage sit beside planner, above core
+type = layers
+layers =
+    wiggle_outside.integrations | wiggle_outside.storage
+    wiggle_outside.core
+
+[importlinter:contract:3]
+name = core imports no framework or I/O library
+type = forbidden
+source_modules =
+    wiggle_outside.core
+forbidden_modules =
+    fastapi
+    httpx
+    sqlite3
+    jinja2
+
+[importlinter:contract:4]
+name = The provider and model adapters are independent of each other
+type = independence
+modules =
+    wiggle_outside.integrations.nominatim
+    wiggle_outside.integrations.overpass
+    wiggle_outside.integrations.open_meteo
+    wiggle_outside.integrations.openrouter
+
+[importlinter:contract:5]
+name = Only main.py imports integrations
+type = forbidden
+source_modules =
+    wiggle_outside.core
+    wiggle_outside.planner
+    wiggle_outside.storage
+    wiggle_outside.web
+forbidden_modules =
+    wiggle_outside.integrations
+
+[importlinter:contract:6]
+name = Only main.py imports storage
+type = forbidden
+source_modules =
+    wiggle_outside.core
+    wiggle_outside.planner
+    wiggle_outside.integrations
+    wiggle_outside.web
+forbidden_modules =
+    wiggle_outside.storage

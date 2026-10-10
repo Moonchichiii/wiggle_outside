@@ -1,0 +1,9 @@
+# Bun only: no npm, no npx (DESIGN-SPEC section 11).
+[install]
+# Refuse to run a dependency's postinstall script without review (PLAN section 9).
+ignoreScripts = true
+exact = true
+frozenLockfile = false
+
+[install.cache]
+disable = false

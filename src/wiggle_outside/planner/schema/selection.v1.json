@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "selection.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["picks"],
+  "properties": {
+    "picks": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["pair_id", "hook_id", "reason_ids"],
+        "properties": {
+          "pair_id": {"type": "string"},
+          "hook_id": {"type": "string"},
+          "reason_ids": {
+            "type": "array",
+            "maxItems": 2,
+            "uniqueItems": true,
+            "items": {"type": "string"}
+          }
+        }
+      }
+    }
+  }
+}

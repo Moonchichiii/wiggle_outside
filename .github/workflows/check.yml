@@ -1,0 +1,50 @@
+# The one gate workflow for M0 (TC-006). It calls the same scripts/check.ps1 this
+# repository runs locally, with shell: pwsh, which ubuntu-latest has preinstalled -
+# so a gate cannot pass on the laptop and fail here because the two read different
+# scripts (TC-004).
+#
+# WP9b adds frontend.yml, supply-chain.yml, dependency-review.yml, security.yml,
+# browser.yml and the gate-integrity job.
+name: check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # The job id is the required status-check context in the main ruleset.
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          enable-cache: false
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install dependencies from the lockfile
+        run: uv sync --frozen --all-groups
+
+      - name: Gates
+        shell: pwsh
+        run: ./scripts/check.ps1 -Check
+
+      - name: gates.lock matches the protected inputs
+        shell: pwsh
+        run: ./scripts/gates_lock.ps1 -Verify

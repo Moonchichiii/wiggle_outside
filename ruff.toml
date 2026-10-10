@@ -1,0 +1,56 @@
+# PLAN section 8. select = ALL with a justified ignore list; function shape via ruff.
+target-version = "py314"
+line-length = 100
+src = ["src", "tests"]
+
+# docs/ is the frozen specification baseline, including the mock build tools that produced
+# the approved screens. It is not maintained application source, and reformatting it would
+# rewrite reviewed artifacts (BUILD-PACKAGES: docs/mocks belongs to the mocks, not to a
+# package). WP9b's source-budget policy test counts maintained source only, likewise.
+extend-exclude = ["docs"]
+
+[lint]
+select = ["ALL"]
+ignore = [
+    "D1",      # missing docstrings: PLAN section 7 wants short comments where intent needs it,
+               # not a docstring on every symbol.
+    "COM812",  # trailing comma: conflicts with the formatter.
+    "ISC001",  # implicit string concatenation: conflicts with the formatter.
+    "CPY001",  # copyright notice on every file: LICENSE covers the repository.
+    "D203",    # ruff reports D203 and D211 as incompatible; we keep D211.
+    "D213",    # ruff reports D212 and D213 as incompatible; we keep D212.
+]
+
+[lint.per-file-ignores]
+"tests/**" = [
+    "S101",     # assert is the point of a test.
+    "PLR2004",  # magic values are the fixtures.
+    "INP001",   # pytest.ini sets pythonpath and testpaths; test dirs need no __init__.py.
+    "TC003",    # pytest introspects test and fixture signatures at runtime, so the
+                # types they name stay importable rather than TYPE_CHECKING-gated.
+]
+
+"scripts/**" = [
+    "T201",     # gate scripts report to a terminal; that is their entire job.
+    "INP001",   # scripts/ is a directory of entry points, not an importable package.
+]
+
+[lint.mccabe]
+max-complexity = 6
+
+[lint.pylint]
+max-args = 5
+max-branches = 8
+max-statements = 30
+
+[lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[lint.flake8-type-checking]
+# Contract tests resolve annotations at runtime (get_type_hints over the dataclasses), so
+# these imports must stay importable rather than move into a TYPE_CHECKING block.
+runtime-evaluated-decorators = ["dataclasses.dataclass"]
+runtime-evaluated-base-classes = ["pydantic.BaseModel", "typing.Protocol"]
+
+[format]
+docstring-code-format = true
