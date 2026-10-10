@@ -10,10 +10,10 @@ and screen-reader walkthroughs are WP9b's and have not run.
 from collections.abc import Mapping
 
 import pytest
-from checks import assert_page_is_sound
-from fixtures import D39_ON, FORM_ERRORS, SESSION, STYLESHEET
 from markupsafe import escape
 
+from checks import assert_page_is_sound
+from fixtures import D39_ON, FORM_ERRORS, SESSION, STYLESHEET
 from wiggle_outside.core.errors import NOT_IN_V1, ErrorCode
 from wiggle_outside.core.types import DeploymentMode
 from wiggle_outside.web import copy

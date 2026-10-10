@@ -12,6 +12,8 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import pytest
+from markupsafe import escape
+
 from checks import assert_page_is_sound
 from fixtures import (
     CATALOGUE,
@@ -36,9 +38,7 @@ from fixtures import (
     SESSION,
     STYLESHEET,
 )
-from markupsafe import escape
 from parse import read
-
 from wiggle_outside.core.errors import ErrorCode, NoticeId
 from wiggle_outside.core.types import DeploymentMode, PlanResult
 from wiggle_outside.web import copy

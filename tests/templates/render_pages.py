@@ -35,7 +35,6 @@ from fixtures import (
     RESULT_TWO,
     SESSION,
 )
-
 from wiggle_outside.core.errors import ErrorCode
 from wiggle_outside.core.types import DeploymentMode
 from wiggle_outside.web.presenters import (

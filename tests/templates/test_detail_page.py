@@ -12,11 +12,11 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import pytest
+from markupsafe import escape
+
 from checks import assert_nothing_inline, assert_page_is_sound
 from fixtures import CATALOGUE, LATER, NOW, RESULT, STYLESHEET
-from markupsafe import escape
 from parse import read
-
 from wiggle_outside.core.types import CARD_ITEMS
 from wiggle_outside.web import copy
 from wiggle_outside.web.presenters import (
