@@ -7,7 +7,9 @@ src = ["src", "tests"]
 # the approved screens. It is not maintained application source, and reformatting it would
 # rewrite reviewed artifacts (BUILD-PACKAGES: docs/mocks belongs to the mocks, not to a
 # package). WP9b's source-budget policy test counts maintained source only, likewise.
-extend-exclude = ["docs"]
+# .claude/worktrees holds other packages' isolated worktrees. They are separate
+# branches with their own gate runs; linting them from here would mix packages.
+extend-exclude = ["docs", ".claude"]
 
 [lint]
 select = ["ALL"]

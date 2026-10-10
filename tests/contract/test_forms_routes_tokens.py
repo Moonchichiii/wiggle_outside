@@ -11,7 +11,7 @@ from typing import Final
 import pytest
 
 from wiggle_outside.core.types import AgeBand, Energy, TimeBudget, Who
-from wiggle_outside.main import create_app
+from wiggle_outside.main import build_state, create_app, readiness_body
 from wiggle_outside.settings import Settings
 from wiggle_outside.web.forms import (
     ALLOWED_VALUES,
@@ -165,9 +165,22 @@ def test_removed_routes_are_not_registered() -> None:
     assert not paths & REMOVED_ROUTES
 
 
-def test_readyz_reports_model_state() -> None:
-    local = Settings.from_env()
-    assert local.model_ready is True
+def test_readyz_reports_the_model_unavailable_until_an_adapter_is_wired() -> None:
+    # Readiness comes from the wired adapter, never from configuration, so the endpoint
+    # cannot claim a model this process does not have. WP5 supplies the adapter.
+    state = build_state(Settings.from_env())
+    assert state.ranker is None
+    assert state.model_status == "unavailable"
+
+    body = readiness_body(state)
+    assert "app: ready" in body
+    assert "model: unavailable" in body
+
+
+def test_readyz_is_registered() -> None:
+    # The transport-level test belongs to WP7's route tests; here the route only has to
+    # exist and delegate, because conftest blocks real sockets.
+    assert ("GET", "/readyz") in _app_routes()
 
 
 # --- Tokens (section 9) ------------------------------------------------------------

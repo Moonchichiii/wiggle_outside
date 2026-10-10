@@ -82,10 +82,3 @@ class Settings:
             deadline_seconds=_env_int("DEADLINE_SECONDS", 20),
             d39_enabled=_env_bool("D39_ENABLED", default=True),
         )
-
-    @property
-    def model_ready(self) -> bool:
-        """Hosted mode needs a key; the app serves fallbacks without one (PLAN 6)."""
-        if self.mode is DeploymentMode.HOSTED_LIVE:
-            return self.openrouter_api_key is not None
-        return True
