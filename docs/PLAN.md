@@ -337,7 +337,7 @@ touchgrass/
 ├─ frontend/  css/ (tokens · base · components/ · utilities) · js/ (app.js · components/)
 ├─ tests/     mirrors src/ · contract/ · acceptance/ · policy/ · eval/ (real-model set, not in CI)
 ├─ analysis/  benchmark notebooks/scripts: pandas vs Polars vs DuckDB on the same data
-├─ scripts/   check.sh · release.sh · check_contrast.py · benchmark.py
+├─ scripts/   check.ps1 · release.ps1 · check_contrast.py · benchmark.py
 └─ pyproject.toml · uv.lock · package.json · bun.lock · bunfig.toml
    ruff.toml · mypy.ini · pytest.ini · .importlinter · .python-version
 ```
@@ -390,12 +390,19 @@ prompt and catalogue changes, copy tone, accessibility of new UI.
 
 **Targets with documented exceptions**: module ~150 lines, function ~25 lines.
 
-**Pinned tools**: uv, bun, Python, ruff, mypy, import-linter, djLint, Biome, Playwright.
+**Pinned tools**: uv, bun, Python, PowerShell 7, ruff, mypy, import-linter, djLint, Biome, Playwright.
 
-**Commands**: `scripts/check.sh` runs every local check above without modifying maintained
+**Commands** (PowerShell 7, TC-004): `scripts/check.ps1` runs every local check above without modifying maintained
 source; builds, coverage and reports write only to git-ignored output directories.
-`scripts/release.sh` builds the zip from an explicit manifest (includes `.env.example`,
-excludes `.env`, caches, `data/`), unzips it into a temp dir and runs `check.sh` there.
+`scripts/release.ps1` builds the zip from an explicit manifest (includes `.env.example`,
+excludes `.env`, caches, `data/`), unzips it into a temp dir and runs `check.ps1` there.
+**One gate script, local and CI (TC-004):** CI runs on GitHub's Linux runners and invokes
+the same `./scripts/check.ps1` with `shell: pwsh`, which `ubuntu-latest` has
+preinstalled, so there is never a second gate list to drift. `check.ps1` therefore uses
+no drive letters or backslash path literals, builds paths with `Join-Path`, invokes tools
+through `uv run` and `bun run`, and fails the job on any non-zero exit. A policy test
+asserts every workflow's gate step calls `./scripts/check.ps1` and that no workflow
+inlines a gate command of its own.
 
 **CI: required checks** (branch ruleset on `main`; PRs only; protected configuration needs review)
 
@@ -584,7 +591,7 @@ check gates anything.
 | # | Step | Done when |
 |---|---|---|
 | 1 | Design review | This set is reconciled, Mats's pending choices are made, three mock screens approved; CONTRACTS and BUILD-PACKAGES accepted |
-| 2 | Bootstrap milestone M0 | WP0 and the initial WP9 gates together (BUILD-PACKAGES §4): repository, contracts, lockfiles, configs, `check.sh`, CI, `gates.lock`; Mats signs the baseline. Then WP1–WP5, WP7 and WP8 run in parallel |
+| 2 | Bootstrap milestone M0 | WP0 and the initial WP9 gates together (BUILD-PACKAGES §4): repository, contracts, lockfiles, configs, `check.ps1`, CI, `gates.lock`; Mats signs the baseline. Then WP1–WP5, WP7 and WP8 run in parallel |
 | 3 | Hosted model smoke (needs Mats's spending approval and a key) | The pinned OpenRouter endpoint returns valid picks on fixture pairs within `max_tokens` 256 and the 10,000-byte request cap; `usage` and latency recorded; reasoning tokens zero. Runs in parallel with steps 4–5; without approval, steps 4–5 continue on fixtures |
 | 4 | Deterministic flow | Quiz → catalogue → fixture places and weather → cards → print, no model |
 | 5 | Real sources | Nominatim, Overpass, Open-Meteo under BACKEND-CONTRACT budgets |

@@ -87,7 +87,7 @@ starts; user-facing copy says "Wiggle Outside".
 | WP6 | Planner orchestration | `planner/plan_outing.py`, `planner/fallback.py`, `planner/jobs.py`, `tests/planner/**` except the catalogue test | M0; WP1 and WP2 merged |
 | WP7 | Web, security, transport | `web/routes/**`, `web/security.py`, `tests/web/**` | M0 (builds against a fake `PlannerService`) |
 | WP8 | Templates and frontend | `web/templates/**`, `web/copy.py`, `web/presenters.py`, `frontend/css/**` except `tokens.css`, `frontend/js/**`, `frontend/svg/**`, `frontend/fonts/**`, `tests/templates/**` | M0; three mock screens approved by Mats |
-| WP9 | CI, gates and deployment config (protected) | `scripts/**`, `.github/**`, `tests/policy/**`, `ruff.toml`, `mypy.ini`, `pytest.ini`, `.importlinter`, `biome.json`, `.djlintrc`, `gates.lock`, **`Dockerfile`, `fly.toml`, `docs/evidence/deploy.md`** | Initial gates: built together with WP0 as milestone M0. Later gate additions: M0 |
+| WP9 | CI, gates and deployment config (protected) | `scripts/**` (PowerShell 7; TC-004), `.github/**`, `tests/policy/**`, `ruff.toml`, `mypy.ini`, `pytest.ini`, `.importlinter`, `biome.json`, `.djlintrc`, `gates.lock`, **`Dockerfile`, `fly.toml`, `docs/evidence/deploy.md`** | Initial gates: built together with WP0 as milestone M0. Later gate additions: M0 |
 | WP10 | Evidence and write-up | `docs/evidence/**` **except** WP5's `model-eval.md` and `model-smoke.md` and WP9's `deploy.md`, `docs/post/**`, `analysis/**` | runs alongside; final parts after the release candidate |
 
 Each owned path exists only once in this table. Any file not listed belongs to the
@@ -97,14 +97,14 @@ integration owner.
 
 **Milestone M0 = WP0 + initial WP9.** WP0 and the initial gates are one bootstrap
 milestone with one owner (the integration owner), built and accepted together, so neither
-waits for the other. Order inside M0: manifests and configs → `check.sh` with the
+waits for the other. Order inside M0: manifests and configs → `check.ps1` with the
 initial gates (ruff, mypy, import-linter, pytest, contract tests, policy tests, Bun build,
 canonical audit) → contracts and stubs until the gates pass → CI workflows → `gates.lock`.
 No package agent starts before M0 is accepted and Mats has signed the baseline.
 
 **WP0 Contracts and skeleton.** Every type, enum, protocol, schema, form and view model
 in CONTRACTS.md; app factory with lifespan; settings; stubs that import cleanly.
-*Accept (as part of M0):* `scripts/check.sh` green on the skeleton; contract tests pass
+*Accept (as part of M0):* `scripts/check.ps1` green on the skeleton; contract tests pass
 (ErrorCode equals the ERROR-HANDLING table, schema fixtures valid and invalid, route and
 form-field lists, token names present); import-linter layers in force; lockfiles resolve
 offline from the recorded hashes.
@@ -247,7 +247,7 @@ fixture pages; the DAYLIGHT_NIGHT and DAYLIGHT_TOO_SHORT pages render the §9 co
 the answers summary and "Change answers"; screenshots at 320/390/768/1024/1440 px for review. Accessibility is not
 claimed from these checks.
 
-**WP9 CI and gates.** `check.sh`, `release.sh`, `check_contrast.py`, workflows, policy
+**WP9 CI and gates.** `check.ps1`, `release.ps1`, `check_contrast.py`, workflows, policy
 tests, the canonical audit (ARCHITECTURE §13.3), `gates.lock`.
 *Accept (initial gates as part of M0):* each gate fails on a seeded violation and passes
 on the skeleton; workflows run on `pull_request` without secrets; Mats signs `gates.lock`
@@ -301,7 +301,7 @@ OpenRouter, holds no credentials other than the model key when a real model run 
 authorised (prerequisite P2), and is never used for the offline gates. Check 7 below is
 the only check that uses it; every other check runs offline on fixtures.
 
-1. `scripts/check.sh` (all gates, contract tests, import-linter).
+1. `scripts/check.ps1` (all gates, contract tests, import-linter).
 2. PLAN §13 acceptance scenarios end to end with fixture providers and a fixture model.
 3. Playwright journeys, plain and enhanced, under the production CSP: zero CSP
    violations; every DESIGN-SPEC §7 failure state reached and rendered correctly.
