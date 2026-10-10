@@ -1,7 +1,12 @@
 # PLAN section 8. select = ALL with a justified ignore list; function shape via ruff.
 target-version = "py314"
 line-length = 100
-src = ["src", "tests"]
+# "tests/templates" is listed because its helpers are imported as bare modules
+# (`from fixtures import ...`) after a sys.path insert. Without it ruff classifies them
+# as third-party and reports I001 - but only in a fresh checkout, because an untracked
+# empty tests/fixtures/ directory on a dev machine makes the name resolve by accident.
+# That made the local gate disagree with CI, which is worse than either verdict.
+src = ["src", "tests", "tests/templates"]
 
 # docs/ is the frozen specification baseline, including the mock build tools that produced
 # the approved screens. It is not maintained application source, and reformatting it would

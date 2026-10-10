@@ -8,6 +8,7 @@ supplied its own assets. Nothing asserted the two ends met.
 """
 
 import re
+from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
 import pytest
@@ -34,6 +35,19 @@ def test_the_page_links_exactly_one_stylesheet(page: str) -> None:
 
 
 def test_the_stylesheet_url_serves_non_empty_css(page: str, asgi_client: TestClient) -> None:
+    # The bundle is a gitignored build artifact. scripts/check.ps1 builds it before
+    # pytest; a bare `pytest` in a fresh checkout has to be told why, not just fail.
+    built = (
+        Path(__file__).resolve().parents[2]
+        / "src"
+        / "wiggle_outside"
+        / "web"
+        / "static"
+        / "app.css"
+    )
+    if not built.is_file():
+        pytest.skip("run `bun run build:css` first, or ./scripts/check.ps1 which does")
+
     href_match = HREF.search(LINK.findall(page)[0])
     assert href_match, "the stylesheet link has no href"
 
