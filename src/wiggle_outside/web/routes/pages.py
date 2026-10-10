@@ -6,9 +6,12 @@ or unknown job is the same 404 (BACKEND-CONTRACT section 5).
 
 from dataclasses import replace
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
-from fastapi import APIRouter
-from starlette.requests import Request
+# FastAPI resolves a handler's annotations when the route is registered, so Request
+# and Response stay runtime imports: under TYPE_CHECKING it reads `request` as a
+# query parameter and answers 422.
+from starlette.requests import Request  # noqa: TC002
 from starlette.responses import Response
 
 from wiggle_outside.core.errors import ErrorCode
@@ -37,10 +40,11 @@ from wiggle_outside.web.security import (
     set_session_cookie,
 )
 
+if TYPE_CHECKING:
+    from fastapi import APIRouter
+
 # Non-terminal states: the GET waits for the job's own deadline (CONTRACTS section 3).
-_RUNNING = frozenset(
-    {JobState.RUNNING, JobState.WAITING, JobState.GENERATING, JobState.CANCELLING}
-)
+_RUNNING = frozenset({JobState.RUNNING, JobState.WAITING, JobState.GENERATING, JobState.CANCELLING})
 
 
 def _not_found(context: WebContext) -> Response:
@@ -56,16 +60,7 @@ def register(router: APIRouter, context: WebContext) -> None:
 
     @router.get("/")
     async def form(request: Request) -> Response:
-        if not host_allowed(request, context.policy):
-            return error_page(
-                context, ErrorOutcome(ErrorCode.INPUT_INVALID, HTTP_BAD_REQUEST)
-            )
-        session = context.sessions.get(request.cookies.get(SESSION_COOKIE))
-        if session is None:
-            session = context.sessions.create()
-        response = render_form_page(context, form_context(context, session))
-        set_session_cookie(response, session.session_id)
-        return response
+        return _render_form(context, request)
 
     @router.get("/results/{job_id}")
     async def results(request: Request, job_id: str) -> Response:
@@ -81,26 +76,43 @@ def register(router: APIRouter, context: WebContext) -> None:
         if isinstance(owned, Response):
             return owned
         _, result = owned
-        now = datetime.now(UTC)
-        known = any(idea.pair.idea_id == idea_id for idea in result.ideas)
-        if not known or now >= result.retain_until:
-            return _not_found(context)
-        body = context.pages.detail(
-            DetailContext(
-                result=result,
-                idea_id=idea_id,
-                now=now,
-                mode=context.settings.mode,
-                assets=context.assets,
-            )
+        return _render_detail(context, result, idea_id)
+
+
+def _render_form(context: WebContext, request: Request) -> Response:
+    """Render the form page, opening a session when the request has none."""
+    if not host_allowed(request, context.policy):
+        return error_page(context, ErrorOutcome(ErrorCode.INPUT_INVALID, HTTP_BAD_REQUEST))
+    session = context.sessions.get(request.cookies.get(SESSION_COOKIE))
+    if session is None:
+        session = context.sessions.create()
+    response = render_form_page(context, form_context(context, session))
+    set_session_cookie(response, session.session_id)
+    return response
+
+
+def _render_detail(context: WebContext, result: PlanResult, idea_id: str) -> Response:
+    """Render one idea, or the uniform 404 for an idea this result does not carry."""
+    now = datetime.now(UTC)
+    known = any(idea.pair.idea_id == idea_id for idea in result.ideas)
+    if not known or now >= result.retain_until:
+        return _not_found(context)
+    body = context.pages.detail(
+        DetailContext(
+            result=result,
+            idea_id=idea_id,
+            now=now,
+            mode=context.settings.mode,
+            assets=context.assets,
         )
-        return html_page(body, context.settings.mode)
+    )
+    return html_page(body, context.settings.mode)
 
 
 async def _owned(
     context: WebContext, request: Request, job_id: str
 ) -> tuple[Session, PlanResult] | Response:
-    """This session's job in a terminal state, or the uniform 404."""
+    """Return this session's job in a terminal state, or the uniform 404."""
     if not host_allowed(request, context.policy):
         return error_page(context, ErrorOutcome(ErrorCode.INPUT_INVALID, HTTP_BAD_REQUEST))
     session = context.sessions.get(request.cookies.get(SESSION_COOKIE))
@@ -146,7 +158,7 @@ def _render_result(context: WebContext, session: Session, result: PlanResult) ->
 def _render_notice(
     context: WebContext, session: Session, result: PlanResult, outcome: Outcome
 ) -> Response:
-    """A notice, a choice page or a 422 form, all with the answers kept."""
+    """Render a notice, a choice page or a 422 form, keeping the answers."""
     kept = replace(
         form_context(context, session),
         answers=result.answers,
@@ -180,7 +192,7 @@ def _render_notice(
 
 
 def fields_from_answers_summary(result: PlanResult) -> dict[str, str]:
-    """A result's answers as form values, so a re-render keeps them (D46)."""
+    """Render a result's answers as form values, so a re-render keeps them (D46)."""
     summary = result.answers
     sent = {
         "who": summary.who.value,

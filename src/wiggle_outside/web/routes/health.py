@@ -6,11 +6,19 @@ checks the Host header: a platform health check addresses the instance, not the 
 host name, and `/healthz` is never counted against a rate limit.
 """
 
-from fastapi import APIRouter
-from starlette.responses import Response
+from typing import TYPE_CHECKING
 
-from wiggle_outside.web.routes.support import WebContext
+# FastAPI resolves a handler's annotations when the route is registered, so Request
+# and Response stay runtime imports: under TYPE_CHECKING it reads `request` as a
+# query parameter and answers 422.
+from starlette.responses import Response  # noqa: TC002
+
 from wiggle_outside.web.security import plain_text
+
+if TYPE_CHECKING:
+    from fastapi import APIRouter
+
+    from wiggle_outside.web.routes.support import WebContext
 
 LIVE = "ok"
 

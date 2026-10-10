@@ -5,17 +5,19 @@ global (PLAN section 7). `build_router` is the convenience shape; `build` takes 
 `WebContext` when the caller has more to say, such as the real model readiness.
 """
 
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from fastapi import APIRouter
 
-from wiggle_outside.planner.ports import PlannerService
-from wiggle_outside.settings import Settings
 from wiggle_outside.web.routes import health, pages, plan, static
 from wiggle_outside.web.routes.assets import REPO_FONTS_DIR, STATIC_DIR, build_manifest
 from wiggle_outside.web.routes.rendering import InterimPages, Pages
 from wiggle_outside.web.routes.support import WebContext
 from wiggle_outside.web.security import SessionStore, origin_policy
+
+if TYPE_CHECKING:
+    from wiggle_outside.planner.ports import PlannerService
+    from wiggle_outside.settings import Settings
 
 MODEL_UNAVAILABLE: Final = "unavailable"
 

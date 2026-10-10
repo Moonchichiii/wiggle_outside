@@ -5,16 +5,25 @@ Nothing outside the static root is servable, and the only font files are the two
 faces, which may be absent (TC-007) and then 404 cleanly.
 """
 
-from fastapi import APIRouter
+from typing import TYPE_CHECKING
+
 from starlette.responses import FileResponse, Response
 
 from wiggle_outside.web.routes.assets import resolve_static
-from wiggle_outside.web.routes.support import WebContext
 from wiggle_outside.web.security import (
     HTTP_NOT_FOUND,
     STATIC_CACHE_CONTROL,
     security_headers,
 )
+
+# FastAPI resolves a handler's annotations when the route is registered, so Request
+# and Response stay runtime imports: under TYPE_CHECKING it reads `request` as a
+# query parameter and answers 422.
+
+if TYPE_CHECKING:
+    from fastapi import APIRouter
+
+    from wiggle_outside.web.routes.support import WebContext
 
 
 def register(router: APIRouter, context: WebContext) -> None:

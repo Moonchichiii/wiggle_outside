@@ -7,12 +7,14 @@ metric-matched fallback in tokens.css renders instead.
 
 import json
 import mimetypes
-from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from wiggle_outside.web.views import AssetRef
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 # src/wiggle_outside/web/routes/assets.py -> src/wiggle_outside/web/static
 STATIC_DIR: Final = Path(__file__).resolve().parents[1] / "static"
@@ -54,7 +56,7 @@ def build_manifest(static_dir: Path = STATIC_DIR) -> Mapping[str, AssetRef]:
 def _from_manifest(manifest: Path) -> Mapping[str, AssetRef]:
     try:
         raw: object = json.loads(manifest.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
+    except OSError, ValueError:
         return {}
     if not isinstance(raw, dict):
         return {}
@@ -73,7 +75,9 @@ def _asset_ref(value: object) -> AssetRef:
         url = value.get("url") or value.get("file") or ""
         integrity = value.get("integrity") or ""
         if isinstance(url, str) and isinstance(integrity, str):
-            return AssetRef(url=url if url.startswith("/") else f"/static/{url}", integrity=integrity)
+            return AssetRef(
+                url=url if url.startswith("/") else f"/static/{url}", integrity=integrity
+            )
     return AssetRef(url="", integrity="")
 
 

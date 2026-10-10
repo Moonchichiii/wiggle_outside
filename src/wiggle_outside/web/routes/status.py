@@ -4,11 +4,10 @@ A pure function over a `PlanResult`, so every row of the GET table can be assert
 without a request.
 """
 
-from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 from types import MappingProxyType
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from wiggle_outside.core.errors import ErrorCode
 from wiggle_outside.core.types import JobState, PlanResult
@@ -19,6 +18,9 @@ from wiggle_outside.web.security import (
     HTTP_SERVICE_UNAVAILABLE,
     HTTP_UNPROCESSABLE,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 
 class PageKind(StrEnum):

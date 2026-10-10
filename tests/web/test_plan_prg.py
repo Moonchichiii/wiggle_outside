@@ -1,8 +1,13 @@
 """The plain-form path: GET / -> POST /plan -> 303 -> GET /results/{job_id} (D43)."""
 
-from support import ANSWERS, Harness
+import re
+from typing import Final
+
+from web_support import ANSWERS, Harness
 
 from wiggle_outside.web.security import HTML_CACHE_CONTROL, SESSION_COOKIE
+
+DETAIL_URL: Final = re.compile(r"/results/[^\"]+/ideas/[^\"]+")
 
 
 def test_the_form_page_creates_a_session_and_renders_the_form(harness: Harness) -> None:
@@ -63,14 +68,15 @@ def test_resubmitting_the_same_form_joins_rather_than_starting_again(harness: Ha
 
 def test_the_detail_page_is_addressed_by_its_idea_id(harness: Harness) -> None:
     shown = harness.client.get(harness.plan().headers["location"])
-    first_detail = shown.text.split('href="')[1].split('"')[0]
+    found = DETAIL_URL.search(shown.text)
+    assert found is not None
 
-    detail = harness.client.get(first_detail)
+    detail = harness.client.get(found.group(0))
 
     assert detail.status_code == 200
     assert detail.headers["cache-control"] == HTML_CACHE_CONTROL
     # Immutable results mean a detail URL answers the same way every time (D46).
-    assert harness.client.get(first_detail).text == detail.text
+    assert harness.client.get(found.group(0)).text == detail.text
 
 
 def test_solo_answers_need_no_age_band(harness: Harness) -> None:
@@ -84,7 +90,7 @@ def test_coordinates_are_accepted_instead_of_a_typed_place(harness: Harness) -> 
     body = {
         "csrf_token": tokens["csrf_token"],
         "idempotency_key": tokens["idempotency_key"],
-        **{name: value for name, value in ANSWERS.items() if name not in {"place"}},
+        **{name: value for name, value in ANSWERS.items() if name != "place"},
         "location_mode": "coords",
         "lat": "60.123456",
         "lon": "17.9",

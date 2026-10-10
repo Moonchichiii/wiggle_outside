@@ -95,7 +95,8 @@ _SHELL: Final = """<!doctype html>
 <title>{{ title }}</title>
 {% for name, asset in assets.items() %}
 {% if name.endswith(".css") %}
-<link rel="stylesheet" href="{{ asset.url }}"{% if asset.integrity %} integrity="{{ asset.integrity }}"{% endif %}>
+<link rel="stylesheet" href="{{ asset.url }}"
+{%- if asset.integrity %} integrity="{{ asset.integrity }}"{% endif %}>
 {% endif %}
 {% endfor %}
 </head>
@@ -197,10 +198,7 @@ def _card(idea: Idea, job_id: str) -> _Card:
         # wired yet, so the interim card shows the stable activity ID instead.
         title=idea.pair.activity_id,
         place=f"{where}{distance}",
-        times=(
-            f"{idea.pair.travel_min} min there and back, "
-            f"{idea.pair.duration_min} min activity"
-        ),
+        times=(f"{idea.pair.travel_min} min there and back, {idea.pair.duration_min} min activity"),
         url=f"/results/{job_id}/ideas/{idea.pair.idea_id}",
     )
 
@@ -230,7 +228,7 @@ class _Params(dict[str, object]):
 
 
 def message_for(code: ErrorCode, **params: object) -> str:
-    """The approved copy for a code, with its placeholders filled where we have them."""
+    """Fill the approved copy for a code with the placeholder values we have."""
     return copy.ERROR_MESSAGES[code].format_map(_Params(params))
 
 
@@ -239,9 +237,7 @@ def _notice_lines(result: PlanResult) -> tuple[str, ...]:
     if result.error is not None and result.error not in codes:
         codes.insert(0, result.error)
     return tuple(
-        message_for(code, count=len(result.ideas))
-        for code in codes
-        if code in copy.ERROR_MESSAGES
+        message_for(code, count=len(result.ideas)) for code in codes if code in copy.ERROR_MESSAGES
     )
 
 

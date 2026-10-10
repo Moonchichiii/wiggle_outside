@@ -10,12 +10,10 @@ import hmac
 import secrets
 import time
 from collections import OrderedDict
-from collections.abc import Callable, Iterator, Mapping
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Final
 from urllib.parse import urlsplit
 
-from starlette.requests import Request
 from starlette.responses import HTMLResponse, PlainTextResponse, Response
 
 from wiggle_outside.core.types import (
@@ -23,10 +21,14 @@ from wiggle_outside.core.types import (
     LocationCandidate,
     LocationCandidates,
 )
-from wiggle_outside.settings import Settings
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Iterator, Mapping
     from datetime import datetime
+
+    from starlette.requests import Request
+
+    from wiggle_outside.settings import Settings
 
 # --- Statuses (CONTRACTS section 3) -------------------------------------------------
 
@@ -108,7 +110,7 @@ def host_allowed(request: Request, policy: OriginPolicy) -> bool:
 
 
 def origin_allowed(request: Request, policy: OriginPolicy) -> bool:
-    """The unsafe-method rule, with no silent bypass (BACKEND-CONTRACT section 5).
+    """Apply the unsafe-method rule, with no silent bypass (BACKEND-CONTRACT 5).
 
     `Origin` must equal an allowed origin. Only when it is absent does `Referer` stand
     in, and it must be same-origin. Both absent, or `Origin: null`, is a refusal.
@@ -152,14 +154,14 @@ HSTS: Final = "max-age=63072000; includeSubDomains; preload"
 
 
 def content_security_policy(mode: DeploymentMode) -> str:
-    """The CSP from PLAN section 9; the hosted product also upgrades insecure requests."""
+    """Build the CSP of PLAN section 9; hosted also upgrades insecure requests."""
     if mode is DeploymentMode.HOSTED_LIVE:
         return f"{BASE_CSP}; upgrade-insecure-requests"
     return BASE_CSP
 
 
 def security_headers(mode: DeploymentMode) -> dict[str, str]:
-    """The PLAN section 9 header list. Present on every response, errors included."""
+    """Build the PLAN section 9 header list, present on every response."""
     headers = {
         "Content-Security-Policy": content_security_policy(mode),
         "X-Content-Type-Options": "nosniff",
@@ -188,7 +190,7 @@ def html_page(
 
 
 def see_other(location: str, mode: DeploymentMode) -> Response:
-    """The plain-form POST-redirect-GET answer (D43)."""
+    """Answer a plain-form POST with the redirect of D43."""
     return Response(
         status_code=HTTP_SEE_OTHER,
         headers={"Location": location} | page_headers(mode),
@@ -311,7 +313,7 @@ class Session:
         return self.last_job_id
 
     def new_key(self) -> str:
-        """A fresh idempotency key for a form; changed answers are a new job (D46)."""
+        """Make a fresh idempotency key; changed answers are a new job (D46)."""
         return secrets.token_urlsafe(ID_BYTES)
 
     def remember(self, key: str, digest: str) -> bool:
@@ -330,7 +332,7 @@ class Session:
         return True
 
     def live_candidate(self, candidate_id: str, now: datetime) -> LocationCandidate | None:
-        """The candidate with this ID from this session's live set, or None.
+        """Find the candidate with this ID in this session's live set, or None.
 
         Unknown, forged, from another session, expired or already removed all answer
         None, so the uniform 422 in CONTRACTS section 3 is the single outcome.
@@ -346,7 +348,7 @@ class Session:
         return None
 
     def live_set(self, now: datetime) -> LocationCandidates | None:
-        """The candidate set while it is unexpired; its answers go with it."""
+        """Return the candidate set while it is unexpired; its answers go with it."""
         if self.candidates is None or self.candidates.expires_at <= now:
             return None
         return self.candidates
@@ -367,7 +369,7 @@ class Session:
         self.last_job_id = job_id
 
     def latest_candidate_job(self) -> str | None:
-        """The most recently started job from this candidate set (BACKEND-CONTRACT 3)."""
+        """Find the most recently started job from this set (BACKEND-CONTRACT 3)."""
         if self.candidates is None:
             return None
         started = [c.job_id for c in self.candidates.candidates if c.job_id is not None]
@@ -422,7 +424,7 @@ class SessionStore:
         return session
 
     def get(self, session_id: str | None) -> Session | None:
-        """The session a cookie names, or None. An unknown ID is never adopted."""
+        """Look up the session a cookie names; an unknown ID is never adopted."""
         self._purge()
         if not session_id:
             return None
@@ -434,7 +436,7 @@ class SessionStore:
         return session
 
     def admit_submission(self, session: Session) -> bool:
-        """The per-session and global submission buckets, checked before any work."""
+        """Spend a token from the per-session and global buckets, before any work."""
         now = self._monotonic()
         return session.submissions.take(now) and self._global.take(now)
 

@@ -5,16 +5,18 @@ Both are plain-form POST-redirect-GET (D43): wait for the terminal state, then 3
 POST table is refused here, before any provider or model call.
 """
 
+from contextlib import suppress
 from dataclasses import replace
 from datetime import UTC, datetime
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
-from fastapi import APIRouter
-from starlette.requests import Request
+# FastAPI resolves a handler's annotations when the route is registered, so Request
+# and Response stay runtime imports: under TYPE_CHECKING it reads `request` as a
+# query parameter and answers 422.
+from starlette.requests import Request  # noqa: TC002
 from starlette.responses import Response
 
 from wiggle_outside.core.errors import ErrorCode
-from wiggle_outside.core.types import Answers, LocationCandidate
 from wiggle_outside.planner.ports import Busy, Conflict, NotFound
 from wiggle_outside.web.forms import candidate_key, fingerprint
 from wiggle_outside.web.routes.parsing import (
@@ -34,7 +36,6 @@ from wiggle_outside.web.routes.support import (
     new_reference,
     render_form_page,
 )
-from wiggle_outside.web.views import FormContext
 from wiggle_outside.web.security import (
     HTTP_CONFLICT,
     HTTP_SERVER_ERROR,
@@ -43,6 +44,12 @@ from wiggle_outside.web.security import (
     Session,
     see_other,
 )
+
+if TYPE_CHECKING:
+    from fastapi import APIRouter
+
+    from wiggle_outside.core.types import Answers, LocationCandidate
+    from wiggle_outside.web.views import FormContext
 
 # The honeypot is hidden from keyboard and screen readers, so anything in it is a bot.
 HONEYPOT: Final = "hp_note"
@@ -77,9 +84,7 @@ async def _plan(context: WebContext, admitted: Admitted) -> Response:
     kept = replace(form_context(context, session), submitted=submitted_fields(values))
     parse = read_plan(values, d39_enabled=context.settings.d39_enabled)
     if parse.answers is None:
-        return render_form_page(
-            context, replace(kept, errors=parse.errors), HTTP_UNPROCESSABLE
-        )
+        return render_form_page(context, replace(kept, errors=parse.errors), HTTP_UNPROCESSABLE)
     digest = fingerprint(context.process_key, values)
     refused = _register_key(context, session, parse.key, digest, kept)
     if refused is not None:
@@ -139,7 +144,7 @@ async def _start_choice(
 
 
 def _choice_expired(context: WebContext, session: Session, now: datetime) -> Response:
-    """The uniform 422 for any candidate not in this session's live set."""
+    """Answer the uniform 422 for any candidate not in this session's live set."""
     live = session.live_set(now)
     kept = form_context(context, session)
     if live is not None:
@@ -199,11 +204,9 @@ async def _start(
 
 async def _settle(context: WebContext, session: Session, job_id: str) -> Response:
     """Wait for the terminal state, then redirect (D43). The status is on the GET."""
-    try:
+    # The result may go while we wait; then the GET answers the uniform 404.
+    with suppress(NotFound):
         await context.planner.wait(session.session_id, job_id)
-    except NotFound:
-        # The result went while we waited; the GET answers the uniform 404.
-        pass
     return see_other(f"/results/{job_id}", context.settings.mode)
 
 

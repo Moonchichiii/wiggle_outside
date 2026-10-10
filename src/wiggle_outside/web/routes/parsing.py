@@ -198,7 +198,9 @@ class PlanParse:
 
 def read_plan(values: Mapping[str, Sequence[str]], *, d39_enabled: bool) -> PlanParse:
     """Validate a plan submission (CONTRACTS section 7)."""
-    reader = _Reader(values=values, errors=shape_errors(values, PLAN_FORM_FIELDS, REPEATABLE_FIELDS))
+    reader = _Reader(
+        values=values, errors=shape_errors(values, PLAN_FORM_FIELDS, REPEATABLE_FIELDS)
+    )
     who = reader.who()
     ages = reader.ages(who)
     budget = reader.time_budget()
@@ -231,7 +233,7 @@ def read_plan(values: Mapping[str, Sequence[str]], *, d39_enabled: bool) -> Plan
 
 
 def read_choice(values: Mapping[str, Sequence[str]]) -> str | None:
-    """The `candidate_id` of a location choice, or None when the body is not one."""
+    """Read the `candidate_id` of a location choice, or None when the body is not one."""
     if shape_errors(values, frozenset(LOCATION_CHOICE_FIELDS)):
         return None
     items = values.get("candidate_id", ())
@@ -239,7 +241,7 @@ def read_choice(values: Mapping[str, Sequence[str]]) -> str | None:
 
 
 def submitted_fields(values: Mapping[str, Sequence[str]]) -> dict[str, str]:
-    """What was actually typed, for a 422 re-render (CONTRACTS section 8, CC-A).
+    """Collect what was typed, for a 422 re-render (CONTRACTS section 8, CC-A).
 
     Only the answer fields: never `csrf_token`, `idempotency_key` or the honeypot, which
     the form page renders fresh and empty.

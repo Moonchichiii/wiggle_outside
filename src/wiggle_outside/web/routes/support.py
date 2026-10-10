@@ -10,9 +10,8 @@ import secrets
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
-from starlette.requests import Request
 from starlette.responses import Response
 
 from wiggle_outside.core.errors import ErrorCode
@@ -40,6 +39,9 @@ from wiggle_outside.web.security import (
     set_session_cookie,
 )
 from wiggle_outside.web.views import AssetRef, FormContext, SessionView
+
+if TYPE_CHECKING:
+    from starlette.requests import Request
 
 REFERENCE_BYTES: Final = 8
 
@@ -74,12 +76,12 @@ class ErrorOutcome:
 
 
 def new_reference() -> str:
-    """An opaque correlation reference; never a result-access token."""
+    """Make an opaque correlation reference; never a result-access token."""
     return secrets.token_hex(REFERENCE_BYTES)
 
 
 def session_view(session: Session, *, with_key: bool) -> SessionView:
-    """The CSRF token, plus a fresh idempotency key on pages with a plan form."""
+    """Build the session view, with a fresh key where a plan form needs one."""
     return SessionView(
         csrf_token=session.csrf_token,
         idempotency_key=session.new_key() if with_key else None,
@@ -87,7 +89,7 @@ def session_view(session: Session, *, with_key: bool) -> SessionView:
 
 
 def form_context(context: WebContext, session: Session) -> FormContext:
-    """A bare form context for this session; the caller adds what the page keeps."""
+    """Build a bare form context; the caller adds what the page keeps."""
     return FormContext(
         session=session_view(session, with_key=True),
         mode=context.settings.mode,
@@ -101,7 +103,7 @@ def render_form_page(context: WebContext, form: FormContext, status: int = HTTP_
 
 
 def error_page(context: WebContext, outcome: ErrorOutcome) -> Response:
-    """An error page: full page, approved copy, and every security header."""
+    """Render an error page: full page, approved copy, every security header."""
     body = context.pages.error(
         ErrorContext(
             code=outcome.code,
