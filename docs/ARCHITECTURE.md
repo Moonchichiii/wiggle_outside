@@ -1,7 +1,7 @@
 # Wiggle Outside architecture — baseline 8.20 (primary path: hosted, D48)
 
 Status: **baseline 8.20, accepted specification**, 10 October 2026. Backend rules: [BACKEND-CONTRACT.md](BACKEND-CONTRACT.md). The build starts only after Mats's "kör".
-Read with [ERROR-HANDLING.md](ERROR-HANDLING.md), [PLAN.md](PLAN.md), [HERMES-P0.md](HERMES-P0.md) and [CLAUDE-REVIEW.md](CLAUDE-REVIEW.md).
+Read with [ERROR-HANDLING.md](ERROR-HANDLING.md), [PLAN.md](PLAN.md) and [CLAUDE-REVIEW.md](CLAUDE-REVIEW.md). ([HERMES-P0.md](HERMES-P0.md) is a superseded appendix, TC-003.)
 The diagrams describe intended behaviour, not verified infrastructure. Operational defaults below are accepted starting values (baseline 8.20); sections marked deferred or inactive are not built.
 
 ## 1. Scope and decisions
@@ -61,7 +61,9 @@ D24. **Local development** may use a local Ollama model (D38) for convenience; i
 part of the product and does not gate the build or the release.
 
 The build environment is not part of the application and is not drawn here (round
-8.10): Mats's workbench policy is in HERMES-P0.md and is managed outside this package.
+8.10). The build runs on Mats's own machine: Claude Code integrates, Codex reviews and
+Mats approves and commits (BUILD-PACKAGES §2, TC-003). The tools actually used are
+recorded in `docs/evidence/build-process.md` (PLAN §17).
 
 ### 2.1 Fly.io operating contract (round 8.19)
 
@@ -264,6 +266,10 @@ Record each dependency's purpose, version, source, licence, runtime/build/analys
 - Nominatim pacing is application-wide, not per request. If it cannot run within the remaining deadline, return an honest retry result. Identical in-flight provider lookups may share work; one subscriber cancelling must not cancel work still needed by others.
 - Cache budgets (starting values): at most 1,000 records, at most 1 MiB per serialized entry and a 64 MiB storage budget. Expired-first then least-recently-used eviction. Include SQLite database, journal/WAL and temporary space in disk accounting. If storage cannot fit an entry, bypass caching rather than fail a valid request. Exact enforcement and compaction strategy require review before lock.
 - Preserve existing provider TTLs, but also validate that cached weather covers the entire requested interval. Record source timestamps and distinguish fetch time from forecast validity.
+- **Local model endpoint (development only, D38; TC-003, re-homed from HERMES-P0 section 4):**
+  a local Ollama instance stays bound to host loopback and is reachable only from the
+  machine running it. Only the generation endpoint for the pinned model is used, with
+  `num_ctx` 4096 and `num_predict` 256. It gates nothing and never serves the product.
 - Cache keys include provider and query/schema version. Cache migrations may discard/rebuild disposable data. Optional feedback, if enabled, must be kept separately and never silently discarded during a cache reset.
 
 ## 8. Offline card, connectivity and accessibility
@@ -285,7 +291,7 @@ Use identical reviewed scenarios, candidate features, schema, context/output lim
 
 Choose the smaller model representation only if it meets agreed correctness and quality criteria. Compact inputs and a small output schema come first. No fine-tuning, speculative decoding or custom quantization pipeline in v1 without a measured need and a separate scope decision. Use supported Ollama schema-constrained output plus application validation. Low temperature is not a guarantee of deterministic or correct output.
 
-(Development only; product figures come from the hosted model.) Benchmark with workbench local models stopped and, separately, with representative contention. Do not benchmark concurrently with dependency installs or unrelated GPU jobs without labelling that condition. Never claim a configuration is faster without retained measurements.
+(Development only; product figures come from the hosted model.) Benchmark with any other local model stopped and, separately, with representative contention. Do not benchmark concurrently with dependency installs or unrelated GPU jobs without labelling that condition. Never claim a configuration is faster without retained measurements.
 
 ## 10. Architectural tests and observability
 
@@ -348,7 +354,13 @@ filters or `js:` values. htmx's indicator CSS arrives as a constructable stylesh
 Script tags carry build-time SHA-384 `integrity` attributes.
 
 ### 13.3 Canonical audit procedure
-This is the only audit procedure; PLAN section 8 and HERMES-P0 section 4 refer here.
+This is the only audit procedure; PLAN section 8 refers here.
+
+**Audit runner (TC-003, re-homed from HERMES-P0 section 2):** the configuration that runs
+the steps below. It reads the lockfiles only, holds no credentials, reaches advisory
+sources only (PyPI, api.osv.dev, the npm advisory endpoint, the GitHub advisory API and
+the Trivy database host), installs nothing and executes no project code. In CI this is
+the `supply-chain` workflow job.
 1. Python inventory: `uv export --frozen --all-groups --all-extras --no-emit-project
    --format requirements-txt` (hashed, no editable project line).
 2. `pip-audit --strict --require-hashes --disable-pip -r <export>`: no resolution, no install.

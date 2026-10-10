@@ -2,8 +2,11 @@
 
 You are building one work package of Wiggle Outside. This page tells you where the rules
 are; it does not repeat them. At bootstrap the integration owner may place it in the
-repository as `AGENTS.md`; that file is then a protected input (HERMES-P0 §3), and Mats
-reviews any change to it.
+repository as `AGENTS.md`; that file is then a protected input (BUILD-PACKAGES §2.1),
+and Mats reviews any change to it.
+
+Who does what (BUILD-PACKAGES §2, TC-003): **Claude Code integrates and runs the gates,
+Codex reviews, Mats approves and commits.** There is no build orchestrator.
 
 ## Read before editing
 

@@ -6,7 +6,8 @@ The answers are in §0; §1–§6 keep the review as it was put to Mats (round 8
 history. Every threshold is a **product assumption**, not an established safety
 threshold; no medical or meteorological source was used to set any number, and "the
 adult decides" does not validate any number either. Owner: WP2 (catalogue and hooks,
-`tests/planner/test_catalogue.py`); the TOML files are protected inputs.
+`tests/planner/test_catalogue.py`); the TOML files are protected inputs
+(BUILD-PACKAGES §2.1, TC-003).
 
 ## 0. Answers recorded (Mats, 8.20) and applied
 

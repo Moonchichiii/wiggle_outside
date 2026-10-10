@@ -14,7 +14,7 @@ changes (CONTRACTS §10), not new planning rounds.
 |---|---|---|
 | Decision sheet | accepted in full: step-free preference (D42 P); fees option (b) with the full label "Admission not verified" and `fee=no` as "Reported free admission" (D37); fonts Cabinet + Switzer with system fallback, licence and glyph checks still required (D41); Rune Icons declined (D47); local Ollama deferred (D38); preloading deferred (D34); working defaults kept: 20 s deadline, 4 h half day, distinct activities, one worker (D32, D35, D36, D21) | PLAN §0 |
 | Catalogue | all dispositions, with **5 °C on all three** baby-eligible entries | CATALOGUE-REVIEW §0; drafts/*.toml |
-| Integration lead | Claude Code; Codex reviews integrated changes; Mats approves product decisions, protected changes and release; Hermes stays the build orchestrator | PLAN D9; BUILD-PACKAGES §2 |
+| Integration lead | Claude Code integrates and runs the gates; Codex reviews integrated changes; Mats approves product decisions, protected changes and release, and alone commits, signs and pushes. **No build orchestrator (TC-003)** | PLAN D9; BUILD-PACKAGES §2, §2.1 |
 | Hostname | `wiggle-outside.fly.dev`, if available; does not by itself settle 145/A+ | PLAN D20, D27; DEPLOYMENT |
 | Night copy (new, Mats) | family path: fixed reviewed copy from the existing daylight check; no model call, polling or refresh; answers kept under "Change answers"; solo unchanged | BACKEND-CONTRACT §1; ERROR-HANDLING; CONTRACTS §3; DESIGN-SPEC §9, §12; WP1, WP6, WP8; mock `05-night.html` |
 
@@ -370,7 +370,7 @@ grants build permission.
 | — | Catalogue, hooks, weather thresholds, `interests` tags, 30-phrase set | Review |
 | — | CONTRACTS.md and BUILD-PACKAGES.md (route paths, field names, ownership, integration owner) | Review; name the integration owner |
 | — | Three mock screens (`mocks/`) | Review now; approve before any template work |
-| — | Workbench readiness (Hermes, D28) | Outside this package; Mats confirms separately |
+| — | ~~Workbench readiness (Hermes, D28)~~ | Closed by TC-003: no orchestrator; D28 declined; execution model in PLAN D9 |
 
 ## Hypothesis
 

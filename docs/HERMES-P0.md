@@ -1,6 +1,15 @@
 # Hermes P0: build governance for Touchgrass
 
-Status: DRAFT round 8.5 (scope note added in 8.7), for Mats's approval. Binding when Mats approves it and says "kör".
+> **NOT USED IN THIS BUILD (TC-003, 10 October 2026).** There is no Hermes in this
+> build: **Claude Code integrates, Codex reviews, Mats approves.** This file is kept as
+> a dated appendix for the record and binds nothing. Its load-bearing rules were
+> re-homed: **protected inputs and stop conditions → BUILD-PACKAGES §2.1**, the
+> SHA-256 recording of protected inputs → **PLAN §8**, the integration runner →
+> **BUILD-PACKAGES §5**, the audit runner → **ARCHITECTURE §13.3**, the
+> `build-process.md` field list → **PLAN §17**, the Ollama loopback rule →
+> **ARCHITECTURE §7**. Nothing below is an instruction to any agent.
+
+Status: superseded appendix (TC-003). Previously: DRAFT round 8.5 (scope note added in 8.7), for Mats's approval.
 
 > **Scope note (round 8.7).** This is workbench operating policy for building Wiggle
 > Outside, not part of the application and not a product deliverable. Mats operates

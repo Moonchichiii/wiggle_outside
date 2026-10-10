@@ -45,9 +45,9 @@ review complete merely because this summary links to them.
   proper attribution. Credit non-trivial borrowed code, assets and adaptations in the
   repository **and submission**, and meet their licence obligations. Copying substantial
   private project code into the entry is not authorised by this plan.
-- Hermes Workbench is pre-existing development tooling, not the new submitted project.
-  Our interpretation is that it can be used to build Touchgrass, consistent with the
-  explicit permission to use AI tools. Disclose the distinction and any reused code.
+- Claude Code and Codex are pre-existing AI development tools, not part of the submitted
+  project. Using them to build Wiggle Outside is consistent with the explicit permission
+  to use AI tools. Disclose the distinction and any reused code (TC-003).
 - One entry per participant/team. If multiple entries are submitted, C says only the
   first is judged. Do not publish a placeholder contest entry or duplicate submissions.
 - Later work must not be represented as finished by the deadline. F requires all
@@ -91,14 +91,18 @@ entry can lead to disqualification; F warns egregious plagiarism can lead to DEV
 The organiser's clock is authoritative. A local screenshot or attempted submission is
 not proof of receipt. [C, G, F]
 
-### 14.4 Model, workbench and claims
+### 14.4 Model, build tooling and claims
 
 - **Application:** Gemma ranks eligible place/activity pairs and chooses reviewed story
   hooks and reason codes; it writes no displayed text. A fallback-only application is not our
   planned AI-centred entry. Show both genuine model use and honestly labelled fallback.
-- **Development:** Hermes performs/orchestrates build tasks under section 9's controls.
-  Record Claude Code/Codex/other tools actually used and Mats's decisions, tests and
-  corrections. Do not imply autonomous success where a person intervened.
+- **Development (TC-003):** built with **Claude Code as the integration owner** (it writes
+  and merges the work and runs the gates) and **Codex as reviewer** of every integrated
+  change, with **Mats approving product decisions, protected changes and the release** and
+  making every commit, push and publication himself. Say exactly that, and no more: record
+  the tool and model versions actually used, Mats's decisions, the tests and the
+  corrections. Do not imply autonomous success where a person intervened, and do not claim
+  an orchestration layer that this build does not have.
 - **Evidence sharing:** DevRelay/agent-session sharing is optional. Publish only reviewed,
   redacted extracts. Keep secrets, other repositories, private family details and precise
   home coordinates out of public logs, screenshots and video.
@@ -131,7 +135,7 @@ supported categories but win only one prize.
 | Overall — $250 | DEV++ membership and exclusive DEV badge |
 
 F lists 17 winners in total (one overall and 16 categories), winner badges and a badge
-for valid completion. Category examples are not interchangeable: local Hermes use alone
+for valid completion. Category examples are not interchangeable: local tooling use alone
 is not Render use; ordinary local traces alone are not Sentry use; pandas/Polars/DuckDB
 analysis alone is not TabPFN use. Verify the category-specific description before claiming it.
 
@@ -141,7 +145,8 @@ weights are stated. In a scoring tie, the rules use positive DEV-post reactions.
 the work honestly; do not manufacture reactions or manipulate entry/judging processes.
 
 Post outline: real problem → short demonstration → how it gets someone outside → why
-open AI matters → design and build decisions → Hermes experience and human review →
+open AI matters → design and build decisions → building with Claude Code and Codex, and
+human review →
 tests/measurements and limitations → actual outdoor feedback → credits and categories.
 Draft with the humanise-text skill if useful; the final voice, facts and edits are Mats's.
 Start collecting this evidence Saturday rather than leaving the story until release. [C, F]
@@ -179,7 +184,7 @@ Planned files (create during the authorised build; none is assumed to exist yet)
 | File | Contents |
 |---|---|
 | `docs/evidence/rules.md` | Source/date register, C01–C12 status, entrant confirmations without sensitive details, rule changes and unresolved questions |
-| `docs/evidence/build-process.md` | Workbench permissions, tool versions, truthful build history, review and redaction record |
+| `docs/evidence/build-process.md` | Tool and model versions, truthful build history, who did what (Claude Code integrates, Codex reviews, Mats approves and commits), review and redaction record |
 | `docs/evidence/submission.md` | Exact submitted commit/tag, demo/repo/post URLs, checks, timestamp and confirmation |
 | `docs/evidence/attribution.md` | Code, data, model, font and asset provenance, licences, notices and reuse |
 | `docs/evidence/wcag.md` | Criterion-level applicability, automated/manual evidence and unresolved failures |

@@ -14,7 +14,7 @@ decisions without new evidence. This delivery change grants no build approval.
 
 ## Input and authority
 
-Read PLAN.md, ARCHITECTURE.md, ERROR-HANDLING.md, HERMES-P0.md, COMPETITION.md, drafts/activities.toml and drafts/hooks.toml in full. Use the round 8 set, with the unchanged competition contract and catalogues supplied alongside it. Previous downloads are reference material, not competing masters.
+Read PLAN.md, ARCHITECTURE.md, ERROR-HANDLING.md, COMPETITION.md, drafts/activities.toml and drafts/hooks.toml in full. (HERMES-P0.md is a superseded appendix, TC-003.) Use the round 8 set, with the unchanged competition contract and catalogues supplied alongside it. Previous downloads are reference material, not competing masters.
 
 No application code, deployment, publishing, commits or build permission follows from this review. Do not replace unresolved decisions with claims that Mats approved them. Distinguish a design review pass from a demonstrated security control. Explain any inability to inspect the actual Workbench governance or runtime rather than assuming the scoped P0 supersedes it.
 

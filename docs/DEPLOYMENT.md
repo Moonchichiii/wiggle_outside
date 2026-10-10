@@ -13,10 +13,10 @@ spending cap.
 ## 1. Deployment choices (D48)
 
 **Boundary (Mats, round 8.15):** the finished product is deployed independently of the
-workbench. Production has its own hosting, model access, credentials and operating
-limits: no tunnel, no shared inference endpoint, no dependency on Mats's computer being
-on. The workbench only builds and tests the project (HERMES-P0). Local development with a
-local model (D38) is optional and gates nothing.
+machine it was built on. Production has its own hosting, model access, credentials and
+operating limits: no tunnel, no shared inference endpoint, no dependency on Mats's
+computer being on. Mats's machine only builds and tests the project (TC-003). Local
+development with a local model (D38) is optional and gates nothing.
 
 **Mats's preferred direction: O2.** Planning only; no purchase or deployment is
 authorised. Spending needs his separate approval.
@@ -29,7 +29,7 @@ authorised. Spending needs his separate approval.
 | Per-run cost | §1.3 | none per call | none |
 | Status | **primary build path** (specified below) | **inactive**; not specified | **inactive**; fallback only if Mats does not approve O2 spending |
 
-O3 (public app reaching the workbench) is **removed**: it contradicts the boundary above.
+O3 (public app reaching the build machine) is **removed**: it contradicts the boundary above.
 
 ### 1.1 Model and provider (O2)
 

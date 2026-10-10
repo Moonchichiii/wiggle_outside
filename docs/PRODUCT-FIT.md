@@ -335,4 +335,4 @@ Writing quality is judged closely, so the post claims only what is true and show
 ## 6. Out of scope for v1 (unchanged)
 
 Accounts, rewards, user-generated activities, interactive maps, weekend events,
-offline planning, automatic regeneration. Hermes is the build tool, not the product.
+offline planning, automatic regeneration. Claude Code and Codex are build tools, not the product (TC-003).

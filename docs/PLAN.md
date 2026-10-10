@@ -1,4 +1,4 @@
-> **These documents are the build specification for Wiggle Outside.** Mats operates Hermes on his own workbench to coordinate agents working concurrently and combines their work into the competition entry. We are specifying the application, not designing or rebuilding Hermes; workbench operating policy is in [HERMES-P0.md](HERMES-P0.md) and is not a product deliverable. Round 8.7 adds [CONTRACTS.md](CONTRACTS.md) (shared interfaces) and [BUILD-PACKAGES.md](BUILD-PACKAGES.md) (work packages, file ownership, order, integration and release checks), reframes P1 as hypothesis H1 and refines D39 in PRODUCT-FIT, and integrates the visual design in DESIGN-SPEC. Planning or design approval is not permission to start implementation; Mats gives "kör" separately.
+> **These documents are the build specification for Wiggle Outside.** **Claude Code is the integration owner and runs the build; Codex reviews every integrated change; Mats approves product decisions, protected changes and the release, and he alone commits, signs, pushes, publishes and submits** (BUILD-PACKAGES §2, TC-003). There is no build orchestrator: [HERMES-P0.md](HERMES-P0.md) is a superseded appendix that binds nothing, and its load-bearing rules are re-homed to BUILD-PACKAGES §2.1, PLAN §8, §17 and ARCHITECTURE §7, §13.3. Round 8.7 adds [CONTRACTS.md](CONTRACTS.md) (shared interfaces) and [BUILD-PACKAGES.md](BUILD-PACKAGES.md) (work packages, file ownership, order, integration and release checks), reframes P1 as hypothesis H1 and refines D39 in PRODUCT-FIT, and integrates the visual design in DESIGN-SPEC. Planning or design approval is not permission to start implementation; Mats gives "kör" separately.
 >
 > **Baseline 8.20: final build specification.** One decision register (§0) and named prerequisites (§0.1); Mats's decision sheet, catalogue answers, integration lead (Claude Code, Codex reviewing), hostname `wiggle-outside.fly.dev` and the family night copy recorded. Approving the baseline and "kör" remain separate.
 >
@@ -46,8 +46,8 @@ authorises no application code, deployment, publication or submission by itself.
 ## 0. Decisions log (the one current register)
 
 Status words: **accepted** is binding; **deferred** is not in v1; **declined** is not
-built; **blocked** names its prerequisite in §0.1; **superseded** is history;
-**outside this package** is Mats's workbench policy, not a build instruction. "Accepted
+built; **blocked** names its prerequisite in §0.1; **superseded** is history. (The status word
+**outside this package** is retired with TC-003: there is no separate workbench policy.) "Accepted
 (baseline 8.20)" marks the established defaults that Mats closed with the 8.20 decision
 sheet; any later change is a tracked change. Accepting a decision proves nothing about
 the unbuilt application: it is verified only by its acceptance checks.
@@ -62,10 +62,10 @@ the unbuilt application: it is verified only by its acceptance checks.
 | D6 | SQLite (stdlib) for app state. pandas, Polars and DuckDB only in the analysis group. | **accepted** (baseline 8.20) |
 | D7 | One validated model response per request. No progress events or per-card streaming in v1 (D43). | **accepted** (baseline 8.20) |
 | D8 | Strict automated checks plus documented design judgment; exceptions are written down, not hidden. | **accepted** (baseline 8.20) |
-| D9 | Hermes Workbench orchestrates the build under a minimal P0 governance lock written for this build only (`HERMES-P0.md`), approved by Mats before kör. Claude Code and Codex implement inside it. **Integration lead (Mats 8.20): Claude Code**; Codex reviews integrated changes; Mats approves product decisions, protected changes and the release (BUILD-PACKAGES §2). | **decided** 9 Oct; integration lead **accepted** (Mats 8.20); workbench policy is outside this package |
+| D9 | **No build orchestrator (TC-003).** Claude Code is the integration owner: it builds WP0 and WP9, merges package output, wires `main.py`, and runs the gates and the test suite. Codex reviews every integrated change. Mats approves product decisions, protected changes (BUILD-PACKAGES §2.1) and the release, and he alone commits, signs, pushes, publishes and submits. `HERMES-P0.md` is a superseded appendix; its load-bearing rules are re-homed (BUILD-PACKAGES §2.1, §5; PLAN §8, §17; ARCHITECTURE §7, §13.3). | **accepted** (Mats, TC-003) |
 | D10 | Weekend events (SearXNG) and offline OSM are out of v1. | **accepted** (baseline 8.20) |
 | D11 | Contest: Week 1, Touch Grass. New application and repository within the entry window; one English submission with repository, demo and open-innovation explanation. | fixed contest requirements; section 14 |
-| D12 | Security for both app and workbench, criterion-level accessibility evidence, and playful handcrafted design remain project requirements. Claims must match completed verification. | **accepted** (baseline 8.20) |
+| D12 | Security for the application and for the build environment on Mats's machine (TC-003), criterion-level accessibility evidence, and playful handcrafted design remain project requirements. Claims must match completed verification. | **accepted** (baseline 8.20) |
 | D13 | CI workflows and policy tests are written fresh for this repo; the pattern from earlier projects is credited in the post, no private code copied. | **accepted** (baseline 8.20) |
 | D14 | The activity catalogue is drafted by Claude and reviewed line by line by Mats before it is used. | **accepted**; catalogue answers recorded 8.20 (CATALOGUE-REVIEW §0) |
 | D15 | Competition contract lives in `COMPETITION.md`; this plan keeps a summary. | **accepted** (baseline 8.20) |
@@ -81,7 +81,7 @@ the unbuilt application: it is verified only by its acceptance checks.
 | D25 | Four diagrams, a requirement-to-evidence register, a controlled quantization comparison (conditional: if cut, the evidence states it was not done) and documented recovery are required planning/evidence work. | **accepted** (baseline 8.20) |
 | D26 | Backend and frontend share a typed, accessible error/recovery contract: truthful messages, preserved recoverable input, bounded retries, safe diagnostics and tests for each failure path. It must preserve all contest and safety constraints. | **accepted** (baseline 8.20) |
 | D27 | Observatory criterion check. **Intended hostname (Mats 8.20): `wiggle-outside.fly.dev`**, if available (no domain purchase). Before the release gate is final: confirm the name is free, then run Observatory against the deployed host and check how its HSTS preload criterion treats the host (the `.dev` top-level domain is preloaded as a whole; whether Observatory credits that is **unknown** until measured). If that host cannot carry the preload bonus by the deadline, Mats decides between a different host and a revised criterion; until then D20 stands unchanged. | **blocked** until hostname verification (prerequisite P3, owner Mats) |
-| D28 | Execution fallback, only if Mats accepts it after a read-only Hermes inventory: Claude Code in one rootless container. Before acceptance it must define where credentials live and which processes can read them, what enforces the command restriction outside the agent's control, who owns the protected checks and snapshot, and which HERMES-P0 section 8 checks it passes. Sat 10:00 triggers this decision; it never approves a weaker model by itself. | **outside this package** (workbench, managed by Mats) |
+| D28 | ~~Execution fallback: Claude Code in one rootless container, accepted only after a read-only Hermes inventory.~~ **Declined (TC-003):** it was the fallback to an orchestrator that is not used. The execution model is now stated plainly in D9 — Claude Code runs the gates on Mats's machine under his review, and Mats alone commits, signs and pushes. The controls that mattered are re-homed: protected inputs and stop conditions in BUILD-PACKAGES §2.1, hash recording in PLAN §8. | **declined** (TC-003) |
 | D29 | Python 3.14 is the pin for v1; a bootstrap failure on a required wheel triggers a recorded decision, not a silent switch. | **accepted** (baseline 8.20) |
 | D30 | Seasons come from the date and the hemisphere of the rounded location (meteorological seasons); equatorial regions get no season-restricted activities. English copy, metric units. | **accepted** (baseline 8.20) |
 | D31 | Session and CSRF: opaque server-side session in a `__Host-` cookie (Secure, HttpOnly, SameSite=Strict, Path=/, no Domain); per-session CSRF token in every form; `hmac.compare_digest`; Origin check. Standard library only. | **accepted** (baseline 8.20) |
@@ -91,7 +91,7 @@ the unbuilt application: it is verified only by its acceptance checks.
 | D35 | "Half day" means 4 hours (time from leaving to coming back). | **accepted** (working default, Mats 8.20) |
 | D36 | No two cards in one result share an activity; the same destination may appear twice. | **accepted** (working default, Mats 8.20) |
 | D37 | Unknown admission fees: (a) verified free only (`fee=no`), or (b) exclude places tagged `fee=yes` and label unknown fees "Admission not verified". **Chosen (8.20): (b)**: exclude places tagged `fee=yes`; label unknown fees "Admission not verified" (full label); `fee=no` is described as "reported free admission", never as verified; the post says so too. | **accepted: option (b)** (Mats 8.20) |
-| D38 | Model endpoint for local development and testing only (production model access is D48): a dedicated Ollama instance or a scoped proxy that allows only generation for the pinned model. The shared workbench service is never reconfigured silently. | **deferred** (Mats 8.20); gates nothing |
+| D38 | Model endpoint for local development and testing only (production model access is D48): a dedicated Ollama instance or a scoped proxy that allows only generation for the pinned model, bound to host loopback (ARCHITECTURE §7, TC-003). No shared service is reconfigured silently. | **deferred** (Mats 8.20); gates nothing |
 | D39 | Optional "What are they into?" field (≤ 120 characters). In the same single model call that ranks the eligible pairs, Gemma infers at most three tags from a fixed 14-tag vocabulary (or no match / unclear); code validates tags and picks and derives `matches_interest` itself. Evaluated in English, Swedish and French only. Tags are shown as inferred, display-only labels; changing them is an explicit resubmission through "Change answers" (D46). Interests affect ranking only, never eligibility. Free text is untrusted data, never logged or cached; it goes to the model only (through OpenRouter to the pinned model provider in the hosted product) and never to the place or weather providers (ARCHITECTURE §2 recipient table). Contract: PRODUCT-FIT §3. Tests hypothesis H1. | **accepted by Mats 8.18** |
 | D40 | Product name "Wiggle Outside" (replaces the working title touchgrass in user-facing copy; repository name decided at bootstrap). | **accepted by Mats 8.18** |
 | D41 | Typography (revised 8.17): Cabinet Grotesk ExtraBold for headings and activity titles, Switzer Variable for body (400), labels (500) and buttons (600); two self-hosted WOFF2 files supplied by Mats, `font-display: swap`, system fallbacks. Pending: glyph coverage, licence for public-repository redistribution, layout-shift check (DESIGN-SPEC §1.2). Shantell Sans superseded. | **accepted** (Mats 8.20); implementation **blocked** on prerequisite P1 (font files and licence); system fonts are the documented fallback |
@@ -101,7 +101,7 @@ the unbuilt application: it is verified only by its acceptance checks.
 | D45 | D33 is kept in full: single flight and the bounded negative cache (written only after the final attempt) stay with pacing and cooldowns, compactly, in the provider wrapper. Rate limits do not replace duplicate-fetch prevention. (S5 rejected.) | decided by Mats 8.11 |
 | D46 | Results are immutable. Inferred interests are display-only labels; changing them, or any answer, is an explicit resubmission through "Change answers": other answers and the location coordinates are carried, the interests field is prefilled with the tag labels, a new idempotency key is used, fresh caches are reused, and the previous result stays readable unchanged until `retain_until`. Removes the re-sort route and idea snapshots. (S7.) | decided by Mats 8.11 |
 | D47 | ~~Functional UI icons (location pin, clock, weather, info, check, alert, print) may come from Rune Icons: a small selection of exported outline SVGs, whose icon assets are Apache-2.0 (the website and editor code carry extra Attribution and Commons Clause terms and are not used). Each SVG is inspected (no scripts, external references or filters), normalised to `currentColor` in our self-hosted sprite, and its source repository, commit, file names and licence are recorded in `docs/evidence/attribution.md`, with the Apache-2.0 licence text shipped. No package or runtime dependency. Decorative tape and doodles stay original. The outline style is not hand-drawn, so this trades some personality for consistency.~~ **Declined for v1:** the small original SVG set in DESIGN-SPEC §3 is used. | **declined for v1** (Mats 8.20) |
-| D48 | Deployment of the finished product, independent of the workbench (no tunnel, no shared inference endpoint, no dependency on Mats's computer). Mats's preferred direction (8.15): **O2**, a public planner using Gemma 4 26B A4B through OpenRouter with one pinned endpoint (8.16 proposal: DeepInfra, after two privacy confirmations; Google as alternative), on one Fly.io Machine (Mats's preference 8.18; Hetzner CX23 as alternative), with the D49 limits. Alternatives: O4 (self-hosted E4B on a rented GPU, unspecified) and O1 (recording only, as a fallback). O3 removed. Exact costs and limit behaviour in DEPLOYMENT §1. Planning only: no purchase or deployment until Mats approves spending. | **accepted** direction (Mats 8.15; Fly.io 8.18; hostname 8.20); spending and deployment **blocked** on prerequisite P2 |
+| D48 | Deployment of the finished product, independent of the build machine (no tunnel, no shared inference endpoint, no dependency on Mats's computer). Mats's preferred direction (8.15): **O2**, a public planner using Gemma 4 26B A4B through OpenRouter with one pinned endpoint (8.16 proposal: DeepInfra, after two privacy confirmations; Google as alternative), on one Fly.io Machine (Mats's preference 8.18; Hetzner CX23 as alternative), with the D49 limits. Alternatives: O4 (self-hosted E4B on a rented GPU, unspecified) and O1 (recording only, as a fallback). O3 removed. Exact costs and limit behaviour in DEPLOYMENT §1. Planning only: no purchase or deployment until Mats approves spending. | **accepted** direction (Mats 8.15; Fly.io 8.18; hostname 8.20); spending and deployment **blocked** on prerequisite P2 |
 | D49 | Hosted product: abuse and cost controls in DEPLOYMENT §2 — per-network counters with bounded storage, a restart-safe daily planning allowance charged once per run, the provider key cap, the honeypot as a supplement with a recovery path, and the hosted inference contract in §3 — reconciled with the existing limits. | **accepted** for the hosted product (baseline 8.20); values are starting limits, changed only by a tracked change |
 
 
@@ -306,7 +306,7 @@ stream.
 ```
 touchgrass/
 ├─ README.md · LICENSE (Apache-2.0) · SECURITY.md · .env.example
-├─ docs/  PLAN.md · COMPETITION.md · HERMES-P0.md · ARCHITECTURE.md · decisions/
+├─ docs/  PLAN.md · COMPETITION.md · ARCHITECTURE.md · decisions/  (HERMES-P0.md: appendix)
 │         deliveries/ · post/ · evidence/ · drafts/
 ├─ src/touchgrass/
 │  ├─ main.py               build and wire; lifespan
@@ -417,9 +417,11 @@ evidence and Mats's written decision.
 
 **CI trust model** (B12)
 - Every PR workflow runs on `pull_request` with a read-only token and no secrets, on
-  GitHub-hosted runners only; the workbench host never runs CI for untrusted code.
+  GitHub-hosted runners only; Mats's machine never runs CI for untrusted code.
   `pull_request_target` and `workflow_run` are not used.
-- Protected inputs (HERMES-P0 section 3) are listed with SHA-256 in `gates.lock` on main. A
+- Protected inputs (BUILD-PACKAGES §2.1, TC-003) are listed with SHA-256 in `gates.lock`
+  on main; the integration owner generates the file and Mats signs the commit that
+  updates it. A
   `gate-integrity` check compares the PR's protected inputs with main's `gates.lock`; any
   difference fails unless the PR is a protected-change PR that updates `gates.lock` in a
   commit signed by Mats. Rulesets require signed commits on main. This is the solo-author
@@ -465,7 +467,7 @@ Observatory result and preload status.
 | Browser → app (pages and form posts) | CSP: `default-src 'none'`; `script-src`, `style-src`, `img-src`, `font-src`, `connect-src`, `form-action`, `manifest-src` all `'self'`; `base-uri 'none'`; `frame-ancestors 'none'`; `object-src 'none'`; `upgrade-insecure-requests` on the demo |
 | App → Nominatim, Overpass, Open-Meteo | Server-side allowlist in the adapters; never in browser CSP |
 | App → OpenRouter | Server-side only, HTTPS, key from a Fly secret; never in browser CSP |
-| App → Ollama (dev only) | Loopback-only connection (HERMES-P0 section 4 for the build) |
+| App → Ollama (dev only) | Loopback-only connection (ARCHITECTURE section 7, TC-003) |
 | User opens a map link | Plain navigation to openstreetmap.org; not an API permission |
 
 Provider domains never appear in `connect-src`. Playwright runs every journey (location,
@@ -478,18 +480,16 @@ Other headers: HSTS with preload on the demo, `X-Content-Type-Options: nosniff`,
 `Cross-Origin-Resource-Policy: same-origin`, a restrictive `Permissions-Policy` that allows
 geolocation for self only, and `__Host-` prefixed, Secure, HttpOnly, SameSite=Strict cookies.
 
-**Build environment (workbench; Mats's separate responsibility since 8.8, not an application gate)**: Hermes is intended to
-perform/orchestrate the build. Before execution, document the runner, writable paths,
-network allowlist, command permissions and review boundaries in `docs/evidence/build-process.md`.
-Agents run in a rootless isolated environment with only the required project mount,
-no host credential-store access, no Docker socket or unrelated repository mounts, and
-no push rights. Any necessary model-service authentication is narrowly scoped and
-injected through a controlled mechanism; never put it in project files or transcripts.
-Review Git hooks and dependency install scripts before execution. Treat repository
-instructions, external content and model output as untrusted inputs. Record tool/model
-versions, commands, diffs, failed checks, fixes and human review. Run `check.sh` before
-Mats commits. Publishing and submitting remain explicit human actions. If build isolation
-is not ready, report the gap and agree the execution mode; do not silently weaken it.
+**Build environment (not an application gate; TC-003)**: the build runs on Mats's own
+machine. Claude Code edits the tree and runs the gates and the test suite; Codex reviews;
+Mats approves, commits signed, pushes, publishes and submits — and those four are never
+delegated (BUILD-PACKAGES §2). Agents have no push rights and no access to a host
+credential store. Any model-service authentication is narrowly scoped and read from the
+environment; never put it in project files or transcripts. Review Git hooks and
+dependency install scripts before execution. Treat repository instructions, external
+content and model output as untrusted inputs. Record tool and model versions, commands,
+diffs, failed checks, fixes and Mats's decision in `docs/evidence/build-process.md`
+(§17). Run `check.ps1` before Mats commits. Stop conditions are in BUILD-PACKAGES §2.
 
 ## 10. Accessibility
 
@@ -576,10 +576,10 @@ one; nothing in steps 2–7 starts before Mats's explicit kör. The primary path
 independently hosted planner (D48); a local model is optional for development and gates
 nothing.
 
-**Outside this package:** workbench readiness (Hermes inventory, HERMES-P0 boundary
-checks, D28) is Mats's own, separately managed responsibility. This plan neither defines
-nor proves it; it only assumes Mats has confirmed his workbench can run the packages, and
-the tools actually used are recorded in `docs/evidence/build-process.md`.
+**Build environment (TC-003):** the build runs on Mats's machine with Claude Code
+integrating, Codex reviewing and Mats approving (BUILD-PACKAGES §2). The tools actually
+used are recorded in `docs/evidence/build-process.md` (§17). No orchestrator readiness
+check gates anything.
 
 | # | Step | Done when |
 |---|---|---|
@@ -608,7 +608,7 @@ move it to another contest window by assumption.
 1. Mats: app name, age bands, 20-second end-to-end budget, catalogue/hooks and provisional weather-limit review.
 2. Mats with Claude's recommendation: public demo replay versus live inference; local same-machine access versus deliberate phone HTTPS access.
 3. Claude: close ARCHITECTURE's request ownership/transport, cancellation, TTL/capacity, provider budgets, cache eviction and geographic-scope decisions. Proposed numeric budgets are not measurements.
-4. (Moved out of this package in 8.8: workbench confirmations are Mats's separate responsibility.) Mats: four HERMES-P0 confirmations (runner, credential mechanism, agent execution configuration and Ollama connection).
+4. ~~Mats: four HERMES-P0 confirmations (runner, credential mechanism, agent execution configuration and Ollama connection).~~ **Removed (TC-003):** there is no orchestrator to confirm. The execution model is D9; the local-model rule is ARCHITECTURE §7.
 5. Claude: run the deep document review in [CLAUDE-REVIEW.md](CLAUDE-REVIEW.md); reconcile every finding across documents and return evidence-based closure.
 
 Approval means no known unresolved design blocker. It does not mean zero undiscovered
@@ -622,7 +622,7 @@ explicit kör after the prerequisite gates.
 |---|---|---|
 | Four coherent diagrams and resolved runtime choices | ARCHITECTURE.md and docs/decisions/ | Design lock |
 | Complete dependency purposes and compatible pins | docs/evidence/dependencies.md | Bootstrap |
-| Tools actually used to build (workbench readiness itself is Mats's separate responsibility) | docs/evidence/build-process.md | Recorded at release |
+| Tools actually used to build. `docs/evidence/build-process.md` records, per task (TC-003, re-homed from HERMES-P0 §7): tool and model versions, a prompt summary, files changed, check results, failures and fixes, and Mats's decision. Extracts are redacted before publication: no secrets, no home coordinates, no other projects, no family details | docs/evidence/build-process.md | Recorded at release |
 | Canonical audit with package-identity coverage | docs/evidence/dependencies.md | Bootstrap and release |
 | Model loads, uses intended backend and returns validated IDs | docs/evidence/model-smoke.md | Early model milestone |
 | Lifecycle, cancellation, deduplication, weather and eligibility properties | tests/ and docs/evidence/runtime.md | Merge/release as applicable |
