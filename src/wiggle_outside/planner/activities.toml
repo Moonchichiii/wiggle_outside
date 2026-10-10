@@ -1,0 +1,741 @@
+# Wiggle Outside activity catalogue: baseline 8.20. Mats's per-item answers to
+# CATALOGUE-REVIEW §6 are applied (26 entries: 19 kids, 7 solo). Thresholds are product
+# assumptions, not safety guarantees (D14).
+# Gemma only ranks activity-place pairs built from this file and picks reviewed hooks
+# (hooks.toml). Steps, optional items, adaptations, question and safety note render verbatim.
+#
+# Shared rules applied by code to every entry:
+# - Kids entries assume an adult is present and nearby. That does not make an entry
+#   suitable for every child in a band; the adult decides.
+# - With several age bands selected, an entry qualifies only if it lists every band.
+# - Nothing is eaten, picked from living plants or taken home. Loose fallen leaves and sticks
+#   may be moved a short way and left on site; stones and logs are never lifted or moved.
+# - Activities never take place at water edges, beside traffic or at heights. Walking on
+#   ordinary pavements to reach a place is travel, not the activity. Place kinds
+#   "viewpoint" and "beach" are not used in v1. These are instructions and data filters;
+#   the app cannot verify that a park has no pond, slope or road.
+# - Weather: severe weather and the global heat rule (PLAN section 3) exclude everything.
+#   Per-entry limits apply on top. All limits are product assumptions, not established
+#   safety thresholds. Every kids' entry is daylight-only (W4); a family run outside
+#   daylight gets the fixed night copy (BACKEND-CONTRACT §1).
+#   Missing or stale weather means no recommendation (D16).
+# - Nothing is required beyond everyday clothes; every `optional` item names an alternative.
+# - minutes[min] is long enough for the steps as written.
+#
+# Fields: who = solo | kids; ages = 0-2, 3-5, 6-9, 10-12 (kids only);
+# energy = levels the activity suits; the quiz value is a ceiling (D18);
+# places = OSM kinds or "any"; generic_ok = may be offered with no destination (all other
+# constraints still apply: age, energy, weather, daylight, season, time);
+# interests = D39 tags (vocabulary in PRODUCT-FIT section 3); used only if D39 is accepted,
+# reviewed by Mats; at most three per entry; ranking preference only, never eligibility;
+# card = optional, exactly 9 short items shown as a 3 × 3 grid on the detail and print view;
+# minutes = [min, max] on site, travel excluded; rain_ok, max_rain_pct, min_temp_c,
+# max_wind_kmh, daylight; max_temp_c is optional (only when lower than the global rule);
+# activity_suits_stroller describes the activity only, never the route or place access;
+# seasons (empty = all year; computed from date and hemisphere of the rounded location); optional; steps; adapt (alternatives for sight, hearing or
+# mobility); ask (kids only); safety.
+
+[[activity]]
+id = "leaf-colour-hunt"
+title = "Leaf colour hunt"
+who = "kids"
+ages = ["3-5", "6-9"]
+energy = ["gentle", "moderate"]
+places = ["park", "forest", "nature_reserve"]
+generic_ok = false
+interests = ["colours", "trees"]
+minutes = [20, 45]
+rain_ok = true
+max_rain_pct = 70
+min_temp_c = 0
+max_wind_kmh = 30
+daylight = true
+activity_suits_stroller = true
+seasons = ["autumn"]
+optional = ["a small bag for fallen leaves (or just make the row on the ground)"]
+steps = [
+  "Pick three colours together before you start: red, yellow, brown.",
+  "Look for one fallen leaf of each colour.",
+  "Lay them in a row from lightest to darkest.",
+  "Leave them in a little pattern on the ground before you go home.",
+]
+adapt = "Compare leaves by feel instead: smooth, crinkly, soft."
+ask = "Which colour was the hardest to find, and why do you think that is?"
+safety = "Fallen leaves only. Wash hands before snacks."
+
+[[activity]]
+id = "nature-bingo"
+title = "Nature bingo"
+who = "kids"
+ages = ["0-2", "3-5", "6-9", "10-12"]
+energy = ["gentle", "moderate"]
+places = ["park", "forest", "nature_reserve", "picnic_site"]
+generic_ok = false
+interests = ["animals", "birds", "trees"]
+minutes = [20, 60]
+rain_ok = true
+max_rain_pct = 60
+min_temp_c = 5
+max_wind_kmh = 30
+daylight = true
+activity_suits_stroller = true
+seasons = []
+card = ["a bird", "a fallen feather", "something round", "a spiky leaf", "moss",
+  "a dog on a walk", "a cloud shaped like an animal", "a bench", "something red"]
+optional = ["the printed card (or read the list from the screen once before you go)"]
+steps = [
+  "Look at the nine things on the card together.",
+  "Tick each one when someone spots it.",
+  "Three in a row wins. A full card wins everything.",
+]
+adapt = "Swap any item for one you can hear or touch, such as birdsong or rough bark."
+ask = "What did you spot that wasn't on the card?"
+safety = "Look and point, no need to touch or pick anything. With a baby, the adult shows baby each find and names it; baby watches from the stroller, carrier or your arms."
+
+[[activity]]
+id = "shape-safari"
+title = "Shape safari"
+who = "kids"
+ages = ["3-5", "6-9"]
+energy = ["gentle", "moderate"]
+places = ["any"]
+generic_ok = true
+interests = ["shapes"]
+minutes = [20, 40]
+rain_ok = true
+max_rain_pct = 70
+min_temp_c = -2
+max_wind_kmh = 45
+daylight = true
+activity_suits_stroller = true
+seasons = []
+optional = []
+steps = [
+  "Choose a shape: circle, triangle, square or star.",
+  "Count how many you can find outside in ten minutes.",
+  "Swap shapes and go again.",
+]
+adapt = "Find shapes by touch: round stones, pointy leaves, square slabs."
+ask = "Where was the most surprising circle you found?"
+safety = "Stay on paths and away from traffic."
+
+[[activity]]
+id = "sound-map"
+title = "Sound map"
+who = "kids"
+ages = ["0-2", "3-5", "6-9"]
+energy = ["gentle"]
+places = ["park", "forest", "nature_reserve", "picnic_site"]
+generic_ok = false
+interests = ["sounds", "quiet", "drawing"]
+minutes = [10, 25]
+rain_ok = false
+max_rain_pct = 30
+min_temp_c = 5
+max_wind_kmh = 30
+daylight = true
+activity_suits_stroller = true
+seasons = []
+optional = ["paper and a pencil (or point to each sound instead)"]
+steps = [
+  "Stay still together for one minute and listen.",
+  "Point to every sound you hear: birds, wind, voices, wheels.",
+  "With older kids, draw a dot for you and a mark for each sound around it.",
+]
+adapt = "Make a 'feel map' instead: wind on your face, sun on your hands, ground under your feet."
+ask = "Which sound was closest to you, and which was furthest away?"
+safety = "Pick a quiet spot away from bikes and cars. With babies, the adult listens and names the sounds aloud."
+
+[[activity]]
+id = "puddle-jumping"
+title = "Puddle jumping championship"
+who = "kids"
+ages = ["3-5", "6-9"]
+energy = ["moderate", "energetic"]
+places = ["park", "playground"]
+generic_ok = false
+interests = ["puddles", "running"]
+minutes = [15, 40]
+rain_ok = true
+max_rain_pct = 100
+min_temp_c = 4
+max_wind_kmh = 45
+daylight = true
+activity_suits_stroller = false
+seasons = []
+optional = ["wellies (or shoes that may get wet)", "a towel for the way home (or head straight home to change)"]
+steps = [
+  "Find three puddles on the path.",
+  "Judge each jump: biggest splash, quietest landing, silliest jump.",
+  "Award points and crown a champion.",
+]
+adapt = "Judge splashes by sound or by stepping instead of jumping."
+ask = "Which puddle was the deepest, and how could you tell before jumping?"
+safety = "Small, shallow puddles on paths only. Never near roads, ponds or streams."
+
+[[activity]]
+id = "track-detective"
+title = "Track detective"
+who = "kids"
+ages = ["6-9", "10-12"]
+energy = ["moderate"]
+places = ["forest", "nature_reserve", "park"]
+generic_ok = false
+interests = ["animals", "birds", "stories"]
+minutes = [25, 60]
+rain_ok = true
+max_rain_pct = 50
+min_temp_c = 0
+max_wind_kmh = 30
+daylight = true
+activity_suits_stroller = false
+seasons = []
+optional = []
+steps = [
+  "Look for clues that an animal passed by: footprints, feathers, nibbled cones.",
+  "Guess who left each clue.",
+  "Pick your best clue and invent the animal's day.",
+]
+adapt = "Listen for clues instead: rustling, birdsong, a woodpecker tapping."
+ask = "Who do you think left the best clue, and where was it going?"
+safety = "Look only. Don't touch droppings or feathers."
+
+[[activity]]
+id = "movement-trail"
+title = "Playground movement trail"
+who = "kids"
+ages = ["3-5", "6-9", "10-12"]
+energy = ["energetic"]
+places = ["playground", "park"]
+generic_ok = false
+interests = ["running"]
+minutes = [15, 45]
+rain_ok = false
+max_rain_pct = 30
+min_temp_c = 3
+max_wind_kmh = 40
+daylight = true
+activity_suits_stroller = false
+seasons = []
+optional = []
+steps = [
+  "Pick five spots on flat ground, like a tree, a bench and a lamp post.",
+  "Move to each spot a different way: hop, tiptoe, side-step, giant steps, walk backwards slowly.",
+  "Let the kids invent the moves for round two.",
+]
+adapt = "Any way of moving counts: rolling, wheeling, clapping along the route."
+ask = "Which move was the silliest, and which was the hardest?"
+safety = "Flat ground only, no climbing, no racing. Keep clear of swings."
+
+[[activity]]
+id = "statues"
+title = "Statues"
+who = "kids"
+ages = ["3-5", "6-9"]
+energy = ["energetic"]
+places = ["park", "playground", "picnic_site"]
+generic_ok = false
+interests = ["running"]
+minutes = [10, 30]
+rain_ok = false
+max_rain_pct = 30
+min_temp_c = 3
+max_wind_kmh = 45
+daylight = true
+activity_suits_stroller = false
+seasons = []
+optional = []
+steps = [
+  "Everyone dances, hops or wiggles on open grass.",
+  "When the adult says 'statues', everyone freezes.",
+  "Anyone who wobbles chooses the next way to move.",
+]
+adapt = "Use a raised hand as the freeze signal as well as the word. Freeze by stopping your arms, head or wheels; any way of stopping counts."
+ask = "What was the funniest statue anyone made?"
+safety = "Open grass, away from paths, bikes and dogs."
+
+[[activity]]
+id = "minibeast-safari"
+title = "Minibeast safari"
+who = "kids"
+ages = ["3-5", "6-9", "10-12"]
+energy = ["gentle", "moderate"]
+places = ["park", "forest", "nature_reserve"]
+generic_ok = false
+interests = ["bugs"]
+minutes = [20, 45]
+rain_ok = true
+max_rain_pct = 50
+min_temp_c = 8
+max_wind_kmh = 30
+daylight = true
+activity_suits_stroller = false
+seasons = ["spring", "summer", "autumn"]
+optional = ["a magnifying glass (or just get close and look)"]
+steps = [
+  "Look at tree trunks, fences and the tops of leaves for small creatures.",
+  "Count their legs and give each one a name.",
+  "Watch where it goes, then leave it in peace.",
+]
+adapt = "Listen for buzzing and humming instead of looking."
+ask = "How many legs did the most interesting creature have?"
+safety = "Look without touching. Don't move logs or stones. Stay well away from bees and wasps."
+
+[[activity]]
+id = "picnic-adventure"
+title = "Picnic adventure"
+who = "kids"
+ages = ["0-2", "3-5", "6-9", "10-12"]
+energy = ["gentle"]
+places = ["picnic_site", "park"]
+generic_ok = false
+interests = ["quiet"]
+minutes = [30, 90]
+rain_ok = false
+max_rain_pct = 20
+min_temp_c = 12
+max_wind_kmh = 30
+daylight = true
+activity_suits_stroller = true
+seasons = []
+optional = ["snacks and water from home (or a short picnic of stories instead)", "a blanket (or a bench)", "a bag for rubbish (or pockets and the nearest bin)"]
+steps = [
+  "Let the kids choose the exact picnic spot.",
+  "Each person names one thing they can see, hear and smell.",
+  "Pack up and leave the spot cleaner than you found it.",
+]
+adapt = "Choose the spot together by feel and sound: sunny, shady, quiet, busy."
+ask = "Why did you choose this spot for our picnic?"
+safety = "Food from home only. Take every bit of rubbish with you."
+
+[[activity]]
+id = "colour-match"
+title = "Colour match walk"
+who = "kids"
+ages = ["0-2", "3-5", "6-9"]
+energy = ["gentle", "moderate"]
+places = ["any"]
+generic_ok = true
+interests = ["colours"]
+minutes = [15, 40]
+rain_ok = true
+max_rain_pct = 60
+min_temp_c = 5
+max_wind_kmh = 40
+daylight = true
+activity_suits_stroller = true
+seasons = []
+optional = []
+steps = [
+  "Each person picks something they are wearing.",
+  "Find something outside with the same colour.",
+  "Swap and choose a new colour.",
+]
+adapt = "Match textures instead of colours: soft like a scarf, rough like a zip."
+ask = "What was the best colour match you found?"
+safety = "Stay together on paths. With a baby, the adult names each colour match out loud and shows it; baby watches from the stroller, carrier or your arms."
+
+[[activity]]
+id = "tree-twins"
+title = "Tree twins"
+who = "kids"
+ages = ["6-9", "10-12"]
+energy = ["gentle"]
+places = ["park", "forest", "nature_reserve"]
+generic_ok = false
+interests = ["trees", "shapes"]
+minutes = [15, 30]
+rain_ok = true
+max_rain_pct = 50
+min_temp_c = 2
+max_wind_kmh = 25
+daylight = true
+activity_suits_stroller = false
+seasons = []
+optional = []
+steps = [
+  "Each person picks a tree and studies it: bark, leaves, shape, height.",
+  "Find another tree that could be its twin.",
+  "Explain to each other why they match, and what's different.",
+]
+adapt = "Compare the trees by feeling the bark and the leaves at hand height."
+ask = "What is the one thing that makes your tree different from its twin?"
+safety = "Eyes open, feet on the ground."
+
+[[activity]]
+id = "five-senses"
+title = "Five senses walk"
+who = "kids"
+ages = ["3-5", "6-9", "10-12"]
+energy = ["gentle"]
+places = ["any"]
+generic_ok = true
+interests = ["sounds", "quiet"]
+minutes = [15, 30]
+rain_ok = true
+max_rain_pct = 50
+min_temp_c = 0
+max_wind_kmh = 40
+daylight = true
+activity_suits_stroller = true
+seasons = []
+optional = []
+steps = [
+  "Find five things you can see.",
+  "Four you can touch, three you can hear.",
+  "Two you can smell and one thing you're thankful for.",
+]
+adapt = "Use the senses that work best for each person and skip the rest."
+ask = "Which sense noticed the most today?"
+safety = "Touch only safe things like bark, stones and grass. Nothing goes in mouths."
+
+[[activity]]
+id = "stick-houses"
+title = "Tiny stick houses"
+who = "kids"
+ages = ["3-5", "6-9", "10-12"]
+energy = ["gentle", "moderate"]
+places = ["forest", "park", "nature_reserve"]
+generic_ok = false
+interests = ["building", "stories"]
+minutes = [20, 60]
+rain_ok = true
+max_rain_pct = 50
+min_temp_c = 2
+max_wind_kmh = 30
+daylight = true
+activity_suits_stroller = false
+seasons = []
+optional = []
+steps = [
+  "Gather fallen sticks and leaves lying loose on the ground.",
+  "Build a tiny house at the foot of a tree.",
+  "Decide who lives there, then leave it for the next visitor to find.",
+]
+adapt = "One person gathers, one person builds; swap halfway."
+ask = "Who lives in your house, and what do they do all day?"
+safety = "Loose fallen material only. No live branches. Keep sticks low and away from faces."
+
+[[activity]]
+id = "animal-walk"
+title = "Animal walk"
+who = "kids"
+ages = ["3-5"]
+energy = ["moderate", "energetic"]
+places = ["park", "playground", "picnic_site"]
+generic_ok = false
+interests = ["animals", "running"]
+minutes = [10, 25]
+rain_ok = false
+max_rain_pct = 30
+min_temp_c = 3
+max_wind_kmh = 45
+daylight = true
+activity_suits_stroller = false
+seasons = []
+optional = []
+steps = [
+  "Take turns choosing an animal: frog, bear, rabbit, crab.",
+  "Everyone moves like that animal to the next tree.",
+  "The last animal picks the next one.",
+]
+adapt = "Make the animal's sound or arm movements instead of the walk."
+ask = "Which animal was the hardest to move like?"
+safety = "Soft, open grass away from paths."
+
+[[activity]]
+id = "bark-rubbing"
+title = "Bark patterns"
+who = "kids"
+ages = ["3-5", "6-9", "10-12"]
+energy = ["gentle"]
+places = ["park", "forest", "nature_reserve"]
+generic_ok = false
+interests = ["trees", "drawing"]
+minutes = [15, 40]
+rain_ok = false
+max_rain_pct = 20
+min_temp_c = 5
+max_wind_kmh = 30
+daylight = true
+activity_suits_stroller = true
+seasons = []
+optional = ["paper and crayons for rubbings (or compare the patterns by touch)"]
+steps = [
+  "Find three trees with different bark.",
+  "Feel each one, or hold paper flat and rub a crayon over it.",
+  "Decide which bark is bumpiest, smoothest and strangest.",
+]
+adapt = "Touch alone works well; describe each bark in one word."
+ask = "Which tree had the bumpiest pattern?"
+safety = "Leave the tree undamaged."
+
+[[activity]]
+id = "i-spy-far"
+title = "Near and far I-spy"
+who = "kids"
+ages = ["6-9", "10-12"]
+energy = ["gentle", "moderate"]
+places = ["park", "picnic_site", "nature_reserve"]
+generic_ok = false
+interests = ["colours", "shapes"]
+minutes = [15, 40]
+rain_ok = false
+max_rain_pct = 30
+min_temp_c = 3
+max_wind_kmh = 30
+daylight = true
+activity_suits_stroller = true
+seasons = []
+optional = []
+steps = [
+  "Stand in an open spot on flat ground.",
+  "Play I-spy with things very close, then very far away.",
+  "Find the furthest thing anyone can see.",
+]
+adapt = "Play 'I hear with my little ear' instead."
+ask = "What's the furthest thing you could see today?"
+safety = "Stay on flat, open ground away from paths with bikes."
+
+[[activity]]
+id = "narrated-stroll"
+title = "Narrated stroll"
+who = "kids"
+ages = ["0-2"]
+energy = ["gentle"]
+places = ["any"]
+generic_ok = true
+interests = ["animals", "trees", "sounds"]
+minutes = [15, 45]
+rain_ok = true
+max_rain_pct = 50
+min_temp_c = 5
+max_wind_kmh = 40
+daylight = true
+activity_suits_stroller = true
+seasons = []
+optional = []
+steps = [
+  "Walk at baby's pace, in a carrier, pushchair or hand in hand.",
+  "Name out loud everything you pass: tree, dog, bike, leaf, cloud.",
+  "Stop wherever baby looks longest and talk about it.",
+]
+adapt = "Describe sounds and textures as well as sights."
+ask = ""
+safety = "Dress baby for the wind. The adult decides what is touched; nothing goes in mouths."
+
+[[activity]]
+id = "watch-the-world"
+title = "Watch the world go by"
+who = "kids"
+ages = ["0-2", "3-5"]
+energy = ["gentle"]
+places = ["park", "picnic_site", "playground"]
+generic_ok = false
+interests = ["birds", "animals", "quiet"]
+minutes = [10, 30]
+rain_ok = false
+max_rain_pct = 30
+min_temp_c = 5
+max_wind_kmh = 35
+daylight = true
+activity_suits_stroller = true
+seasons = []
+optional = []
+steps = [
+  "Sit together on a bench or a dry patch with a good view.",
+  "Point at things that move: birds, leaves, dogs, bikes.",
+  "Count how many different moving things you spot.",
+]
+adapt = "Listen for moving things instead: footsteps, wheels, wings."
+ask = "What was the fastest thing you saw?"
+safety = "Pick a spot well away from paths with bikes."
+
+[[activity]]
+id = "one-colour-walk"
+title = "One colour walk"
+who = "solo"
+ages = []
+energy = ["gentle"]
+places = ["any"]
+generic_ok = true
+interests = ["colours"]
+minutes = [15, 45]
+rain_ok = true
+max_rain_pct = 70
+min_temp_c = -2
+max_wind_kmh = 45
+daylight = false
+activity_suits_stroller = true
+seasons = []
+optional = []
+steps = [
+  "Choose one colour before you leave the door.",
+  "Notice every time you see it on the way.",
+  "Phone stays in the pocket until you're back.",
+]
+adapt = "Choose one sound or one texture instead of a colour."
+ask = ""
+safety = "Use lit paths after dark."
+
+[[activity]]
+id = "sit-spot"
+title = "Ten minute sit spot"
+who = "solo"
+ages = []
+energy = ["gentle"]
+places = ["park", "forest", "nature_reserve", "picnic_site"]
+generic_ok = false
+interests = ["quiet", "birds"]
+minutes = [10, 30]
+rain_ok = false
+max_rain_pct = 30
+min_temp_c = 5
+max_wind_kmh = 30
+daylight = true
+activity_suits_stroller = true
+seasons = []
+optional = ["something to sit on (or a bench)"]
+steps = [
+  "Find a bench or a dry spot and sit down.",
+  "Stay for ten minutes without your phone.",
+  "Notice what moves, what changes and what stays still.",
+]
+adapt = "Notice sounds and temperature changes as well as sights."
+ask = ""
+safety = "Choose a spot where you feel comfortable and others are around."
+
+[[activity]]
+id = "new-route"
+title = "Take the long way"
+who = "solo"
+ages = []
+energy = ["moderate"]
+places = ["any"]
+generic_ok = false
+interests = ["shapes"]
+minutes = [20, 60]
+rain_ok = true
+max_rain_pct = 60
+min_temp_c = -2
+max_wind_kmh = 45
+daylight = false
+activity_suits_stroller = true
+seasons = []
+optional = []
+steps = [
+  "Walk to the suggested place on pavements you've never taken.",
+  "Find one detail you've never noticed: a door, a tree, a sign.",
+  "Come back a different way again.",
+]
+adapt = "Choose routes you know are step-free if you need them; the app does not verify routes."
+ask = ""
+safety = "Pavements and marked crossings only. Stick to lit areas after dark."
+
+[[activity]]
+id = "sky-watch"
+title = "Sky watch"
+who = "solo"
+ages = []
+energy = ["gentle"]
+places = ["park", "picnic_site"]
+generic_ok = false
+interests = ["sky", "colours"]
+minutes = [15, 40]
+rain_ok = false
+max_rain_pct = 20
+min_temp_c = 3
+max_wind_kmh = 35
+daylight = false
+activity_suits_stroller = true
+seasons = []
+optional = ["a warm layer (or a shorter watch)"]
+steps = [
+  "Get to an open spot with a wide view of the sky.",
+  "Watch the light change for fifteen minutes.",
+  "Name three colours you saw that you can't usually see from a window.",
+]
+adapt = "Notice how the air, sounds and temperature change as the light does."
+ask = ""
+safety = "Never look directly at the sun. Use lit areas after dark."
+
+[[activity]]
+id = "brisk-loop"
+title = "Brisk loop"
+who = "solo"
+ages = []
+energy = ["energetic"]
+places = ["park", "forest", "nature_reserve"]
+generic_ok = false
+interests = ["running"]
+minutes = [20, 60]
+rain_ok = true
+max_rain_pct = 60
+min_temp_c = -2
+max_wind_kmh = 30
+daylight = true
+activity_suits_stroller = false
+seasons = []
+optional = ["water (or a shorter loop)"]
+steps = [
+  "Walk fast to the place, then do one full loop of it.",
+  "Push the pace on any uphill bit.",
+  "Slow down for the last five minutes home.",
+]
+adapt = "Any pace that raises your breathing counts, on foot or on wheels."
+ask = ""
+safety = "Go at a pace where you can still talk."
+
+[[activity]]
+id = "quick-sketch"
+title = "Five minute sketches"
+who = "solo"
+ages = []
+energy = ["gentle"]
+places = ["park", "picnic_site", "forest"]
+generic_ok = false
+interests = ["drawing"]
+minutes = [15, 45]
+rain_ok = false
+max_rain_pct = 20
+min_temp_c = 8
+max_wind_kmh = 30
+daylight = true
+activity_suits_stroller = true
+seasons = []
+optional = ["paper and a pencil (or write three sentences instead)"]
+steps = [
+  "Pick one thing: a tree, a bench, a cloud.",
+  "Draw or describe it in five minutes, no erasing.",
+  "Make three sketches of three different things.",
+]
+adapt = "Describe in words or a voice note to yourself instead of drawing."
+ask = ""
+safety = "Sit somewhere stable and out of the way of paths."
+
+[[activity]]
+id = "leaf-study-solo"
+title = "Autumn leaf study"
+who = "solo"
+ages = []
+energy = ["gentle"]
+places = ["park", "forest", "nature_reserve"]
+generic_ok = false
+interests = ["trees", "shapes"]
+minutes = [15, 40]
+rain_ok = true
+max_rain_pct = 60
+min_temp_c = 0
+max_wind_kmh = 30
+daylight = true
+activity_suits_stroller = true
+seasons = ["autumn"]
+optional = []
+steps = [
+  "Find five fallen leaves that are all different shapes.",
+  "Guess which tree each one came from by looking up.",
+  "Leave them at the base of the tree they belong to.",
+]
+adapt = "Compare the leaves by edge and texture instead of shape."
+ask = ""
+safety = "Fallen leaves only."

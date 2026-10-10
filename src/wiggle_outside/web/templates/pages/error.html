@@ -1,0 +1,26 @@
+{# The error page. Receives ErrorPage as `page` (CONTRACTS section 8).
+   Behaviour per ERROR-HANDLING sections 2 and 5; the error-summary layout is the one
+   approved in mock 01b-form-error.html.
+
+   The message says what happened and what to do next, and stays visible until it is
+   resolved: no toast, and never colour, icon or animation alone.
+
+   When `page.form` is present this is a 422 re-render that keeps the answers, so the
+   form's own error summary is the thing that takes focus and the notice is plain text
+   above it. Nothing here announces twice (ERROR-HANDLING section 5): on a full page load
+   neither region is a live region. #}
+{% extends "base.html" %}
+{% from "partials/notice.html" import notice with context %}
+{% from "partials/fieldsets.html" import plan_form, location_choice with context %}
+
+{% block intro %}
+<p class="wo-intro">{{ copy.INTRO }}</p>
+{% endblock %}
+
+{% block main %}
+{{ notice(page.notice, "" if page.form else "page-error") }}
+{% if page.form %}
+{{ location_choice(page.form) }}
+{{ plan_form(page.form) }}
+{% endif %}
+{% endblock %}

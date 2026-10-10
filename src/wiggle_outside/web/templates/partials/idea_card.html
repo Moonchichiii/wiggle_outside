@@ -1,0 +1,38 @@
+{# One idea card (DESIGN-SPEC sections 2, 5 and 6; mock 03-results.html). Receives
+   IdeaView.
+
+   Tightened in 8.12: the card carries the title, one playful sentence, one practical
+   line, the uncertainty labels that apply and the link. Reasons and the interest match
+   live on the detail page under "Why this idea". There is no per-card weather: the cards
+   share one window, shown once above them.
+
+   Every string is catalogue, hook or copy text, rendered verbatim and escaped once. #}
+{% from "macros/icon.html" import icon %}
+
+{# The tape strip is decorative (DESIGN-SPEC section 5): 64 x 16, aria-hidden, and drawn
+   with currentColor and no fill, so it stays a plain outline if the stylesheet fails.
+   Source of truth: frontend/svg/tape-strip.svg. #}
+{% macro tape() -%}
+<svg class="wo-tape" width="64" height="16" viewBox="0 0 64 16" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M2 3.5L60 2l2 10.5L3 14z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path></svg>
+{%- endmacro %}
+
+{% macro idea_card(idea) -%}
+<article class="wo-card wo-card-{{ idea.variant }}" aria-labelledby="idea-{{ idea.idea_id }}-title">
+{{ tape() }}
+<h3 class="wo-card-title" id="idea-{{ idea.idea_id }}-title">{{ idea.title }}</h3>
+<p class="wo-card-intro">{{ idea.intro }}</p>
+<p class="wo-card-practical">{{ icon("location-pin", "wo-icon-32", 32) }}<span>
+{%- if idea.place.name %}<strong>{{ idea.place.name }}</strong>{{ copy.PRACTICAL_JOIN }}{% endif -%}
+{{ idea.place.kind_label }}
+{%- if idea.place.distance %}{{ copy.PRACTICAL_JOIN }}{{ idea.place.distance }}{% endif -%}
+{{ copy.PRACTICAL_JOIN }}{{ idea.times }}</span></p>
+{% if idea.place.uncertainty %}
+<ul class="wo-labels">
+{% for label in idea.place.uncertainty %}
+<li>{{ label }}</li>
+{% endfor %}
+</ul>
+{% endif %}
+<p class="wo-card-link"><a href="{{ idea.detail_url }}">{{ copy.CARD_LINK }}<span class="wo-vh">{{ copy.CARD_LINK_CONTEXT.format(title=idea.title) }}</span></a></p>
+</article>
+{%- endmacro %}

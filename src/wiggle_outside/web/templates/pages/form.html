@@ -1,8 +1,10 @@
 {# GET / and every re-render that keeps the answers. Receives FormPage as `page`
-   (CONTRACTS section 8) and the copy table as `copy`. Works with no JavaScript. #}
+   (CONTRACTS section 8) and the copy table as `copy`. Works with no JavaScript.
+
+   The form itself is the `plan_form` macro, shared with the "Change answers" disclosure
+   on the results page, so both post exactly the same fields. #}
 {% extends "base.html" %}
-{% from "partials/error_summary.html" import error_summary with context %}
-{% from "partials/fieldsets.html" import who, ages, time_budget, energy, where, interests, extras, honeypot, location_choice with context %}
+{% from "partials/fieldsets.html" import plan_form, location_choice with context %}
 
 {% block intro %}
 <p class="wo-intro">{{ page.intro }}</p>
@@ -10,33 +12,5 @@
 
 {% block main %}
 {{ location_choice(page) }}
-<form class="wo-panel wo-plan-form" method="post" action="/plan" novalidate>
-<input type="hidden" name="csrf_token" value="{{ page.session.csrf_token }}">
-{% if page.session.idempotency_key %}
-<input type="hidden" name="idempotency_key" value="{{ page.session.idempotency_key }}">
-{% endif %}
-<input type="hidden" name="location_mode" value="{{ page.location_mode }}">
-{% if page.coords %}
-<input type="hidden" name="lat" value="{{ page.coords[0] }}">
-<input type="hidden" name="lon" value="{{ page.coords[1] }}">
-{% endif %}
-{% if page.location_label %}
-<input type="hidden" name="location_label" value="{{ page.location_label }}">
-{% endif %}
-{{ honeypot() }}
-{{ error_summary(page.summary) }}
-{{ who(page) }}
-{{ ages(page) }}
-{{ time_budget(page) }}
-{{ energy(page) }}
-{{ where(page) }}
-{{ interests(page) }}
-{{ extras(page) }}
-<div class="wo-actions">
-<button class="wo-btn wo-btn-primary" type="submit">{{ copy.SUBMIT }}</button>
-</div>
-{# D43: the busy state is static markup, revealed by htmx's request indicator.
-   Without JavaScript the browser's own loading state shows instead. #}
-<p class="wo-busy" role="status" aria-live="polite" hidden>{{ copy.BUSY_NOTE }}</p>
-</form>
+{{ plan_form(page) }}
 {% endblock %}

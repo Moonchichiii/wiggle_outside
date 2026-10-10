@@ -23,7 +23,11 @@ class Document:
     ids: list[str] = field(default_factory=list)
     label_targets: list[str] = field(default_factory=list)
     described_by: list[str] = field(default_factory=list)
+    labelled_by: list[str] = field(default_factory=list)
     fragment_links: list[str] = field(default_factory=list)
+    # Every <use href="#..."> in the page, so a missing sprite symbol is caught here
+    # rather than by someone looking at a blank icon.
+    use_refs: list[str] = field(default_factory=list)
     # (input value, the text of the label that wraps it), in document order.
     option_labels: list[tuple[str, str]] = field(default_factory=list)
 
@@ -54,8 +58,12 @@ class Reader(HTMLParser):
             self.doc.ids.append(values["id"])
         if "aria-describedby" in values:
             self.doc.described_by.extend(values["aria-describedby"].split())
+        if "aria-labelledby" in values:
+            self.doc.labelled_by.extend(values["aria-labelledby"].split())
         if tag == "a" and values.get("href", "").startswith("#"):
             self.doc.fragment_links.append(values["href"][1:])
+        if tag == "use" and values.get("href", "").startswith("#"):
+            self.doc.use_refs.append(values["href"][1:])
 
     def _open_label(self, values: Attrs) -> None:
         self._label_depth += 1

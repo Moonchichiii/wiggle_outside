@@ -1,0 +1,106 @@
+/* The results page: heading, answers summary, "Change answers", the shared weather line
+   and the interest labels. DESIGN-SPEC sections 2, 3, 4 and 6, matching the approved mocks
+   03-results.html and 05-night.html. Tokens only; corners from the tokens.css utilities. */
+
+.wo-results-heading {
+  margin: 0 0 var(--spacing-s2);
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  font-weight: 800;
+  line-height: var(--text-xl--line-height);
+}
+
+/* The fixed daylight copy, directly under its heading (mock 05-night.html). */
+.wo-lede {
+  margin: 0 0 var(--spacing-s4);
+}
+
+/* Answers summary (section 2): card background, 2 px ink border, tile corners. */
+.wo-answers {
+  margin-bottom: var(--spacing-s4);
+  padding: var(--spacing-s4);
+  background: var(--color-card);
+  border: var(--border-width-ink) solid var(--color-ink);
+
+  @apply wonk-tile;
+}
+
+.wo-answers-line {
+  margin: 0;
+}
+
+.wo-answers-line + .wo-answers-line {
+  margin-top: var(--spacing-s1);
+}
+
+.wo-change {
+  margin-top: var(--spacing-s2);
+}
+
+/* A native <details> summary, at least 44 px, so it works with no JavaScript. */
+.wo-change > .wo-change-summary {
+  display: list-item;
+  min-height: 44px;
+  color: var(--color-link);
+  font-weight: 600;
+  line-height: 44px;
+  cursor: pointer;
+}
+
+.wo-change[open] > .wo-change-summary {
+  margin-bottom: var(--spacing-s4);
+}
+
+/* The weather line, shown once above the ideas; never repeated per card (8.9). */
+.wo-weather {
+  display: flex;
+  gap: var(--spacing-s3);
+  align-items: center;
+  margin-bottom: var(--spacing-s4);
+  padding: var(--spacing-s3) var(--spacing-s4);
+  background: var(--color-card);
+  border: var(--border-width-ink) solid var(--color-ink);
+
+  @apply wonk-tile;
+}
+
+.wo-weather-line {
+  margin: 0;
+}
+
+/* The weather glyph is 48 px and the card meta icons 32 px (section 3). The attributes on
+   the element already say so; these rules keep them right when the icon is scaled by its
+   container's font size. */
+.wo-icon-48 {
+  width: 48px;
+  height: 48px;
+}
+
+.wo-icon-32 {
+  width: 32px;
+  height: 32px;
+}
+
+/* Interest labels (D39, D46): plain text in a box. No buttons, no crosses, nothing that
+   looks removable. */
+.wo-interests {
+  margin-bottom: var(--spacing-s5);
+  padding: var(--spacing-s4);
+  background: var(--color-card);
+  border: var(--border-width-ink) solid var(--color-ink);
+
+  @apply wonk-tile;
+}
+
+.wo-interests-line {
+  margin: 0;
+}
+
+.wo-interests-note {
+  margin: var(--spacing-s2) 0 0;
+}
+
+.wo-cards {
+  display: grid;
+  gap: var(--spacing-s5);
+}
