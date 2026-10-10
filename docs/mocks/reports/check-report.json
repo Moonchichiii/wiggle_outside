@@ -1,0 +1,115 @@
+{
+ "tools": {
+  "playwright": "1.56.0",
+  "axe-core": "4.10.2",
+  "chromium": "141.0.7390.37"
+ },
+ "rules": [
+  "wcag2a",
+  "wcag2aa",
+  "wcag21aa",
+  "wcag22aa"
+ ],
+ "pages": {
+  "01-form": {
+   "inline_style_attributes": 0,
+   "script_elements": 0,
+   "scroll_width_320": 320,
+   "min_target_px_320": 44,
+   "wrapped_tile_labels_320": [],
+   "scroll_width_390": 390,
+   "min_target_px_390": 44,
+   "wrapped_tile_labels_390": [
+    "Me and the kids",
+    "Half day (4 h)"
+   ],
+   "axe_violations_390": [],
+   "scroll_width_1440": 1440,
+   "min_target_px_1440": 44,
+   "wrapped_tile_labels_1440": []
+  },
+  "01b-form-error": {
+   "inline_style_attributes": 0,
+   "script_elements": 0,
+   "scroll_width_320": 320,
+   "min_target_px_320": 44,
+   "wrapped_tile_labels_320": [],
+   "scroll_width_390": 390,
+   "min_target_px_390": 44,
+   "wrapped_tile_labels_390": [
+    "Me and the kids",
+    "Half day (4 h)"
+   ],
+   "axe_violations_390": [],
+   "scroll_width_1440": 1440,
+   "min_target_px_1440": 44,
+   "wrapped_tile_labels_1440": []
+  },
+  "02-waiting": {
+   "inline_style_attributes": 0,
+   "script_elements": 0,
+   "scroll_width_320": 320,
+   "min_target_px_320": 44,
+   "wrapped_tile_labels_320": [],
+   "scroll_width_390": 390,
+   "min_target_px_390": 44,
+   "wrapped_tile_labels_390": [
+    "Me and the kids",
+    "Half day (4 h)"
+   ],
+   "axe_violations_390": [],
+   "scroll_width_1440": 1440,
+   "min_target_px_1440": 44,
+   "wrapped_tile_labels_1440": []
+  },
+  "03-results": {
+   "inline_style_attributes": 0,
+   "script_elements": 0,
+   "scroll_width_320": 320,
+   "min_target_px_320": 44,
+   "wrapped_tile_labels_320": [],
+   "scroll_width_390": 390,
+   "min_target_px_390": 44,
+   "wrapped_tile_labels_390": [
+    "Me and the kids",
+    "Half day (4 h)"
+   ],
+   "axe_violations_390": [],
+   "scroll_width_1440": 1440,
+   "min_target_px_1440": 44,
+   "wrapped_tile_labels_1440": []
+  },
+  "04-detail-bingo": {
+   "inline_style_attributes": 0,
+   "script_elements": 0,
+   "scroll_width_320": 320,
+   "min_target_px_320": 44,
+   "wrapped_tile_labels_320": [],
+   "scroll_width_390": 390,
+   "min_target_px_390": 44,
+   "wrapped_tile_labels_390": [],
+   "axe_violations_390": [],
+   "scroll_width_1440": 1440,
+   "min_target_px_1440": 44,
+   "wrapped_tile_labels_1440": [],
+   "print_context_visible": true
+  },
+  "05-night": {
+   "inline_style_attributes": 0,
+   "script_elements": 0,
+   "scroll_width_320": 320,
+   "min_target_px_320": 44,
+   "wrapped_tile_labels_320": [],
+   "scroll_width_390": 390,
+   "min_target_px_390": 44,
+   "wrapped_tile_labels_390": [
+    "Me and the kids",
+    "Half day (4 h)"
+   ],
+   "axe_violations_390": [],
+   "scroll_width_1440": 1440,
+   "min_target_px_1440": 44,
+   "wrapped_tile_labels_1440": []
+  }
+ }
+}
