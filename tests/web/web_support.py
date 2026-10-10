@@ -256,6 +256,7 @@ def build_harness(
     settings: Settings | None = None,
     sessions: SessionStore | None = None,
     static_root: Path = STATIC_DIR,
+    fonts_root: Path | None = None,
 ) -> Iterator[Harness]:
     """Mount the WP7 router on a bare app and hand back a client for it."""
     chosen = settings or harness_settings()
@@ -269,7 +270,7 @@ def build_harness(
         policy=origin_policy(chosen),
         assets=build_manifest(static_root) if static_root.is_dir() else {},
         static_root=static_root,
-        fonts_root=REPO_FONTS_DIR,
+        fonts_root=fonts_root if fonts_root is not None else REPO_FONTS_DIR,
         readiness=lambda: "unavailable",
     )
     router = build(context)

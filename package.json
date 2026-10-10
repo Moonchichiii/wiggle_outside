@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build:css": "tailwindcss -i frontend/css/app.css -o src/wiggle_outside/web/static/app.css --minify"
+    "build:css": "tailwindcss -i frontend/css/app.css -o src/wiggle_outside/web/static/app.css --minify",
+    "build:assets": "bun frontend/build.js",
+    "build": "bun run build:css && bun run build:assets"
   },
   "devDependencies": {
     "@tailwindcss/cli": "4.1.14",

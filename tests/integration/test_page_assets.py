@@ -1,7 +1,7 @@
 """GET / must link a stylesheet, and that stylesheet must actually serve CSS.
 
 Written because it did not. `base.html` emits the `<link>` only for an asset whose *key*
-ends in `.css`, and the preview passed the key `"css"`, so the page shipped with no
+ends in `.css`, and the preview passed the key `"css"`, so the served_html shipped with no
 stylesheet at all and rendered in Times with 300x150 icons. Every check was green: the
 route tests only compared paths, and the template tests rendered through a fixture that
 supplied its own assets. Nothing asserted the two ends met.
@@ -23,18 +23,18 @@ MIN_CSS_BYTES: Final = 1000
 
 
 @pytest.fixture
-def page(asgi_client: TestClient) -> str:
+def served_html(asgi_client: TestClient) -> str:
     response = asgi_client.get("/")
     assert response.status_code == HTTP_OK
     return response.text
 
 
-def test_the_page_links_exactly_one_stylesheet(page: str) -> None:
-    links = LINK.findall(page)
+def test_the_page_links_exactly_one_stylesheet(served_html: str) -> None:
+    links = LINK.findall(served_html)
     assert len(links) == 1, f"expected one stylesheet link, found {len(links)}"
 
 
-def test_the_stylesheet_url_serves_non_empty_css(page: str, asgi_client: TestClient) -> None:
+def test_the_stylesheet_url_serves_non_empty_css(served_html: str, asgi_client: TestClient) -> None:
     # The bundle is a gitignored build artifact. scripts/check.ps1 builds it before
     # pytest; a bare `pytest` in a fresh checkout has to be told why, not just fail.
     built = (
@@ -48,7 +48,7 @@ def test_the_stylesheet_url_serves_non_empty_css(page: str, asgi_client: TestCli
     if not built.is_file():
         pytest.skip("run `bun run build:css` first, or ./scripts/check.ps1 which does")
 
-    href_match = HREF.search(LINK.findall(page)[0])
+    href_match = HREF.search(LINK.findall(served_html)[0])
     assert href_match, "the stylesheet link has no href"
 
     response = asgi_client.get(href_match.group(1))
@@ -60,18 +60,18 @@ def test_the_stylesheet_url_serves_non_empty_css(page: str, asgi_client: TestCli
     assert "--color-ink" in response.text
 
 
-def test_the_page_carries_no_inline_style_or_script(page: str) -> None:
+def test_the_page_carries_no_inline_style_or_script(served_html: str) -> None:
     # The CSP forbids both (PLAN section 9). Asserted on what is actually served, not
     # only on a template rendered in a test.
-    assert "<script" not in page.lower()
-    assert "style=" not in page.lower()
-    assert "javascript:" not in page.lower()
+    assert "<script" not in served_html.lower()
+    assert "style=" not in served_html.lower()
+    assert "javascript:" not in served_html.lower()
 
 
-def test_every_inline_svg_has_intrinsic_dimensions(page: str) -> None:
-    # An svg with a viewBox but no width/height falls back to 300x150, so the page has to
+def test_every_inline_svg_has_intrinsic_dimensions(served_html: str) -> None:
+    # An svg with a viewBox but no width/height falls back to 300x150, so the served_html has to
     # stay usable when the stylesheet fails (DESIGN-SPEC section 3 sizes).
-    svgs = re.findall(r"<svg[^>]*>", page)
+    svgs = re.findall(r"<svg[^>]*>", served_html)
     assert svgs, "no inline svg found on the page"
     missing = [tag for tag in svgs if "width=" not in tag or "height=" not in tag]
     assert not missing, f"svg without width/height: {missing}"

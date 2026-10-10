@@ -72,12 +72,18 @@ def test_a_font_is_served_when_it_is_present(tmp_path: Path) -> None:
         break
 
 
-def test_an_absent_font_is_a_clean_404(built: Harness) -> None:
-    # TC-007: the files are gitignored under the Fontshare licence.
-    missing = built.client.get(f"/static/fonts/{FONT}")
+def test_an_absent_font_is_a_clean_404(tmp_path: Path) -> None:
+    # TC-007: the files are gitignored under the Fontshare licence, so a deployment
+    # without them must 404 cleanly and fall back. Pointed at an empty directory on
+    # purpose: reading the real one made this pass only on a machine that happens not
+    # to have the fonts, which is the opposite of a test.
+    empty = tmp_path / "no-fonts"
+    empty.mkdir()
+    for harness in build_harness(PreviewPlanner(), fonts_root=empty):
+        missing = harness.client.get(f"/static/fonts/{FONT}")
 
-    assert missing.status_code == 404
-    assert missing.text == ""
+        assert missing.status_code == 404
+        assert missing.text == ""
 
 
 def test_only_the_two_named_faces_are_servable(tmp_path: Path) -> None:

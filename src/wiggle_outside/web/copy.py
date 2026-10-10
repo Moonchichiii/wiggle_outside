@@ -41,6 +41,9 @@ COPYRIGHT_SIGN: Final = chr(0x00A9)
 
 PAGE_TITLE: Final = "Wiggle Outside"  # D40
 FORM_PAGE_TITLE: Final = PAGE_TITLE
+# The approved concept board (docs/mocks/reference/visual-direction-v2.png) puts the
+# product name small in a masthead and this question as the page heading.
+FORM_HEADING: Final = "A little fresh air?"
 INTRO: Final = "A few details. Up to three outdoor ideas near you."
 
 # --- Who ---------------------------------------------------------------------------
@@ -147,6 +150,26 @@ INTERESTS_LEGEND_BY_WHO: Final[Mapping[Who, str]] = MappingProxyType(
 # The 14 tags as display labels (D39). "Change answers" prefills the interests field
 # with these, never with the original free text, because these are what we recognised
 # (CONTRACTS section 7, CC-C). Lower case: they read as a list, not as proper nouns.
+# Activity illustrations for the result cards (the approved visual direction, TC-008).
+# Keyed by catalogue activity id, so a puddle activity never shows a tree. Anything not
+# listed falls back to the generic leaf; the name is chosen by code, never by the model.
+ACTIVITY_ILLUSTRATIONS: Final[Mapping[str, str]] = MappingProxyType(
+    {
+        "tree-twins": "illo-trees",
+        "leaf-colour-hunt": "illo-leaf",
+        "leaf-study-solo": "illo-leaf",
+        "nature-bingo": "illo-bingo",
+        "puddle-jumping": "illo-puddle",
+        "minibeast-safari": "illo-magnifier",
+        "i-spy-far": "illo-magnifier",
+        "shape-safari": "illo-magnifier",
+        "sky-watch": "illo-sky",
+        "watch-the-world": "illo-sky",
+        "cloud-spotting": "illo-sky",
+    }
+)
+DEFAULT_ILLUSTRATION: Final = "illo-leaf"
+
 INTEREST_TAG_LABELS: Final[Mapping[InterestTag, str]] = MappingProxyType(
     {
         InterestTag.ANIMALS: "animals",

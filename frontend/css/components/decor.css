@@ -1,0 +1,306 @@
+/* The illustrated margins of the approved visual direction.
+   Reference: docs/mocks/reference/visual-direction-v2.png (Mats, DESIGN-SPEC §1.5).
+
+   Every decoration is a CSS background on a pseudo-element or an empty, aria-hidden
+   span, so none of it enters the accessibility tree, takes focus, intercepts a click or
+   can be selected. The artwork files live in frontend/svg/decor/ and are copied to the
+   static root by `bun run build:assets`; they are assets, not application logic.
+
+   Responsiveness is deliberate, not a scale-down: the desktop composition fills the
+   margins beside the panel, and the phone keeps a named subset — sun, a sprig, the taped
+   note and the bottom grasses — with the signpost and the margin notes omitted, because
+   there is no margin to put them in. */
+
+/* The phone band: 72 px of margin at the top for the sun, the sprig and the note, and
+   64 px at the bottom for the grasses. Below 64 rem the artwork lives only there. */
+@media (width < 64rem) {
+  .wo-page {
+    padding-top: 76px;
+    padding-bottom: 72px;
+  }
+}
+
+/* --- The paper ---------------------------------------------------------------------- */
+
+.wo-body {
+  background-color: var(--color-oatmeal);
+  background-image: url("decor/paper-texture.svg");
+  background-repeat: repeat;
+  background-size: 220px 220px;
+}
+
+/* --- The decoration layer ----------------------------------------------------------- */
+
+.wo-decor {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* The interface always sits above the artwork. */
+.wo-masthead,
+.wo-column {
+  position: relative;
+  z-index: 1;
+}
+
+.wo-decor > * {
+  position: absolute;
+  background-repeat: no-repeat;
+  background-size: contain;
+  pointer-events: none;
+}
+
+/* Phone: the named subset, in a band above the masthead and along the bottom edge.
+   The page reserves that band (see the padding rule below), so no decoration ever sits
+   over a word or a control. */
+.wo-d-sun {
+  top: 2px;
+  left: 4px;
+  width: 64px;
+  height: 64px;
+  background-image: url("decor/sun.svg");
+}
+
+.wo-d-sprig-a {
+  top: 14px;
+  left: 76px;
+  width: 46px;
+  height: 46px;
+  background-image: url("decor/sprig-left.svg");
+}
+
+.wo-d-note-paper {
+  top: 0;
+  right: 4px;
+  width: 78px;
+  height: 62px;
+  background-image: url("decor/paper-note.svg");
+}
+
+.wo-d-grass-left {
+  bottom: 0;
+  left: -10px;
+  width: 150px;
+  height: 46px;
+  background-image: url("decor/grass-left.svg");
+}
+
+.wo-d-grass-right {
+  right: -10px;
+  bottom: 0;
+  width: 150px;
+  height: 46px;
+  background-image: url("decor/grass-right.svg");
+}
+
+/* Pieces that need a real margin to live in. */
+.wo-d-sprig-b,
+.wo-d-note-left,
+.wo-d-note-right,
+.wo-d-signpost,
+.wo-d-stones,
+.wo-d-puddle,
+.wo-d-plant {
+  display: none;
+}
+
+/* --- Desktop: the full composition --------------------------------------------------- */
+
+@media (width >= 64rem) {
+  .wo-d-sun {
+    top: 36px;
+    left: 56px;
+    width: 112px;
+    height: 112px;
+  }
+
+  .wo-d-sprig-a {
+    top: 210px;
+    left: 92px;
+    width: 96px;
+    height: 96px;
+  }
+
+  .wo-d-sprig-b {
+    display: block;
+    top: 420px;
+    right: 120px;
+    width: 96px;
+    height: 96px;
+    background-image: url("decor/sprig-right.svg");
+  }
+
+  .wo-d-note-left {
+    display: block;
+    top: 300px;
+    left: 24px;
+    width: 180px;
+    height: 146px;
+    background-image: url("decor/note-small-people.svg");
+  }
+
+  .wo-d-note-paper {
+    top: 40px;
+    right: 64px;
+    width: 190px;
+    height: 150px;
+  }
+
+  .wo-d-note-right {
+    display: block;
+    top: 320px;
+    right: 56px;
+    width: 190px;
+    height: 116px;
+    background-image: url("decor/note-curiosity.svg");
+  }
+
+  .wo-d-signpost {
+    display: block;
+    right: 72px;
+    bottom: 56px;
+    width: 160px;
+    height: 230px;
+    background-image: url("decor/signpost.svg");
+  }
+
+  .wo-d-plant {
+    display: block;
+    bottom: 48px;
+    left: 44px;
+    width: 72px;
+    height: 72px;
+    background-image: url("decor/plant.svg");
+  }
+
+  .wo-d-stones {
+    display: block;
+    bottom: 12px;
+    left: 190px;
+    width: 120px;
+    height: 48px;
+    background-image: url("decor/stones.svg");
+  }
+
+  .wo-d-puddle {
+    display: block;
+    bottom: 18px;
+    left: 96px;
+    width: 140px;
+    height: 44px;
+    background-image: url("decor/puddle.svg");
+  }
+
+  .wo-d-grass-left {
+    left: 0;
+    width: 260px;
+    height: 72px;
+  }
+
+  .wo-d-grass-right {
+    right: 0;
+    width: 260px;
+    height: 72px;
+  }
+}
+
+/* Between phone and desktop the margins are too narrow for the lettered pieces, so they
+   stay hidden and the nature details come back first. */
+@media (width >= 48rem) and (width < 64rem) {
+  .wo-d-sun {
+    top: 24px;
+    left: 20px;
+    width: 92px;
+    height: 92px;
+  }
+
+  .wo-d-plant,
+  .wo-d-stones {
+    display: block;
+  }
+
+  .wo-d-plant {
+    bottom: 40px;
+    left: 16px;
+    width: 64px;
+    height: 64px;
+  }
+
+  .wo-d-stones {
+    right: 20px;
+    bottom: 10px;
+    width: 104px;
+    height: 42px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* No animation on any decoration: the one drop animation belongs to the cards. */
+}
+
+/* Nothing decorative survives a print (DESIGN-SPEC §10) or forced colours. */
+@media print {
+  .wo-decor,
+  .wo-body {
+    background-image: none;
+  }
+
+  .wo-decor {
+    display: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .wo-decor {
+    display: none;
+  }
+}
+
+/* --- Activity illustrations on the result cards ------------------------------------- */
+
+/* The board puts a drawing in the top-right of each pastel card. It is decorative: the
+   card's words already say what the activity is, so this is a background, keyed by the
+   catalogue activity rather than by the card's colour. */
+.wo-card[data-illo] {
+  background-repeat: no-repeat;
+  background-position: right var(--spacing-s3) top var(--spacing-s3);
+  background-size: 92px 84px;
+  padding-right: 112px;
+}
+
+.wo-card[data-illo="illo-trees"] { background-image: url("decor/illo-trees.svg"); }
+.wo-card[data-illo="illo-leaf"] { background-image: url("decor/illo-leaf.svg"); }
+.wo-card[data-illo="illo-bingo"] { background-image: url("decor/illo-bingo.svg"); }
+.wo-card[data-illo="illo-puddle"] { background-image: url("decor/illo-puddle.svg"); }
+.wo-card[data-illo="illo-magnifier"] { background-image: url("decor/illo-magnifier.svg"); }
+.wo-card[data-illo="illo-sky"] { background-image: url("decor/illo-sky.svg"); }
+
+/* On a phone the drawing would crowd the title, so it shrinks and the text reclaims the
+   width rather than wrapping around a picture. */
+@media (width < 30rem) {
+  .wo-card[data-illo] {
+    /* Smaller, but the title still needs the space reserved: without the padding a
+       long title runs under the drawing. */
+    background-size: 56px 51px;
+    padding-right: 68px;
+  }
+
+  /* Only the title and the intro sit beside the drawing; the fact rows reclaim the
+     width once the drawing has ended. */
+  .wo-card[data-illo] .wo-card-practical,
+  .wo-card[data-illo] .wo-labels,
+  .wo-card[data-illo] .wo-card-link {
+    margin-right: -52px;
+  }
+}
+
+@media print {
+  .wo-card[data-illo] {
+    background-image: none;
+    padding-right: var(--spacing-s4);
+  }
+}

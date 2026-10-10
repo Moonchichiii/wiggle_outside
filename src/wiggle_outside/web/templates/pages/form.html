@@ -6,6 +6,10 @@
 {% extends "base.html" %}
 {% from "partials/fieldsets.html" import plan_form, location_choice with context %}
 
+{% block heading %}
+<h1 class="wo-title">{{ copy.FORM_HEADING }}</h1>
+{% endblock %}
+
 {% block intro %}
 <p class="wo-intro">{{ page.intro }}</p>
 {% endblock %}

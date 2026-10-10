@@ -81,7 +81,9 @@ def _no_real_http(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.fixture
 def asgi_client() -> Iterator[TestClient]:
     """Talk to the app in-process. Loopback is allowed, so the guard stays on."""
-    with TestClient(create_app(Settings.from_env())) as client:
+    # WP7 checks the Host header on every request (BACKEND-CONTRACT section 5), and
+    # TestClient's default "testserver" host is correctly refused with 400.
+    with TestClient(create_app(Settings.from_env()), base_url="http://127.0.0.1:8000") as client:
         yield client
 
 

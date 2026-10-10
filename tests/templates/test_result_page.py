@@ -141,12 +141,16 @@ def test_fewer_matches_counts_what_is_actually_shown(pages: Mapping[str, ResultP
 # --- The approved card line and the shared weather line -------------------------------
 
 
-def test_the_card_line_matches_the_approved_mock(rendered: Mapping[str, str]) -> None:
-    # mock 03-results.html: place, kind, distance, travel and duration, in that order.
-    assert (
-        "<strong>Linden Park</strong> · park · about 0.6 km away · "
-        "24 min there and back · 36 min activity"
-    ) in rendered["three"].replace("\n", "")
+def test_the_card_facts_match_the_approved_board(rendered: Mapping[str, str]) -> None:
+    # The approved board (visual-direction-v2.png) gives each fact its own row with its
+    # own icon: where, then how long. Same words and same order as mock 03's single
+    # line, which the board supersedes as the visual target.
+    flat = rendered["three"].replace("\n", "")
+
+    assert "<strong>Linden Park</strong> · park · about 0.6 km away" in flat
+    assert "24 min there and back · 36 min activity" in flat
+    # One place row and one time row per card, not a merged sentence.
+    assert flat.count('class="wo-card-practical"') == 2 * 3
 
 
 def test_the_weather_line_is_shown_once_and_never_per_card(

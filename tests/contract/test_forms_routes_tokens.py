@@ -37,7 +37,12 @@ TOKEN_ROW: Final = re.compile(r"^\|\s*`([a-z-]+)`\s*\|\s*`(#[0-9A-Fa-f]{6})`", r
 # WP7 exists. GET / is in CONTRACTS section 5; this stylesheet route is not, and it is
 # listed here so it stays visible and so nothing else can slip in undocumented. WP7
 # deletes the preview and this set goes with it.
-PREVIEW_ROUTES: Final = frozenset({"/preview/app.css", "/static/fonts/{filename}"})
+# The bootstrap preview is gone: WP7 registers the real table. `/static/{hashed:path}`
+# is how CONTRACTS section 5's `/static/{hashed}` row is actually spelled in the
+# router, and `/static/fonts/{filename}` is the font sub-route TC-007 requires.
+# The router spells CONTRACTS section 5's `/static/{hashed}` row as a path converter;
+# the font sub-route TC-007 needs is handled inside it, not registered separately.
+PATH_SPELLINGS: Final = {"/static/{hashed:path}": "/static/{hashed}"}
 
 # CONTRACTS section 5 lists these as removed in 8.11; they must 404, not exist.
 REMOVED_ROUTES: Final = frozenset(
@@ -140,10 +145,19 @@ def _documented_routes(docs_dir: Path) -> set[tuple[str, str]]:
     return routes
 
 
-def _app_routes() -> set[tuple[str, str]]:
-    app = create_app(Settings.from_env())
-    found: set[tuple[str, str]] = set()
-    for route in app.routes:
+def _walk(routes: object, found: set[tuple[str, str]]) -> None:
+    """Collect every GET/POST route, descending into included routers.
+
+    This FastAPI version defers expansion: `app.routes` holds one `_IncludedRouter`
+    wrapper whose own `.routes` carries the real table. Reading only the top level found
+    nothing and quietly passed every subset assertion here.
+    """
+    for route in routes:  # type: ignore[attr-defined]
+        # fastapi._IncludedRouter keeps the real table on `original_router`.
+        included = getattr(route, "original_router", None)
+        nested = getattr(route, "routes", None) or getattr(included, "routes", None)
+        if nested:
+            _walk(nested, found)
         path = getattr(route, "path", None)
         methods = getattr(route, "methods", None)
         if path is None or methods is None:
@@ -151,6 +165,12 @@ def _app_routes() -> set[tuple[str, str]]:
         for method in methods:
             if method in {"GET", "POST"}:
                 found.add((method, path))
+
+
+def _app_routes() -> set[tuple[str, str]]:
+    found: set[tuple[str, str]] = set()
+    _walk(create_app(Settings.from_env()).routes, found)
+    assert found, "no routes found: the walk is broken, not the app"
     return found
 
 
@@ -158,15 +178,15 @@ def test_the_document_lists_every_route_we_register(docs_dir: Path) -> None:
     # WP7 owns web/routes/** and will assert full equality. Until then the binding rule
     # is the one-way one: the app registers nothing the document does not list, except
     # the named bootstrap preview.
-    registered = {(method, path) for method, path in _app_routes() if path not in PREVIEW_ROUTES}
+    registered = {(method, PATH_SPELLINGS.get(path, path)) for method, path in _app_routes()}
     assert registered <= _documented_routes(docs_dir)
 
 
-def test_the_preview_is_the_only_undocumented_route(docs_dir: Path) -> None:
-    undocumented = {path for _, path in _app_routes()} - {
-        path for _, path in _documented_routes(docs_dir)
-    }
-    assert undocumented == set(PREVIEW_ROUTES)
+def test_every_registered_route_is_documented(docs_dir: Path) -> None:
+    # No exemptions left: the bootstrap preview has been deleted.
+    documented = {path for _, path in _documented_routes(docs_dir)}
+    undocumented = {PATH_SPELLINGS.get(path, path) for _, path in _app_routes()} - documented
+    assert undocumented == set()
 
 
 def test_health_and_readiness_exist() -> None:

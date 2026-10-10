@@ -179,6 +179,9 @@ class IdeaView:
     place: PlaceView
     times: str
     detail_url: str
+    # The card's activity illustration, as a decor asset stem (visual direction, TC-008).
+    # Empty means the generic leaf; the name never comes from the model.
+    illustration: str = ""
 
 
 @dataclass(frozen=True, slots=True)

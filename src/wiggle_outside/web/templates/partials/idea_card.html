@@ -17,19 +17,22 @@
 {%- endmacro %}
 
 {% macro idea_card(idea) -%}
-<article class="wo-card wo-card-{{ idea.variant }}" aria-labelledby="idea-{{ idea.idea_id }}-title">
+<article class="wo-card wo-card-{{ idea.variant }}" data-illo="{{ idea.illustration }}" aria-labelledby="idea-{{ idea.idea_id }}-title">
 {{ tape() }}
 <h3 class="wo-card-title" id="idea-{{ idea.idea_id }}-title">{{ idea.title }}</h3>
 <p class="wo-card-intro">{{ idea.intro }}</p>
-<p class="wo-card-practical">{{ icon("location-pin", "wo-icon-32", 32) }}<span>
+{# The board splits the practical detail into one row per fact, each with its own
+   icon: where, how long, and what we cannot vouch for. Same words, same order. #}
+<p class="wo-card-practical">{{ icon("location-pin", "", 24) }}<span>
 {%- if idea.place.name %}<strong>{{ idea.place.name }}</strong>{{ copy.PRACTICAL_JOIN }}{% endif -%}
 {{ idea.place.kind_label }}
 {%- if idea.place.distance %}{{ copy.PRACTICAL_JOIN }}{{ idea.place.distance }}{% endif -%}
-{{ copy.PRACTICAL_JOIN }}{{ idea.times }}</span></p>
+</span></p>
+<p class="wo-card-practical">{{ icon("walker", "", 24) }}<span>{{ idea.times }}</span></p>
 {% if idea.place.uncertainty %}
 <ul class="wo-labels">
 {% for label in idea.place.uncertainty %}
-<li>{{ label }}</li>
+<li>{{ icon("info", "", 24) }}<span>{{ label }}</span></li>
 {% endfor %}
 </ul>
 {% endif %}

@@ -1,5 +1,6 @@
 {# The page shell. Receives PageMeta through `page` (CONTRACTS section 8).
    No inline script, style or event handler anywhere (DESIGN-SPEC section 11). #}
+{% from "macros/icon.html" import icon %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -17,7 +18,8 @@
 <div class="wo-page">
 {% include "partials/doodles.html" %}
 <header class="wo-masthead">
-<h1 class="wo-title">{{ page.meta.title }}</h1>
+<p class="wo-brand">{{ copy.PAGE_TITLE }}{{ icon("leaf-sprig", "wo-brand-leaf") }}</p>
+{% block heading %}{% endblock %}
 {% block intro %}{% endblock %}
 </header>
 <main class="wo-column" id="main">

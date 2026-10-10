@@ -2,7 +2,7 @@
    web/copy.py; every control is inside a <label> or named by its <legend>.
    Keyboard order: who, ages, time, energy, where, location, interests, submit. #}
 {% from "macros/tile.html" import tiles %}
-{% from "macros/field.html" import text_field, field_error %}
+{% from "macros/field.html" import text_field, field_error, bare_text_field %}
 {% from "macros/button.html" import secondary %}
 {% from "partials/error_summary.html" import error_summary with context %}
 
@@ -34,7 +34,7 @@
 {%- endmacro %}
 
 {% macro time_budget(page) -%}
-{{ tile_group(copy.TIME_LEGEND, "", "", "time", page.time, "radio", "two", "time-first",
+{{ tile_group(copy.TIME_LEGEND, "", "", "time", page.time, "radio", "four", "time-first",
               page.field_errors.get("time")) }}
 {%- endmacro %}
 
@@ -48,16 +48,18 @@
 {% macro where(page) -%}
 <fieldset class="wo-fieldset">
 <legend class="wo-legend">{{ copy.WHERE_LEGEND }}</legend>
-{{ secondary(copy.USE_MY_LOCATION, "button", "location-pin") }}
 {% if page.coords and page.location_label %}
 <p class="wo-carried">{{ page.location_label }}{{ copy.CARRIED_LOCATION_SUFFIX }}</p>
-{{ text_field("place", "place", copy.CARRIED_LOCATION_ALTERNATIVE, page.place,
-              page.place_hint, "place-hint", page.field_errors.get("place"), 80,
-              "address-level2") }}
-{% else %}
-{{ text_field("place", "place", copy.PLACE_LABEL, page.place, page.place_hint,
-              "place-hint", page.field_errors.get("place"), 80, "address-level2") }}
 {% endif %}
+{# The board puts the town field and the location button on one row, with the field's
+   own label above them both. #}
+<label class="wo-field-label" for="place">{{ copy.CARRIED_LOCATION_ALTERNATIVE if page.coords and page.location_label else copy.PLACE_LABEL }}</label>
+<div class="wo-location-row">
+{{ bare_text_field("place", "place", page.place, "place-hint",
+                   page.field_errors.get("place"), 80, "address-level2") }}
+{{ secondary(copy.USE_MY_LOCATION, "button", "location-pin") }}
+</div>
+<p class="wo-hint" id="place-hint">{{ page.place_hint }}</p>
 </fieldset>
 {%- endmacro %}
 
@@ -77,12 +79,12 @@
 
 {% macro extras(page) -%}
 {# D42: two controls with different effects. Step-free is a preference, never a filter. #}
-<details class="wo-more">
-<summary class="wo-more-summary">{{ copy.OPTIONAL_SUMMARY }}</summary>
+<fieldset class="wo-fieldset wo-extras">
+<legend class="wo-vh">{{ copy.OPTIONAL_SUMMARY }}</legend>
 <label class="wo-checkrow"><input type="checkbox" name="stroller" value="1"{% if page.stroller %} checked{% endif %}><span>{{ copy.STROLLER_LABEL }}</span></label>
 <label class="wo-checkrow"><input type="checkbox" name="step_free" value="1" aria-describedby="step-free-hint"{% if page.step_free %} checked{% endif %}><span>{{ copy.STEP_FREE_LABEL }}</span></label>
 <p class="wo-hint" id="step-free-hint">{{ copy.STEP_FREE_HINT }}</p>
-</details>
+</fieldset>
 {%- endmacro %}
 
 {% macro honeypot() -%}
@@ -118,7 +120,7 @@
 {{ interests(page) }}
 {{ extras(page) }}
 <div class="wo-actions">
-<button class="wo-btn wo-btn-primary" type="submit">{{ copy.SUBMIT }}</button>
+<button class="wo-btn wo-btn-primary" type="submit">{{ copy.SUBMIT }}<span class="wo-btn-arrow" aria-hidden="true">→</span></button>
 </div>
 {# D43: the busy state is static markup, revealed by htmx's request indicator.
    Without JavaScript the browser's own loading state shows instead. #}
@@ -140,7 +142,7 @@
          "candidates-hint" if page.candidates_expire_at else "", false) }}
 </fieldset>
 <div class="wo-actions">
-<button class="wo-btn wo-btn-primary" type="submit">{{ copy.SUBMIT }}</button>
+<button class="wo-btn wo-btn-primary" type="submit">{{ copy.SUBMIT }}<span class="wo-btn-arrow" aria-hidden="true">→</span></button>
 </div>
 </form>
 {% endif %}

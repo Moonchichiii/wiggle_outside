@@ -148,7 +148,7 @@ def _time_options(selected: TimeBudget | None) -> tuple[Option, ...]:
         Option(
             value=str(budget.value),
             label=copy.TIME_LABELS[budget],
-            icon=copy.TIME_ICONS[budget],
+            icon=None,  # the board's time tiles are control + label only
             checked=budget is selected,
         )
         for budget in TimeBudget
@@ -551,6 +551,9 @@ def _idea_views(result: PlanResult, catalogue: Catalogue) -> tuple[IdeaView, ...
                     travel=idea.pair.travel_min, duration=idea.pair.duration_min
                 ),
                 detail_url=f"/results/{result.job_id}/ideas/{idea.pair.idea_id}",
+                illustration=copy.ACTIVITY_ILLUSTRATIONS.get(
+                    activity.activity_id, copy.DEFAULT_ILLUSTRATION
+                ),
             )
         )
     return tuple(views)

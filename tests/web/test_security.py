@@ -172,11 +172,21 @@ def test_a_foreign_referer_does_not(harness: Harness) -> None:
 def test_the_allowed_origins_come_from_settings() -> None:
     policy = origin_policy(harness_settings(port=8000, host="127.0.0.1"))
 
+    # Development allows both schemes on the local names: a browser refuses the __Host-
+    # cookie over plain HTTP, so a developer may well be serving HTTPS locally.
     assert policy.origins == {
         "http://localhost:8000",
         "http://127.0.0.1:8000",
+        "https://localhost:8000",
+        "https://127.0.0.1:8000",
     }
     assert policy.hosts == {"localhost:8000", "127.0.0.1:8000"}
+
+
+def test_the_hosted_product_never_allows_a_plain_http_origin() -> None:
+    policy = origin_policy(harness_settings(mode=DeploymentMode.HOSTED_LIVE))
+
+    assert not any(origin.startswith("http://") for origin in policy.origins)
 
 
 def test_the_hosted_product_allows_only_its_own_host() -> None:

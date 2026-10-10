@@ -92,14 +92,18 @@ def origin_policy(settings: Settings) -> OriginPolicy:
             hosts=frozenset({HOSTED_HOST}),
             origins=frozenset({f"https://{HOSTED_HOST}"}),
         )
-    scheme = "https" if settings.port == HTTPS_PORT else "http"
+    # Development accepts both schemes on the local names, because neither alone works
+    # in a browser: over plain HTTP the browser refuses the `__Host-` session cookie that
+    # D31 requires, and over HTTPS an http-only origin list refuses the POST. A developer
+    # may therefore serve either, and both are local. Hosted mode is https-only, above.
+    schemes = ("http", "https")
     names = {"localhost", "127.0.0.1", settings.host.lower()}
     hosts = {f"{name}:{settings.port}" for name in names}
-    origins = {f"{scheme}://{name}:{settings.port}" for name in names}
+    origins = {f"{scheme}://{name}:{settings.port}" for name in names for scheme in schemes}
     if settings.port in {HTTP_PORT, HTTPS_PORT}:
         # The default port is not written in a Host header or an Origin.
         hosts |= names
-        origins |= {f"{scheme}://{name}" for name in names}
+        origins |= {f"{scheme}://{name}" for name in names for scheme in schemes}
     return OriginPolicy(hosts=frozenset(hosts), origins=frozenset(origins))
 
 

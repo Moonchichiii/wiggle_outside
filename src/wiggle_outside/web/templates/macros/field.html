@@ -6,6 +6,15 @@
 <p class="wo-field-error" id="{{ anchor }}-error">{{ icon("alert") }}<span>{{ message }}</span></p>
 {%- endmacro %}
 
+{# Just the input: for a row that needs the label positioned separately (the town
+   field sits beside "Use my location"). The caller supplies exactly one <label for>. #}
+{% macro bare_text_field(name, id, value, hint_id="", error=none, maxlength=0, autocomplete="") -%}
+<input class="wo-field" type="text" id="{{ id }}" name="{{ name }}" value="{{ value }}"{% if maxlength %} maxlength="{{ maxlength }}"{% endif %}{% if autocomplete %} autocomplete="{{ autocomplete }}"{% endif %}{% if error %} aria-invalid="true"{% endif %}{% if hint_id or error %} aria-describedby="{{ hint_id }}{% if hint_id and error %} {% endif %}{% if error %}{{ id }}-error{% endif %}"{% endif %}>
+{% if error %}
+{{ field_error(id, error.message) }}
+{% endif %}
+{%- endmacro %}
+
 {% macro text_field(name, id, label, value, hint="", hint_id="", error=none, maxlength=0, autocomplete="", label_class="wo-field-label") -%}
 <label class="{{ label_class }}" for="{{ id }}">{{ label }}</label>
 {% if hint %}

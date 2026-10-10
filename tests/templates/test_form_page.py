@@ -182,6 +182,8 @@ def test_every_reference_resolves(documents: Mapping[str, Document]) -> None:
 # --- Order and structure -------------------------------------------------------------------
 
 
+# The town field now precedes the location button: the board puts them on one row
+# with the field first, which is also DESIGN-SPEC section 12's "where -> location".
 def test_keyboard_order(documents: Mapping[str, Document]) -> None:
     # DESIGN-SPEC section 12: who, ages, time, energy, where, location, interests, submit.
     doc = documents["empty"]
@@ -197,8 +199,8 @@ def test_keyboard_order(documents: Mapping[str, Document]) -> None:
         "age_band",
         "time",
         "energy",
-        "button",
         "place",
+        "button",
         "interests_text",
         "stroller",
         "step_free",

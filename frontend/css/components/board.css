@@ -1,0 +1,324 @@
+/* Visual-direction pass: match the approved concept board for the form page.
+   Reference: docs/mocks/reference/visual-direction-v2.png (Mats, round 8.17).
+
+   Loaded after form.css and layout.css so it refines them rather than forking them.
+   Tokens only: no raw colour, radius or shadow values (CONTRACTS section 9). Everything
+   here is the form page; the results cards are a later pass. */
+
+/* --- Masthead: small brand with a leaf, then the big question ---------------------- */
+
+.wo-brand {
+  display: flex;
+  gap: var(--spacing-s1);
+  align-items: center;
+  margin: 0 0 var(--spacing-s2);
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.wo-brand-leaf {
+  color: var(--color-action);
+}
+
+.wo-masthead .wo-title {
+  margin: 0 0 var(--spacing-s1);
+  font-size: var(--text-2xl);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+}
+
+.wo-masthead .wo-intro {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-base);
+}
+
+/* The board sets the whole thing in one narrow card, not a wide page. */
+.wo-masthead,
+.wo-column {
+  max-width: 34rem;
+}
+
+/* --- The card ---------------------------------------------------------------------- */
+
+.wo-panel {
+  padding: var(--spacing-s5);
+}
+
+@media (width < 30rem) {
+  .wo-panel {
+    padding: var(--spacing-s4);
+  }
+}
+
+/* --- Tighter rhythm: the board's labels sit close to their controls ---------------- */
+
+.wo-fieldset {
+  margin-bottom: var(--spacing-s3);
+}
+
+.wo-legend {
+  margin-bottom: var(--spacing-s1);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.wo-hint {
+  margin-bottom: var(--spacing-s1);
+  font-size: 0.9375rem;
+}
+
+/* --- Tiles: control, icon, label, one row, at every width -------------------------- */
+
+.wo-tiles {
+  gap: var(--spacing-s2);
+}
+
+.wo-tile {
+  gap: var(--spacing-s2);
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 48px;
+  padding: var(--spacing-s2) var(--spacing-s3);
+}
+
+.wo-tile-label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* Four across is tight: a label there must not break mid-word. */
+.wo-tiles-four .wo-tile-label {
+  white-space: nowrap;
+}
+
+.wo-tiles-four .wo-tile {
+  padding-inline: var(--spacing-s2);
+}
+
+/* Selected: sage fill with a dark green border, as on the board. */
+.wo-tile:has(input:checked) {
+  background: var(--color-sage);
+  border-color: var(--color-action);
+}
+
+.wo-tile > .wo-icon {
+  flex: none;
+  color: var(--color-ink);
+}
+
+/* The board keeps the icon and the label on one line even on a phone. Narrow screens
+   drop to two columns for the four-across groups instead of hiding the icon, so the
+   row never has to stack. */
+@media (width < 30rem) {
+  .wo-tile > .wo-icon {
+    display: inline-block;
+  }
+
+  .wo-tiles-three .wo-tile,
+  .wo-tiles-four .wo-tile {
+    flex-direction: row;
+    gap: var(--spacing-s2);
+    min-height: 48px;
+    padding: var(--spacing-s2) var(--spacing-s2);
+    text-align: left;
+  }
+
+  .wo-tiles-three .wo-tile:has(input:checked),
+  .wo-tiles-four .wo-tile:has(input:checked) {
+    padding: var(--spacing-s2) var(--spacing-s2);
+  }
+
+  .wo-tiles-four {
+    --wo-cols: 2;
+  }
+
+  /* Three across on a phone has no room for an icon as well as a word, and a broken
+     word is worse than a missing decoration. */
+  .wo-tiles-three .wo-tile > .wo-icon {
+    display: none;
+  }
+
+  .wo-tiles-three .wo-tile-label,
+  .wo-tiles-four .wo-tile-label {
+    white-space: nowrap;
+  }
+
+  .wo-tiles-three .wo-tile {
+    justify-content: center;
+  }
+}
+
+/* Ages and time are four across from 30 rem, energy three, who two. */
+@media (width >= 30rem) {
+  .wo-tiles-four {
+    --wo-cols: 4;
+  }
+}
+
+/* --- Town field and "Use my location" side by side --------------------------------- */
+
+.wo-location-row {
+  display: flex;
+  gap: var(--spacing-s2);
+  align-items: stretch;
+}
+
+.wo-location-row .wo-field {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+
+.wo-location-row > .wo-field {
+  align-self: center;
+}
+
+.wo-location-row .wo-btn {
+  flex: 0 0 auto;
+  align-self: stretch;
+  white-space: nowrap;
+}
+
+@media (width < 26rem) {
+  .wo-location-row {
+    flex-direction: column;
+  }
+}
+
+/* --- Stroller and step-free: plain rows above a thin divider ----------------------- */
+
+.wo-extras {
+  margin-top: var(--spacing-s3);
+  padding-top: var(--spacing-s3);
+  border-top: 1px solid var(--color-ink-soft);
+}
+
+.wo-checkrow {
+  display: flex;
+  gap: var(--spacing-s2);
+  align-items: center;
+  min-height: 44px;
+  font-size: 0.9375rem;
+}
+
+/* --- The button -------------------------------------------------------------------- */
+
+.wo-btn-primary {
+  gap: var(--spacing-s2);
+  width: 100%;
+  min-height: 56px;
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: 800;
+}
+
+.wo-btn-arrow {
+  font-weight: 400;
+}
+
+/* --- Result cards: the board's edges, rows and links -------------------------------- */
+
+/* The board's cards are pastel fills with a soft edge, not ink-outlined panels. */
+.wo-card {
+  border: 0;
+  box-shadow: 0 1px 0 rgb(25 28 32 / 0.08);
+}
+
+/* One fact per row, each with its own icon, aligned on the icon. */
+.wo-card-practical {
+  display: flex;
+  gap: var(--spacing-s2);
+  align-items: flex-start;
+  margin: 0 0 var(--spacing-s1);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.wo-card-practical > .wo-icon {
+  flex: none;
+  margin-top: 1px;
+}
+
+/* The uncertainty labels read as another practical row, not as chips. */
+.wo-labels {
+  margin: 0 0 var(--spacing-s2);
+  padding: 0;
+  list-style: none;
+}
+
+.wo-labels li {
+  display: flex;
+  gap: var(--spacing-s2);
+  align-items: flex-start;
+  margin: 0 0 var(--spacing-s1);
+  padding: 0;
+  border: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.9375rem;
+}
+
+.wo-labels li > .wo-icon {
+  flex: none;
+  margin-top: 1px;
+}
+
+/* The board underlines the card link and gives it an arrow. */
+.wo-card-link a {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.wo-card-link a::after {
+  content: " \2192";
+  text-decoration: none;
+}
+
+/* The weather strip is a soft band on the board, not a bordered panel. */
+.wo-weather {
+  border: 0;
+  background: color-mix(in srgb, var(--color-ink-soft) 8%, var(--color-card));
+}
+
+/* The answers summary is plain text with an underlined disclosure. */
+.wo-answers {
+  border: 0;
+  background: none;
+  padding-inline: 0;
+}
+
+/* 320 px: the narrowest width we check. Three across with a whole word needs smaller
+   type rather than a clipped label; nothing is truncated and nothing overflows. */
+@media (width < 22.5rem) {
+  .wo-tile {
+    gap: var(--spacing-s1);
+    padding-inline: var(--spacing-s1);
+  }
+
+  .wo-tiles-four .wo-tile-label {
+    font-size: 0.8125rem;
+  }
+
+  /* Energy is three across with the longest words. Below this width the row stacks the
+     control above the label rather than clipping "Moderate". */
+  .wo-tiles-three .wo-tile {
+    flex-direction: column;
+    gap: 2px;
+    justify-content: center;
+    min-height: 56px;
+    text-align: center;
+  }
+
+  .wo-tiles-three .wo-tile-label {
+    font-size: 0.8125rem;
+    white-space: normal;
+  }
+
+  .wo-tiles {
+    gap: var(--spacing-s1);
+  }
+}
