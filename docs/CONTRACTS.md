@@ -528,7 +528,7 @@ rules re-homed, the acceptance checks affected, and the approver. Conventions:
 | TC-005 | Package `wiggle_outside`; session cookie `__Host-wo_session` | `1187030` | accepted (Mats) |
 | TC-006 | M0 time-boxed to five gates; WP9b carries the rest, in parallel | `3d91f31` | accepted (Mats) |
 | TC-007 | P1 resolved: fonts supplied, self-hosted, never committed (FFL 2.0) | `c9856b0` | accepted (Mats) |
-| TC-008 | The approved visual direction implemented, artwork included | pending | accepted (Mats) |
+| TC-008 | The approved visual direction implemented, artwork included | `051570b` | accepted (Mats) |
 
 ### 10.1 Contract changes raised by a package (CC)
 
