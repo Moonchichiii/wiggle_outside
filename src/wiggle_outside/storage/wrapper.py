@@ -127,26 +127,43 @@ async def _from_cache[T](engine: Engine, request: Request[T]) -> Outcome[T] | No
     return Ok(value)
 
 
+@dataclass(frozen=True, slots=True)
+class _Attempt:
+    outcome: Outcome[bytes]
+    # True only when the provider was really called, so only then may a retry follow: a
+    # gate refusal is not a provider failure and retrying it would just be refused again.
+    happened: bool
+
+
 async def _fetch[T](engine: Engine, request: Request[T], deadline: float) -> Outcome[bytes]:
-    outcome = await _attempt(engine, request, deadline)
-    if isinstance(outcome, TransportFailure) and engine.wiring.clock.monotonic() < deadline:
+    attempt = await _attempt(engine, request, deadline)
+    if _may_retry(engine, attempt, deadline):
         engine.wiring.counters.incr(UPSTREAM_RETRY, _stage(request))
-        outcome = await _attempt(engine, request, deadline)  # the only retry, in the wrapper
-    if isinstance(outcome, Ok | Empty):
-        await _store(engine, request, outcome)
-    return outcome
+        attempt = await _attempt(engine, request, deadline)  # the only retry, in the wrapper
+    if isinstance(attempt.outcome, Ok | Empty):
+        await _store(engine, request, attempt.outcome)
+    return attempt.outcome
 
 
-async def _attempt[T](engine: Engine, request: Request[T], deadline: float) -> Outcome[bytes]:
+def _may_retry(engine: Engine, attempt: _Attempt, deadline: float) -> bool:
+    """Allow the one retry: a real attempt, a transport failure, and budget left."""
+    return (
+        attempt.happened
+        and isinstance(attempt.outcome, TransportFailure)
+        and engine.wiring.clock.monotonic() < deadline
+    )
+
+
+async def _attempt[T](engine: Engine, request: Request[T], deadline: float) -> _Attempt:
     wiring = engine.wiring
     stage = _stage(request)
     decision = wiring.gate.admit(engine.provider, request.key, wiring.clock.monotonic())
     if not isinstance(decision, Allow):
         wiring.counters.incr(GATE_BLOCKED, stage)
-        return _blocked(decision, wiring.clock.monotonic())
+        return _Attempt(_blocked(decision, wiring.clock.monotonic()), happened=False)
     if not await wiring.gate.pace(engine.provider, deadline):
         wiring.counters.incr(PACE_EXCEEDED, stage)
-        return TransportFailure()
+        return _Attempt(TransportFailure(), happened=False)
     outcome = await request.inner(deadline)
     wiring.counters.incr(UPSTREAM_CALL, stage)
     wiring.gate.record(
@@ -156,7 +173,7 @@ async def _attempt[T](engine: Engine, request: Request[T], deadline: float) -> O
         _retry_after(outcome),
         wiring.clock.monotonic(),
     )
-    return _encoded(engine, request, outcome)
+    return _Attempt(_encoded(engine, request, outcome), happened=True)
 
 
 async def _store[T](engine: Engine, request: Request[T], outcome: Ok[bytes] | Empty) -> None:
