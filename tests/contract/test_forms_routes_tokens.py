@@ -37,7 +37,7 @@ TOKEN_ROW: Final = re.compile(r"^\|\s*`([a-z-]+)`\s*\|\s*`(#[0-9A-Fa-f]{6})`", r
 # WP7 exists. GET / is in CONTRACTS section 5; this stylesheet route is not, and it is
 # listed here so it stays visible and so nothing else can slip in undocumented. WP7
 # deletes the preview and this set goes with it.
-PREVIEW_ROUTES: Final = frozenset({"/preview/app.css"})
+PREVIEW_ROUTES: Final = frozenset({"/preview/app.css", "/static/fonts/{filename}"})
 
 # CONTRACTS section 5 lists these as removed in 8.11; they must 404, not exist.
 REMOVED_ROUTES: Final = frozenset(

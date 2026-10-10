@@ -1,4 +1,7 @@
-{# DESIGN-SPEC section 5: decorative icons, aria-hidden, currentColor, from one sprite. #}
-{% macro icon(name, extra="") -%}
-<svg class="wo-icon{% if extra %} {{ extra }}{% endif %}" aria-hidden="true" focusable="false"><use href="#i-{{ name }}"></use></svg>
+{# DESIGN-SPEC section 5: decorative icons, aria-hidden, currentColor, from one sprite.
+   width and height are attributes, not CSS: an svg with a viewBox and no intrinsic
+   size falls back to 300x150, so the page has to stay usable if the stylesheet fails.
+   DESIGN-SPEC section 3 sizes: 24 in tiles and notices, 32 in card meta, 48 weather. #}
+{% macro icon(name, extra="", size=24) -%}
+<svg class="wo-icon{% if extra %} {{ extra }}{% endif %}" width="{{ size }}" height="{{ size }}" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-{{ name }}"></use></svg>
 {%- endmacro %}

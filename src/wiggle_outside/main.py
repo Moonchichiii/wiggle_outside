@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 
 from wiggle_outside.core.types import DeploymentMode
@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
 PROCESS_KEY_BYTES: Final = 32
+HTTP_NOT_FOUND: Final = 404
 
 
 def readiness_body(state: AppState) -> str:
@@ -72,29 +73,14 @@ def build_state(settings: Settings | None = None) -> AppState:
     )
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
-    state = build_state(settings)
+def register_preview(app: FastAPI, state: AppState) -> None:
+    """Serve WP8's form template so the page can be looked at before WP7 exists.
 
-    @asynccontextmanager
-    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        app.state.wiggle = state
-        yield
-        # Resources are closed here once WP3-WP5 add them.
+    DELETE THIS WHOLE FUNCTION when WP7 lands. It is deliberately not the real route:
+    CONTRACTS section 5 gives GET / to web/routes/**, and this has no session, no CSRF
+    token, no security headers, no CSP, and a form that posts nowhere.
+    """
 
-    app = FastAPI(
-        title="Wiggle Outside",
-        lifespan=lifespan,
-        docs_url=None,
-        redoc_url=None,
-        openapi_url=None,
-    )
-
-    # BOOTSTRAP PREVIEW, replaced by WP7.
-    #
-    # CONTRACTS section 5 gives GET / to web/routes/**, which WP7 owns and has not built.
-    # This serves WP8's form template so the page can be looked at, and it is deliberately
-    # not the real route: no session, no CSRF token, no security headers, no CSP, and the
-    # form posts nowhere. WP7 deletes this and registers the real table.
     @app.get("/", response_class=HTMLResponse)
     async def preview_form() -> str:
         return render_form(
@@ -112,7 +98,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     mode=state.settings.mode,
                     d39_enabled=state.settings.d39_enabled,
                 ),
-                {"css": AssetRef(url="/preview/app.css", integrity="")},
+                # The key must end in .css: base.html keys the <link> off the asset
+                # name, not the url. Passing "css" emitted no stylesheet at all.
+                {"app.css": AssetRef(url="/preview/app.css", integrity="")},
             ),
         )
 
@@ -120,6 +108,38 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def preview_css() -> FileResponse:
         built = Path(__file__).parent / "web" / "static" / "app.css"
         return FileResponse(built, media_type="text/css")
+
+    # tokens.css points @font-face at /static/fonts/, which WP7's static mount will
+    # serve. The preview answers that path too, so the fonts can be looked at locally.
+    # They are not in the repository (licence unresolved), so a 404 here is expected
+    # elsewhere and font-display: swap keeps the page readable.
+    @app.get("/static/fonts/{filename}", include_in_schema=False)
+    async def preview_font(filename: str) -> FileResponse:
+        fonts = Path(__file__).parent.parent.parent / "frontend" / "fonts"
+        candidate = (fonts / filename).resolve()
+        if candidate.parent != fonts.resolve() or not candidate.is_file():
+            raise HTTPException(status_code=HTTP_NOT_FOUND)
+        return FileResponse(candidate, media_type="font/woff2")
+
+
+def create_app(settings: Settings | None = None) -> FastAPI:
+    state = build_state(settings)
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        app.state.wiggle = state
+        yield
+        # Resources are closed here once WP3-WP5 add them.
+
+    app = FastAPI(
+        title="Wiggle Outside",
+        lifespan=lifespan,
+        docs_url=None,
+        redoc_url=None,
+        openapi_url=None,
+    )
+
+    register_preview(app, state)
 
     @app.get("/healthz", response_class=PlainTextResponse)
     async def healthz() -> str:
