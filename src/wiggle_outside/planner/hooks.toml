@@ -1,0 +1,105 @@
+# Wiggle Outside story hooks and reason codes: baseline 8.20 (H1 wording applied, D4).
+# Gemma picks one hook ID and up to two reason IDs per idea from the sets code supplies
+# for that pair. It writes no text. Since 8.12 hooks are fixed sentences with no
+# placeholders: the card's title and practical line already name the activity, place and
+# distance, so the hook adds one playful sentence instead of repeating them.
+#
+# needs_destination: the sentence assumes a destination; only offered when the pair has one.
+# generic_only: only offered for generic pairs with an absent destination.
+# max_energy: only offered when the activity's top energy level is at or below this.
+
+[[hook]]
+id = "expedition"
+for = ["kids", "solo"]
+needs_destination = true
+text = "Today's mission is waiting for you there."
+
+[[hook]]
+id = "secret-spot"
+for = ["kids"]
+needs_destination = true
+text = "This place has a little job for you today."
+
+[[hook]]
+id = "quick-escape"
+for = ["solo"]
+needs_destination = true
+text = "A small escape for right now."
+
+[[hook]]
+id = "pocket-adventure"
+for = ["kids"]
+needs_destination = true
+text = "A pocket-sized adventure for right now."
+
+[[hook]]
+id = "todays-idea"
+for = ["kids", "solo"]
+needs_destination = true
+text = "Here's today's idea for getting outside."
+
+[[hook]]
+id = "explorer-club"
+for = ["kids"]
+needs_destination = true
+text = "The explorer club meets here today."
+
+[[hook]]
+id = "slow-reset"
+for = ["solo"]
+needs_destination = true
+max_energy = "gentle"
+text = "A slow reset: no rush, nothing to prove."
+
+[[hook]]
+id = "no-destination"
+for = ["kids", "solo"]
+generic_only = true
+text = "No particular place needed: start on the paths near you."
+
+[[reason]]
+id = "close_by"
+when = "straight-line distance is 1 km or less"
+text = "It's close by."
+
+[[reason]]
+id = "fits_time"
+when = "estimated travel there and back plus the activity's minimum minutes fit the time budget"
+text = "Estimated to fit your time, including travel."
+
+[[reason]]
+id = "matches_energy"
+when = "the activity lists the energy level that was asked for"
+text = "It matches the energy you asked for."
+
+[[reason]]
+id = "dry_window"
+when = "every forecast hour in the window has rain probability at or below 20 % and 0 mm precipitation"
+text = "The forecast looks dry while you're out."
+
+[[reason]]
+id = "rain_allowed"
+when = "rain is likely in the window and the activity has rain_ok = true within its limits"
+text = "This activity allows some rain, within its weather limits."
+
+[[reason]]
+id = "all_ages"
+when = "two or more age bands were selected and the activity lists all of them"
+text = "The activity list includes all your selected age groups."
+
+[[reason]]
+id = "in_season"
+when = "the activity lists the current season"
+text = "It's the right season for it."
+
+# Set by code, never chosen by Gemma (D39, only if accepted): derived after the model's
+# interest tags are validated; {interests} lists the matching tags. Dropped if Gemma returns it.
+[[derived_reason]]
+id = "matches_interest"
+when = "the activity's interests intersect the validated interest tags"
+text = "Matches the interests: {interests}."
+
+# Set by code, never chosen by Gemma: shown when D18 returned gentler picks than asked.
+[[notice]]
+id = "gentler_than_asked"
+text = "These suggestions are gentler than the energy level you selected."
