@@ -1,0 +1,3 @@
+<!-- DESIGN-SPEC section 5. The scale marks sit 2.2 px clear of the tube, so the gaps hold
+     at 24 px. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.6 13.4V5.3a2.4 2.4 0 0 1 4.8 0v8.1a4.2 4.2 0 1 1-4.8 0z"></path><path d="M16.6 7.4h2.6M16.6 10.8h2.6"></path></g></svg>

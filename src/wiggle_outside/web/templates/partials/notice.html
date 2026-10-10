@@ -1,0 +1,46 @@
+{# One notice (DESIGN-SPEC section 2). Receives NoticeView.
+
+   Meaning never rests on colour: every notice carries an icon and words. The icon is
+   decorative, so the text alone says what happened.
+
+   `anchor` gives the notice an id and makes it programmatically focusable, which the page
+   does for the one notice that is the whole message. `role` is left to the caller: a
+   notice present on a full page load is not a live region, so nothing announces twice
+   (ERROR-HANDLING section 5). #}
+{% from "macros/icon.html" import icon %}
+
+{% set _notice_icons = {"info": "info", "success": "check", "alert": "alert"} %}
+
+{% macro notice(view, anchor="") -%}
+<div class="wo-notice wo-notice-{{ view.kind }}"{% if anchor %} id="{{ anchor }}" tabindex="-1"{% endif %}>
+{{ icon(_notice_icons[view.kind]) }}
+<div class="wo-notice-body">
+{% if view.heading %}
+<h2 class="wo-notice-heading">{{ view.heading }}</h2>
+{% endif %}
+<p class="wo-notice-text">{{ view.body }}</p>
+{% if view.actions %}
+<div class="wo-notice-actions">
+{% for action in view.actions %}
+{% if action.method == "post" %}
+<form class="wo-notice-action" method="post" action="{{ action.url }}">
+{% if action.csrf_token %}
+<input type="hidden" name="csrf_token" value="{{ action.csrf_token }}">
+{% endif %}
+<button class="wo-btn wo-btn-secondary" type="submit">{{ action.label }}</button>
+</form>
+{% else %}
+<a class="wo-btn wo-btn-secondary" href="{{ action.url }}">{{ action.label }}</a>
+{% endif %}
+{% endfor %}
+</div>
+{% endif %}
+</div>
+</div>
+{%- endmacro %}
+
+{# The same text with no box: the fixed daylight copy belongs directly under the heading
+   it goes with (mock 05-night.html), not inside a notice (DESIGN-SPEC section 12). #}
+{% macro lede(view) -%}
+<p class="wo-lede">{{ view.body }}</p>
+{%- endmacro %}

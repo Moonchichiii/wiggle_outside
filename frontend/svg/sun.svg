@@ -1,0 +1,5 @@
+<!-- DESIGN-SPEC section 5: 2 px stroke, round caps and joins, currentColor, under 20 path
+     commands, no filters, scripts, rasters or external references. Decorative: the text
+     states the weather, so every use is aria-hidden. width and height are attributes, not
+     CSS, so the page stays usable if the stylesheet fails (section 3). -->
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.4"></circle><path d="M12 2.6v2.4M12 19v2.4M2.6 12h2.4M19 12h2.4M5.4 5.4l1.7 1.7M16.9 16.9l1.7 1.7M18.6 5.4l-1.7 1.7M7.1 16.9l-1.7 1.7"></path></g></svg>

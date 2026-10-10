@@ -1,0 +1,22 @@
+{# The bingo card (DESIGN-SPEC sections 2, 6 and 10; mock 04-detail-bingo.html).
+   Receives BingoView: a heading and exactly nine catalogue items.
+
+   A 3 x 3 table, because the nine items are a grid a reader navigates, not a list. Cells
+   are at least 44 px tall and never shrink or clip in print (section 10). #}
+
+{% macro bingo(view, anchor="bingo-heading") -%}
+<section class="wo-bingo-section">
+<h3 class="wo-detail-heading" id="{{ anchor }}">{{ view.heading }}</h3>
+<table class="wo-bingo" aria-labelledby="{{ anchor }}">
+<tbody>
+{% for row in view.items | batch(3) %}
+<tr>
+{% for item in row %}
+<td>{{ item }}</td>
+{% endfor %}
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</section>
+{%- endmacro %}

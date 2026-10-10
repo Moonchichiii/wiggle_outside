@@ -1,0 +1,127 @@
+{# GET /results/{job_id}/ideas/{idea_id}. Receives DetailPage as `page`
+   (CONTRACTS section 8). Approved layout: mock 04-detail-bingo.html.
+
+   The only view that prints (DESIGN-SPEC section 10). It may run to several pages: steps,
+   safety, adaptations and the bingo grid are never shrunk, clipped or dropped to fit one
+   page, and the dated print context always prints, because a card outlives its day.
+
+   Works with no JavaScript: "Back to results" is a link, and the print button appears
+   only when a script is actually loaded, with the browser's own print menu named in
+   plain text either way. #}
+{% extends "base.html" %}
+{% from "macros/icon.html" import icon %}
+{% from "partials/notice.html" import notice with context %}
+{% from "partials/bingo.html" import bingo with context %}
+
+{% block intro %}
+<p class="wo-intro">{{ copy.INTRO }}</p>
+{% endblock %}
+
+{% block main %}
+<p class="wo-no-print"><a class="wo-back" href="{{ page.back_url }}">{{ copy.BACK_TO_RESULTS }}</a></p>
+
+{% for view in page.notices %}
+{{ notice(view, "historical" if loop.first and page.is_historical else "") }}
+{% endfor %}
+
+<article class="wo-panel wo-detail" aria-labelledby="detail-title">
+<h2 class="wo-detail-title" id="detail-title">{{ page.idea.title }}</h2>
+<p class="wo-detail-intro">{{ page.idea.intro }}</p>
+
+{% if page.idea.reasons or page.idea.interest_match %}
+<section class="wo-detail-section">
+<h3 class="wo-detail-heading">{{ copy.DETAIL_WHY }}</h3>
+{% if page.idea.reasons %}
+<ul class="wo-reasons">
+{% for reason in page.idea.reasons %}
+<li>{{ reason }}</li>
+{% endfor %}
+</ul>
+{% endif %}
+{% if page.idea.interest_match %}
+<p class="wo-match">{{ icon("check") }}<span>{{ page.idea.interest_match }}</span></p>
+{% endif %}
+</section>
+{% endif %}
+
+<p class="wo-detail-place">
+{%- if page.idea.place.name %}<strong>{{ page.idea.place.name }}</strong>{{ copy.PRACTICAL_JOIN }}{% endif -%}
+{{ page.idea.place.kind_label }}
+{%- if page.idea.place.distance %}{{ copy.PRACTICAL_JOIN }}{{ page.idea.place.distance }}{{ copy.DISTANCE_STRAIGHT_LINE_SUFFIX }}{% endif %}</p>
+<p class="wo-detail-times">{{ copy.DETAIL_TIMES.format(times=page.idea.times) }}</p>
+{% if page.idea.place.uncertainty %}
+<ul class="wo-labels">
+{% for label in page.idea.place.uncertainty %}
+<li>{{ label }}</li>
+{% endfor %}
+</ul>
+{% endif %}
+
+<section class="wo-detail-section">
+<h3 class="wo-detail-heading">{{ copy.DETAIL_STEPS }}</h3>
+<ol class="wo-steps">
+{% for step in page.activity.steps %}
+<li>{{ step }}</li>
+{% endfor %}
+</ol>
+</section>
+
+{% if page.activity.card %}
+{{ bingo(page.activity.card) }}
+{% endif %}
+
+{% if page.activity.optional %}
+<section class="wo-detail-section">
+<h3 class="wo-detail-heading">{{ copy.DETAIL_OPTIONAL }}</h3>
+<ul>
+{% for item in page.activity.optional %}
+<li>{{ item }}</li>
+{% endfor %}
+</ul>
+</section>
+{% endif %}
+
+<section class="wo-detail-section">
+<h3 class="wo-detail-heading">{{ copy.DETAIL_ADAPT }}</h3>
+<p>{{ page.activity.adapt }}</p>
+</section>
+
+<section class="wo-detail-section">
+<h3 class="wo-detail-heading">{{ copy.DETAIL_SAFETY }}</h3>
+<p>{{ page.activity.safety }}</p>
+</section>
+
+{% if page.activity.ask %}
+<section class="wo-detail-section">
+<h3 class="wo-detail-heading">{{ copy.DETAIL_ASK }}</h3>
+<p>{{ page.activity.ask }}</p>
+</section>
+{% endif %}
+
+<div class="wo-weather">
+{{ icon(page.weather.icon, "wo-icon-48", 48) }}
+<p class="wo-weather-line">{{ page.weather.line }}</p>
+</div>
+
+{# Printed on paper and read on screen: the date, timezone and place a printed card
+   needs in order to outlive its day (DESIGN-SPEC section 10). #}
+<p class="wo-print-context">{{ page.print.context_line }} {{ page.print.weather_line }} {{ page.print.note }}</p>
+<p class="wo-soft wo-source-line">{{ page.print.source_line }}</p>
+
+<div class="wo-actions wo-no-print">
+{# Hidden until a script unhides it: a button that cannot print is not offered. The note
+   beside it is the plain-browser route and is always there (PRINT_HELP). #}
+<button class="wo-btn wo-btn-primary" type="button" data-wo-print hidden>{{ page.print_label }}</button>
+<a class="wo-btn wo-btn-secondary" href="{{ page.back_url }}">{{ copy.BACK_TO_RESULTS }}</a>
+</div>
+<p class="wo-soft wo-no-print wo-print-help">{{ copy.PRINT_HELP }}</p>
+</article>
+{% endblock %}
+
+{% block scripts %}
+{# External and hashed only, and only when the build manifest actually has it: no inline
+   script anywhere, and the page is complete without this one. #}
+{% if "print.js" in page.meta.assets %}
+<script src="{{ page.meta.assets['print.js'].url }}"{% if page.meta.assets['print.js'].integrity %} integrity="{{ page.meta.assets['print.js'].integrity }}"{% endif %} defer></script>
+{% endif %}
+{% endblock %}

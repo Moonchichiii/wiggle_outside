@@ -1,0 +1,66 @@
+/* Print (DESIGN-SPEC section 10). Only the detail view prints.
+
+   It may run to several pages, and that is correct: steps, safety notes, adaptations and
+   the bingo grid are never shrunk, clipped or dropped to fit one page. `break-inside` is
+   set on each section, never on the whole card, so a long card breaks between sections
+   instead of overflowing.
+
+   No shadows, tape or doodles; ink on paper. Nothing here names a colour: backgrounds go
+   transparent so the paper is the white, and the text keeps the ink token it already has.
+   A raw hex value would be a token violation (CONTRACTS section 9) and would also fight
+   forced-colours mode.
+
+   The dated print context always prints, because a printed card can outlive its day.
+
+   This file is imported last, so these rules win on cascade order rather than on
+   `!important` (DESIGN-SPEC section 13: no blanket `!important`). */
+
+@media print {
+  .wo-body,
+  .wo-panel,
+  .wo-card,
+  .wo-weather,
+  .wo-answers,
+  .wo-interests,
+  .wo-bingo td {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .wo-page {
+    padding: 0;
+  }
+
+  /* Page chrome, controls and decoration do not print. */
+  .wo-doodle,
+  .wo-tape,
+  .wo-no-print,
+  .wo-btn,
+  .wo-change,
+  .wo-busy {
+    display: none;
+  }
+
+  .wo-panel,
+  .wo-card {
+    border-radius: 0;
+  }
+
+  .wo-weather {
+    padding: 0;
+    border: 0;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  /* Each section stays whole; the card as a whole is allowed to break across pages. */
+  .wo-detail-section,
+  .wo-bingo-section,
+  .wo-bingo tr,
+  .wo-weather,
+  .wo-print-context {
+    break-inside: avoid;
+  }
+}
