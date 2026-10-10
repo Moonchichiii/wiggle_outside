@@ -18,6 +18,7 @@ from fixtures import CANDIDATES, CARRIED_ANSWERS, D39_OFF, D39_ON, FORM_ERRORS, 
 from wiggle_outside.core.types import DeploymentMode, Energy
 from wiggle_outside.web import copy
 from wiggle_outside.web.presenters import build_environment, present_form, render_form
+from wiggle_outside.web.views import FormContext
 
 if TYPE_CHECKING:
     from wiggle_outside.web.views import FormPage
@@ -32,11 +33,17 @@ INLINE_STYLE = re.compile(r"\sstyle\s*=", re.IGNORECASE)
 
 def _states() -> dict[str, FormPage]:
     return {
-        "empty": present_form(None, {}, SESSION, None, MODE, D39_ON),
-        "filled": present_form(CARRIED_ANSWERS, {}, SESSION, None, MODE, D39_ON),
-        "errors": present_form(None, FORM_ERRORS, SESSION, None, MODE, D39_ON),
-        "ambiguous": present_form(None, {}, SESSION, CANDIDATES, MODE, D39_ON),
-        "no-d39": present_form(None, {}, SESSION, None, MODE, D39_OFF),
+        "empty": present_form(FormContext(session=SESSION, mode=MODE, d39_enabled=D39_ON)),
+        "filled": present_form(
+            FormContext(session=SESSION, mode=MODE, d39_enabled=D39_ON, answers=CARRIED_ANSWERS)
+        ),
+        "errors": present_form(
+            FormContext(session=SESSION, mode=MODE, d39_enabled=D39_ON, errors=FORM_ERRORS)
+        ),
+        "ambiguous": present_form(
+            FormContext(session=SESSION, mode=MODE, d39_enabled=D39_ON, candidates=CANDIDATES)
+        ),
+        "no-d39": present_form(FormContext(session=SESSION, mode=MODE, d39_enabled=D39_OFF)),
     }
 
 
@@ -127,7 +134,10 @@ def test_text_is_escaped_exactly_once() -> None:
         stroller=CARRIED_ANSWERS.stroller,
         step_free=CARRIED_ANSWERS.step_free,
     )
-    html = render_form(build_environment(), present_form(hostile, {}, SESSION, None, MODE, D39_ON))
+    html = render_form(
+        build_environment(),
+        present_form(FormContext(session=SESSION, mode=MODE, d39_enabled=D39_ON, answers=hostile)),
+    )
     assert "Oak &amp; Elm &lt;b&gt;" in html
     assert "<b>" not in html
     assert "&amp;amp;" not in html
@@ -249,7 +259,9 @@ def test_the_error_state_matches_the_approved_mock(rendered: Mapping[str, str]) 
 
 
 def test_the_error_summary_is_in_keyboard_order() -> None:
-    page = present_form(None, FORM_ERRORS, SESSION, None, MODE, D39_ON)
+    page = present_form(
+        FormContext(session=SESSION, mode=MODE, d39_enabled=D39_ON, errors=FORM_ERRORS)
+    )
     assert [item.field for item in page.summary] == ["age_band", "place"]
     assert [item.anchor for item in page.summary] == ["age-first", "place"]
 

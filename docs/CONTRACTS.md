@@ -384,15 +384,24 @@ an explicit parameter: no globals, no hidden catalogue or settings lookups. WP7 
 gather the arguments and pass the view to `render`.
 
 ```python
-def present_form(values: AnswersSummary | None, errors: Mapping[str, ErrorCode],
-                 session: SessionView, candidates: LocationCandidates | None,
-                 mode: DeploymentMode, d39_enabled: bool) -> FormPage
+# One carrier, so the signature stays small and every value stays explicit
+# (CC-A, CC-B, CC-C, CC-D, CC-G). FormContext lives in web/views.py.
+def present_form(context: FormContext) -> FormPage
 def present_result(result: PlanResult, catalogue: Catalogue, now: datetime,
                    session: SessionView, mode: DeploymentMode, d39_enabled: bool) -> ResultPage
 def present_detail(result: PlanResult, idea_id: str, catalogue: Catalogue,
                    now: datetime) -> DetailPage
 def present_error(code: ErrorCode, reference: str | None, form: FormPage | None) -> ErrorPage
 ```
+
+`FormContext` carries: `session`, `mode`, `d39_enabled`, `assets` (the build manifest,
+which the caller knows and a presenter must never reach for), `answers` (a previous
+result's complete, geocoded answers, D46), `submitted` (what was actually typed, possibly
+partial or ungeocodable, which wins field by field so a 422 keeps it), `errors`,
+`candidates`, `candidates_tz` (candidate expiry renders in the planned location's
+timezone, never the server's) and `interests` (a previous result's validated tags, so
+"Change answers" prefills the interests field with their labels rather than the original
+free text).
 
 The busy state is static markup in the form (button text "Finding outings…" and the
 note "This can take up to 20 seconds."), shown by htmx's request indicator; it needs no

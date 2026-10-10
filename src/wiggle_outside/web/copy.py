@@ -16,7 +16,14 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
 from wiggle_outside.core.errors import ErrorCode
-from wiggle_outside.core.types import AgeBand, DeploymentMode, Energy, TimeBudget, Who
+from wiggle_outside.core.types import (
+    AgeBand,
+    DeploymentMode,
+    Energy,
+    InterestTag,
+    TimeBudget,
+    Who,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -133,6 +140,28 @@ INTERESTS_LEGEND_BY_WHO: Final[Mapping[Who, str]] = MappingProxyType(
         Who.KIDS: "What are they into?",
     }
 )
+# The 14 tags as display labels (D39). "Change answers" prefills the interests field
+# with these, never with the original free text, because these are what we recognised
+# (CONTRACTS section 7, CC-C). Lower case: they read as a list, not as proper nouns.
+INTEREST_TAG_LABELS: Final[Mapping[InterestTag, str]] = MappingProxyType(
+    {
+        InterestTag.ANIMALS: "animals",
+        InterestTag.BIRDS: "birds",
+        InterestTag.BUGS: "bugs",
+        InterestTag.TREES: "trees",
+        InterestTag.COLOURS: "colours",
+        InterestTag.SHAPES: "shapes",
+        InterestTag.STORIES: "stories",
+        InterestTag.RUNNING: "running",
+        InterestTag.BUILDING: "building",
+        InterestTag.SOUNDS: "sounds",
+        InterestTag.DRAWING: "drawing",
+        InterestTag.SKY: "sky",
+        InterestTag.QUIET: "quiet",
+        InterestTag.PUDDLES: "puddles",
+    }
+)
+
 INTERESTS_OPTIONAL: Final = "(optional)"
 INTERESTS_HINT: Final = (
     "For example: birds, puddles, running. Optional. Don't include personal details. "

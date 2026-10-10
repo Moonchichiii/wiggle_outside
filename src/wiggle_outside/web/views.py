@@ -6,8 +6,17 @@ WP8 builds them in presenters.py; WP0 owns the shapes.
 """
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from types import MappingProxyType
 from typing import Literal
+
+from wiggle_outside.core.errors import ErrorCode
+from wiggle_outside.core.types import (
+    AnswersSummary,
+    DeploymentMode,
+    Interests,
+    LocationCandidates,
+)
 
 IdeaVariant = Literal["sage", "peach", "butter"]
 NoticeKind = Literal["info", "success", "alert"]
@@ -85,6 +94,49 @@ class FormPage:
     summary: tuple[FieldError, ...]
     candidates: tuple[Option, ...]
     candidates_expire_at: str | None
+
+
+_NO_ERRORS: Mapping[str, ErrorCode] = MappingProxyType({})
+_NO_ASSETS: Mapping[str, AssetRef] = MappingProxyType({})
+
+
+@dataclass(frozen=True, slots=True)
+class FormContext:
+    """Everything `present_form` needs, in one carrier (CC-A, CC-B, CC-C, CC-D).
+
+    The original signature took six positional parameters and could represent only two
+    states: every answer present and geocoded, or nothing. That made three required
+    behaviours unreachable — a 422 re-render keeping the answers someone did give
+    (ERROR-HANDLING §2), echoing back a typed town that failed to geocode, and the D46
+    interests prefill — and it collided with the 5-argument limit in `ruff.toml`.
+
+    Every value is still explicit: no globals, no hidden catalogue or settings lookups.
+    """
+
+    session: SessionView
+    mode: DeploymentMode
+    d39_enabled: bool
+
+    # The build manifest, which the caller knows and a presenter must not reach for.
+    assets: Mapping[str, AssetRef] = _NO_ASSETS
+
+    # A carried result's answers: complete and geocoded (D46, "Change answers").
+    answers: AnswersSummary | None = None
+
+    # What the person actually submitted, which may be incomplete or ungeocodable. This
+    # is what a 422 re-render echoes back, and it wins over `answers` field by field.
+    submitted: Mapping[str, str] = field(default_factory=dict)
+
+    errors: Mapping[str, ErrorCode] = _NO_ERRORS
+    candidates: LocationCandidates | None = None
+
+    # IANA name for rendering candidate expiry; times are never shown in server time
+    # (CONTRACTS §8).
+    candidates_tz: str | None = None
+
+    # The validated tags of a previous result, so "Change answers" can prefill the
+    # interests field with their labels rather than the original free text (D46).
+    interests: Interests | None = None
 
 
 @dataclass(frozen=True, slots=True)

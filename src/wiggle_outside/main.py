@@ -16,13 +16,8 @@ from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 from wiggle_outside.core.types import DeploymentMode
 from wiggle_outside.planner.ports import Ranker
 from wiggle_outside.settings import Settings
-from wiggle_outside.web.presenters import (
-    build_environment,
-    present_form,
-    render_form,
-    with_assets,
-)
-from wiggle_outside.web.views import AssetRef, SessionView
+from wiggle_outside.web.presenters import build_environment, present_form, render_form
+from wiggle_outside.web.views import AssetRef, FormContext, SessionView
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -85,22 +80,17 @@ def register_preview(app: FastAPI, state: AppState) -> None:
     async def preview_form() -> str:
         return render_form(
             build_environment(),
-            with_assets(
-                present_form(
-                    values=None,
-                    errors={},
+            present_form(
+                FormContext(
                     session=SessionView(
                         # Placeholders, not secrets: the real session and token are WP7's.
                         csrf_token="preview-not-a-real-token",  # noqa: S106
                         idempotency_key="preview-not-a-real-key",
                     ),
-                    candidates=None,
                     mode=state.settings.mode,
                     d39_enabled=state.settings.d39_enabled,
-                ),
-                # The key must end in .css: base.html keys the <link> off the asset
-                # name, not the url. Passing "css" emitted no stylesheet at all.
-                {"app.css": AssetRef(url="/preview/app.css", integrity="")},
+                    assets={"app.css": AssetRef(url="/preview/app.css", integrity="")},
+                )
             ),
         )
 

@@ -23,7 +23,7 @@ from wiggle_outside.web.presenters import (
     render_form,
     with_assets,
 )
-from wiggle_outside.web.views import AssetRef, FormPage
+from wiggle_outside.web.views import AssetRef, FormContext, FormPage
 
 REPO_ROOT: Final = Path(__file__).resolve().parents[2]
 BUILT_CSS: Final = REPO_ROOT / "src" / "wiggle_outside" / "web" / "static" / "app.css"
@@ -35,10 +35,16 @@ MODE: Final = DeploymentMode.HOSTED_LIVE
 def pages() -> dict[str, FormPage]:
     """Build the DESIGN-SPEC section 12 form states as view models."""
     return {
-        "01-form.html": present_form(None, {}, SESSION, None, MODE, D39_ON),
-        "01b-form-error.html": present_form(None, FORM_ERRORS, SESSION, None, MODE, D39_ON),
-        "01c-form-carried.html": present_form(CARRIED_ANSWERS, {}, SESSION, None, MODE, D39_ON),
-        "01d-form-ambiguous.html": present_form(None, {}, SESSION, CANDIDATES, MODE, D39_ON),
+        "01-form.html": present_form(FormContext(session=SESSION, mode=MODE, d39_enabled=D39_ON)),
+        "01b-form-error.html": present_form(
+            FormContext(session=SESSION, mode=MODE, d39_enabled=D39_ON, errors=FORM_ERRORS)
+        ),
+        "01c-form-carried.html": present_form(
+            FormContext(session=SESSION, mode=MODE, d39_enabled=D39_ON, answers=CARRIED_ANSWERS)
+        ),
+        "01d-form-ambiguous.html": present_form(
+            FormContext(session=SESSION, mode=MODE, d39_enabled=D39_ON, candidates=CANDIDATES)
+        ),
     }
 
 

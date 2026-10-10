@@ -8,6 +8,7 @@ autoescape at the HTML boundary (BACKEND-CONTRACT section 7). Nothing here rende
 Importing this module has no side effects: `build_environment()` is called explicitly.
 """
 
+from collections.abc import Mapping
 from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
@@ -30,15 +31,16 @@ from wiggle_outside.web.forms import DEFAULT_ENERGY, DEFAULT_LOCATION_MODE
 from wiggle_outside.web.views import (
     AssetRef,
     FieldError,
+    FormContext,
     FormPage,
     Option,
     PageMeta,
-    SessionView,
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Callable, Mapping
     from datetime import datetime
+from zoneinfo import ZoneInfo
 
 TEMPLATES_DIR: Final = Path(__file__).parent / "templates"
 
@@ -56,6 +58,15 @@ _NO_ASSETS: Final[Mapping[str, AssetRef]] = {}
 
 
 # --- Option builders ------------------------------------------------------------------
+
+
+def _submitted_coords(sent: Mapping[str, str]) -> tuple[str, str] | None:
+    lat, lon = sent.get("lat"), sent.get("lon")
+    return (lat, lon) if lat and lon else None
+
+
+def _submitted_flag(sent: Mapping[str, str], name: str, fallback: bool) -> bool:  # noqa: FBT001
+    return sent[name] == "1" if name in sent else fallback
 
 
 def _who_options(selected: Who | None) -> tuple[Option, ...]:
@@ -116,10 +127,18 @@ def _candidate_options(candidates: LocationCandidates | None) -> tuple[Option, .
     )
 
 
-def _expires_at(candidates: LocationCandidates | None) -> str | None:
+def _expires_at(candidates: LocationCandidates | None, tz: str | None) -> str | None:
+    """Candidate expiry in the planned location's timezone (CONTRACTS 8, CC-D).
+
+    With no timezone the moment is rendered in whatever it carries, and the caller is
+    told to pass one rather than the presenter guessing.
+    """
     if candidates is None:
         return None
-    return _hhmm(candidates.expires_at)
+    moment = candidates.expires_at
+    if tz is not None:
+        moment = moment.astimezone(ZoneInfo(tz))
+    return _hhmm(moment)
 
 
 def _hhmm(moment: datetime) -> str:
@@ -186,52 +205,107 @@ def _coords(values: AnswersSummary | None) -> tuple[str, str] | None:
 # CONTRACTS section 8 fixes this signature and WP7 calls it positionally; a package may
 # not change a contract file (CONTRACTS section 10.1), so the argument-count and
 # boolean-flag rules are suppressed here rather than the contract being bent to them.
-def present_form(  # noqa: PLR0913, PLR0917
-    values: AnswersSummary | None,
-    errors: Mapping[str, ErrorCode],
-    session: SessionView,
-    candidates: LocationCandidates | None,
-    mode: DeploymentMode,
-    d39_enabled: bool,  # noqa: FBT001 - positional in the CONTRACTS section 8 signature.
-) -> FormPage:
+def _enum_opt[E](raw: str | None, parse: Callable[[str], E], fallback: E | None) -> E | None:
+    """Parse a submitted value, falling back when it is absent or not a legal value.
+
+    A 422 re-render must echo what the person chose, but an illegal value is exactly what
+    made it a 422, so it cannot be preselected.
+    """
+    if not raw:
+        return fallback
+    try:
+        return parse(raw)
+    except ValueError:
+        return fallback
+
+
+def _enum_or[E](raw: str | None, parse: Callable[[str], E], fallback: E) -> E:
+    """As _enum_opt, but with a real default, so the result is never None."""
+    parsed = _enum_opt(raw, parse, fallback)
+    return parsed if parsed is not None else fallback
+
+
+def _submitted_ages(raw: str) -> frozenset[AgeBand]:
+    bands = []
+    for part in raw.split(","):
+        try:
+            bands.append(AgeBand(part.strip()))
+        except ValueError:
+            continue
+    return frozenset(bands)
+
+
+def _interests_prefill(context: FormContext) -> str | None:
+    """Prefill the interests field with the recognised tag labels (D46, CC-C).
+
+    Never the original free text: the labels are what we actually understood.
+    """
+    if not context.d39_enabled:
+        return None
+    submitted = context.submitted.get("interests_text")
+    if submitted is not None:
+        return submitted
+    tags = context.interests.tags if context.interests else ()
+    return ", ".join(copy.INTEREST_TAG_LABELS[tag] for tag in tags)
+
+
+def present_form(context: FormContext) -> FormPage:
     """Build the form view model (CONTRACTS section 8).
 
-    `values` is the carried answers summary of an earlier search (D46) or None for a
-    first visit. Energy defaults to Moderate (D18); nothing else is preselected.
+    `context.answers` carries a previous result's answers (D46); `context.submitted`
+    carries what was actually typed, which may be partial or ungeocodable, and wins field
+    by field so a 422 keeps it (ERROR-HANDLING section 2). Energy defaults to Moderate
+    (D18); nothing else is preselected.
     """
-    coords = _coords(values)
+    values = context.answers
+    sent = context.submitted
+    coords = _submitted_coords(sent) or _coords(values)
     return FormPage(
         meta=PageMeta(
             title=copy.FORM_PAGE_TITLE,
-            assets=_NO_ASSETS,
-            demo_mode=mode is DeploymentMode.REPLAY,
+            assets=dict(context.assets),
+            demo_mode=context.mode is DeploymentMode.REPLAY,
         ),
-        session=session,
+        session=context.session,
         intro=copy.INTRO,
-        who=_who_options(values.who if values else None),
-        ages=_age_options(values.age_bands if values else frozenset()),
-        time=_time_options(values.time_budget if values else None),
-        energy=_energy_options(values.energy if values else DEFAULT_ENERGY),
-        location_mode="coords" if coords else DEFAULT_LOCATION_MODE,
-        place="",
+        who=_who_options(_enum_or(sent.get("who"), Who, values.who if values else None)),
+        ages=_age_options(
+            _submitted_ages(sent["age_band"])
+            if "age_band" in sent
+            else (values.age_bands if values else frozenset())
+        ),
+        time=_time_options(
+            _enum_opt(
+                sent.get("time"),
+                lambda raw: TimeBudget(int(raw)),
+                values.time_budget if values else None,
+            )
+        ),
+        energy=_energy_options(
+            _enum_or(sent.get("energy"), Energy, values.energy if values else DEFAULT_ENERGY)
+            or DEFAULT_ENERGY
+        ),
+        location_mode=sent.get("location_mode", "coords" if coords else DEFAULT_LOCATION_MODE),
+        # A typed town that failed to geocode is echoed back so it can be corrected.
+        place=sent.get("place", ""),
         coords=coords,
-        location_label=values.location_label if values else None,
-        place_hint=copy.PLACE_HINT_BY_MODE[mode],
-        stroller=values.stroller if values else False,
-        step_free=values.step_free if values else False,
-        interests_text="" if d39_enabled else None,
-        field_errors=_field_errors(errors),
-        summary=_error_summary(errors),
-        candidates=_candidate_options(candidates),
-        candidates_expire_at=_expires_at(candidates),
+        location_label=sent.get("location_label", values.location_label if values else None),
+        place_hint=copy.PLACE_HINT_BY_MODE[context.mode],
+        stroller=_submitted_flag(sent, "stroller", values.stroller if values else False),
+        step_free=_submitted_flag(sent, "step_free", values.step_free if values else False),
+        interests_text=_interests_prefill(context),
+        field_errors=_field_errors(context.errors),
+        summary=_error_summary(context.errors),
+        candidates=_candidate_options(context.candidates),
+        candidates_expire_at=_expires_at(context.candidates, context.candidates_tz),
     )
 
 
 def with_assets(page: FormPage, assets: Mapping[str, AssetRef]) -> FormPage:
-    """Attach a build manifest to a page.
+    """Attach a build manifest to an already-built page.
 
-    `present_form` has no manifest parameter (CONTRACTS section 8), so the caller that
-    knows the manifest attaches it here rather than a presenter reaching for a global.
+    Kept for a caller that builds a page before it knows its manifest. `FormContext`
+    carries `assets`, so `present_form` no longer needs this (CC-B).
     """
     return replace(page, meta=replace(page.meta, assets=dict(assets)))
 
