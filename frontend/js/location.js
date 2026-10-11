@@ -95,6 +95,49 @@ function enhance(button) {
   });
 }
 
+// The loader (TC-011): shown only while an explicitly submitted search is pending, never
+// on page load. The browser's navigation clears it with the page on success, a 422 or a
+// network error; `pageshow` clears it when the page comes back from the back-forward
+// cache; and a safety timer clears it when nothing answered within the server's own
+// deadline plus a margin, so it can never be left showing. No polling, no requests.
+const LOADER_SAFETY_MS = 30000;
+
+function pending(form) {
+  const loader = form.querySelector("[data-wo-loader]");
+  const status = loader ? loader.querySelector("[data-wo-loader-status]") : null;
+  if (!loader || !status) {
+    return;
+  }
+  let timer = 0;
+
+  function clear() {
+    loader.hidden = true;
+    status.textContent = "";
+    for (const button of form.querySelectorAll('button[type="submit"]')) {
+      button.removeAttribute("aria-busy");
+    }
+    if (timer) {
+      window.clearTimeout(timer);
+      timer = 0;
+    }
+  }
+
+  form.addEventListener("submit", () => {
+    loader.hidden = false;
+    status.textContent = status.dataset.message || "";
+    for (const button of form.querySelectorAll('button[type="submit"]')) {
+      button.setAttribute("aria-busy", "true");
+    }
+    timer = window.setTimeout(clear, LOADER_SAFETY_MS);
+  });
+  window.addEventListener("pageshow", clear);
+  window.addEventListener("pagehide", clear);
+}
+
+for (const form of document.querySelectorAll("form[data-wo-pending]")) {
+  pending(form);
+}
+
 if ("geolocation" in navigator && window.isSecureContext) {
   for (const button of document.querySelectorAll("[data-wo-locate]")) {
     enhance(button);

@@ -114,7 +114,7 @@
 {# The whole plan form, in one place, because the form page and the "Change answers"
    disclosure on the results page must post exactly the same fields (D46, CONTRACTS
    section 7): same hidden state, same honeypot, same keyboard order. #}
-<form class="wo-panel wo-plan-form" method="post" action="/plan" novalidate>
+<form class="wo-panel wo-plan-form" method="post" action="/plan" novalidate data-wo-pending>
 <input type="hidden" name="csrf_token" value="{{ page.session.csrf_token }}">
 {% if page.session.idempotency_key %}
 <input type="hidden" name="idempotency_key" value="{{ page.session.idempotency_key }}">
@@ -140,10 +140,20 @@
 <div class="wo-actions">
 <button class="wo-btn wo-btn-primary" type="submit">{{ copy.SUBMIT }}<span class="wo-btn-arrow" aria-hidden="true">→</span></button>
 </div>
-{# D43: the busy state is static markup, revealed by htmx's request indicator.
-   Without JavaScript the browser's own loading state shows instead. #}
-<p class="wo-busy" role="status" aria-live="polite" hidden>{{ copy.BUSY_NOTE }}</p>
+{{ loader() }}
 </form>
+{%- endmacro %}
+
+{% macro loader() -%}
+{# D43, TC-011: the busy state is static markup, hidden until location.js reveals it on an
+   explicit submit and never on page load. The badge and the moving bar are decorative;
+   the status region is empty until the script fills it once, so nothing is announced
+   twice. Without JavaScript the browser's own loading state shows instead. #}
+<div class="wo-busy wo-loader" data-wo-loader hidden>
+<p class="wo-loader-badge" aria-hidden="true">{{ copy.LOADER_BADGE }}</p>
+<div class="wo-loader-track" aria-hidden="true"><div class="wo-loader-bar"></div></div>
+<p class="wo-loader-text" role="status" aria-live="polite" data-wo-loader-status data-message="{{ copy.LOADER_TEXT }}"></p>
+</div>
 {%- endmacro %}
 
 {% macro location_choice(page) -%}
@@ -151,7 +161,7 @@
 {# BACKEND-CONTRACT section 3: at most five candidates; the town field stays editable. #}
 {# TC-011: its own heading and its own button, so the list reads as the one question on
    this page and never as part of the form below, which stays for changing answers. #}
-<form class="wo-panel wo-choice-form" method="post" action="/location-choice" aria-labelledby="choice-heading">
+<form class="wo-panel wo-choice-form" method="post" action="/location-choice" aria-labelledby="choice-heading" data-wo-pending>
 <input type="hidden" name="csrf_token" value="{{ page.session.csrf_token }}">
 <h2 class="wo-choice-heading" id="choice-heading">{{ copy.LOCATION_CHOICE_HEADING }}</h2>
 <p class="wo-hint wo-choice-intro">{{ copy.LOCATION_CHOICE_INTRO }}</p>
@@ -166,6 +176,7 @@
 <div class="wo-actions">
 <button class="wo-btn wo-btn-primary" type="submit">{{ copy.USE_THIS_PLACE }}<span class="wo-btn-arrow" aria-hidden="true">→</span></button>
 </div>
+{{ loader() }}
 </form>
 {% endif %}
 {%- endmacro %}

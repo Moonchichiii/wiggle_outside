@@ -15,7 +15,7 @@ from typing import Final
 
 import pytest
 import uvicorn
-from playwright.sync_api import Browser, expect, sync_playwright
+from playwright.sync_api import Browser, Route, expect, sync_playwright
 from playwright.sync_api import Error as PlaywrightError
 
 from wiggle_outside.core.types import DeploymentMode
@@ -30,6 +30,15 @@ POSITION: Final = {"latitude": 59.33456, "longitude": 18.06321}
 ROUNDED: Final = ("59.33", "18.06")
 START_TIMEOUT_S: Final = 15
 BROWSER_TIMEOUT_S: Final = 120
+LOADER_STATE_JS: Final = """() => {
+  const form = document.querySelector('.wo-plan-form');
+  return {
+    hidden: form.querySelector('[data-wo-loader]').hidden,
+    status: form.querySelector('[data-wo-loader-status]').textContent,
+    badge: form.querySelector('.wo-loader-badge').textContent,
+    busy: form.querySelector('button[type="submit"]').getAttribute('aria-busy'),
+  };
+}"""
 
 
 def _free_port() -> int:
@@ -172,4 +181,64 @@ def test_going_back_never_leaves_the_busy_state_showing(server: str, browser: Br
     assert page.locator('.wo-plan-form button[type="submit"][aria-busy="true"]').count() == 0
     expect(page.locator('.wo-plan-form button[type="submit"]')).to_be_enabled()
     expect(page.locator('.wo-plan-form button[type="submit"]')).to_have_text(f"{copy.SUBMIT}→")
+    context.close()
+
+
+@pytest.mark.timeout(BROWSER_TIMEOUT_S)
+def test_the_loader_shows_only_while_a_submitted_search_is_pending(
+    server: str, browser: Browser
+) -> None:
+    # TC-011: never on page load; shown on an explicit submit, under the production CSP;
+    # gone with the page when the answer arrives.
+    context = browser.new_context()
+    page = context.new_page()
+    errors: list[str] = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    page.goto(f"{server}/")
+    loader = page.locator(".wo-plan-form [data-wo-loader]")
+    expect(loader).to_be_hidden()
+
+    held: list[Route] = []
+
+    def hold(route: Route) -> None:  # Playwright wants a real function here
+        held.append(route)
+
+    page.route("**/plan", hold)  # hold the answer back until the loader is seen
+    page.check('input[name="who"][value="kids"]')
+    page.check('input[name="age_band"][value="3-5"]')
+    page.check('input[name="time"][value="60"]')
+    page.fill('input[name="place"]', "Bergby")
+    page.click('.wo-plan-form button[type="submit"]', no_wait_after=True)
+
+    # Locators wait for the held navigation, so the pending document is read directly.
+    state = page.evaluate(LOADER_STATE_JS)
+    assert state == {
+        "hidden": False,
+        "status": copy.LOADER_TEXT,
+        "badge": copy.LOADER_BADGE,
+        "busy": "true",
+    }
+    for _ in range(100):  # the request reaches the route a moment after the submit event
+        if held:
+            break
+        page.wait_for_timeout(50)
+    assert len(held) == 1
+    held[0].continue_()
+    page.wait_for_url("**/results/*")
+    expect(page.locator("#results-heading")).to_be_visible()
+    assert errors == []
+    context.close()
+
+
+@pytest.mark.timeout(BROWSER_TIMEOUT_S)
+def test_with_reduced_motion_the_bar_is_static(server: str, browser: Browser) -> None:
+    context = browser.new_context(reduced_motion="reduce")
+    page = context.new_page()
+    page.goto(f"{server}/")
+
+    animation = page.evaluate(
+        "getComputedStyle(document.querySelector('.wo-plan-form .wo-loader-bar')).animationName"
+    )
+
+    assert animation == "none"
     context.close()
