@@ -21,7 +21,7 @@ absent                                                            CLAUDE.md
 789dcdffd0f021086be524ce8af242a3a79e35fc948170b858613bb3d1994f9a  pytest.ini
 3c821537c8002b7fe2a618199b18bbcb88520e57aa1fdb5fe229b114ea1e1e89  ruff.toml
 3cabf5676494152bf5a8e77ee8410f40ac06a53df5e1249a2800310d81bfc8ab  scripts/check_contrast.py
-fac84a8f6b631258b56b3543d0a2879ebb7b59023cd91e24623f11b63084c3f2  scripts/check.ps1
+cb721310c8c2dd5367bbcbf45fcc87c7c4f145c955999968a69f4c65cb110f05  scripts/check.ps1
 bb8248fcf2dcf124a1322d58cbb7000c3db6762b731eb62181d03e4031821ead  scripts/gates_lock.ps1
 4712786114f627dfad68025018a22f99630fc1c8e8533be78149d9cd1e0e9bee  scripts/release.ps1
 b70e7fe7860b53b443d8062f520cf07222615da0ecce15b462cd2c30438e3230  src/wiggle_outside/planner/activities.toml

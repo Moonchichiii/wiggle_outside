@@ -1,0 +1,286 @@
+{
+ "panel_left": {
+  "x0": 251,
+  "x1": 747,
+  "y0": 17,
+  "y1": 947
+ },
+ "panel_right": {
+  "x0": 788,
+  "x1": 1288,
+  "y0": 19,
+  "y1": 947
+ },
+ "items": {
+  "sun": {
+   "side": "L",
+   "w": 154,
+   "h": 149,
+   "board_x": 67,
+   "board_y": 35,
+   "from_panel_left": -184,
+   "from_panel_right": 526,
+   "from_panel_top": 18,
+   "bg": [
+    246,
+    239,
+    228
+   ]
+  },
+  "note-small-people": {
+   "side": "L",
+   "w": 155,
+   "h": 187,
+   "board_x": 57,
+   "board_y": 248,
+   "from_panel_left": -194,
+   "from_panel_right": 535,
+   "from_panel_top": 231,
+   "bg": [
+    245,
+    238,
+    227
+   ]
+  },
+  "sprig-left-top": {
+   "side": "L",
+   "w": 61,
+   "h": 105,
+   "board_x": 174,
+   "board_y": 204,
+   "from_panel_left": -77,
+   "from_panel_right": 512,
+   "from_panel_top": 187,
+   "bg": [
+    246,
+    239,
+    228
+   ]
+  },
+  "sprig-left-mid": {
+   "side": "L",
+   "w": 55,
+   "h": 82,
+   "board_x": 41,
+   "board_y": 480,
+   "from_panel_left": -210,
+   "from_panel_right": 651,
+   "from_panel_top": 463,
+   "bg": [
+    244,
+    237,
+    225
+   ]
+  },
+  "grass-left-bottom": {
+   "side": "L",
+   "w": 113,
+   "h": 61,
+   "board_x": 87,
+   "board_y": 936,
+   "from_panel_left": -164,
+   "from_panel_right": 547,
+   "from_panel_top": 919,
+   "bg": [
+    243,
+    236,
+    223
+   ]
+  },
+  "note-nature-ideas": {
+   "side": "R",
+   "w": 183,
+   "h": 200,
+   "board_x": 1319,
+   "board_y": 42,
+   "from_panel_left": 531,
+   "from_panel_right": -214,
+   "from_panel_top": 23,
+   "bg": [
+    246,
+    239,
+    228
+   ]
+  },
+  "sprig-right-top": {
+   "side": "R",
+   "w": 53,
+   "h": 78,
+   "board_x": 1331,
+   "board_y": 269,
+   "from_panel_left": 543,
+   "from_panel_right": -96,
+   "from_panel_top": 250,
+   "bg": [
+    246,
+    240,
+    228
+   ]
+  },
+  "note-curiosity": {
+   "side": "R",
+   "w": 117,
+   "h": 120,
+   "board_x": 1360,
+   "board_y": 398,
+   "from_panel_left": 572,
+   "from_panel_right": -189,
+   "from_panel_top": 379,
+   "bg": [
+    245,
+    238,
+    227
+   ]
+  },
+  "sprig-right-mid": {
+   "side": "R",
+   "w": 54,
+   "h": 90,
+   "board_x": 1312,
+   "board_y": 478,
+   "from_panel_left": 524,
+   "from_panel_right": -78,
+   "from_panel_top": 459,
+   "bg": [
+    244,
+    237,
+    226
+   ]
+  },
+  "signpost": {
+   "side": "R",
+   "w": 202,
+   "h": 356,
+   "board_x": 1311,
+   "board_y": 562,
+   "from_panel_left": 523,
+   "from_panel_right": -225,
+   "from_panel_top": 543,
+   "bg": [
+    244,
+    236,
+    224
+   ]
+  },
+  "grass-bottom-mid": {
+   "side": "R",
+   "w": 79,
+   "h": 56,
+   "board_x": 1163,
+   "board_y": 952,
+   "from_panel_left": 375,
+   "from_panel_right": 46,
+   "from_panel_top": 933,
+   "bg": [
+    241,
+    233,
+    220
+   ]
+  },
+  "card-trees": {
+   "side": "card",
+   "w": 120,
+   "h": 99,
+   "board_x": 1129,
+   "board_y": 328,
+   "from_panel_left": 341,
+   "from_panel_right": 39,
+   "from_panel_top": 309,
+   "bg": [
+    217,
+    227,
+    202
+   ]
+  },
+  "card-magnifier": {
+   "side": "card",
+   "w": 100,
+   "h": 84,
+   "board_x": 1150,
+   "board_y": 554,
+   "from_panel_left": 362,
+   "from_panel_right": 38,
+   "from_panel_top": 535,
+   "bg": [
+    249,
+    207,
+    189
+   ]
+  },
+  "card-sun-cloud": {
+   "side": "card",
+   "w": 114,
+   "h": 86,
+   "board_x": 1145,
+   "board_y": 751,
+   "from_panel_left": 357,
+   "from_panel_right": 29,
+   "from_panel_top": 732,
+   "bg": [
+    254,
+    231,
+    183
+   ]
+  },
+  "card-grass-a": {
+   "side": "card",
+   "w": 47,
+   "h": 60,
+   "board_x": 1207,
+   "board_y": 448,
+   "from_panel_left": 419,
+   "from_panel_right": 34,
+   "from_panel_top": 429,
+   "bg": [
+    217,
+    227,
+    202
+   ]
+  },
+  "card-plant-b": {
+   "side": "card",
+   "w": 48,
+   "h": 75,
+   "board_x": 1206,
+   "board_y": 648,
+   "from_panel_left": 418,
+   "from_panel_right": 34,
+   "from_panel_top": 629,
+   "bg": [
+    249,
+    208,
+    189
+   ]
+  },
+  "card-grass-c": {
+   "side": "card",
+   "w": 50,
+   "h": 71,
+   "board_x": 1208,
+   "board_y": 858,
+   "from_panel_left": 420,
+   "from_panel_right": 30,
+   "from_panel_top": 839,
+   "bg": [
+    253,
+    231,
+    182
+   ]
+  },
+  "brand-sprig": {
+   "side": "brand",
+   "w": 28,
+   "h": 32,
+   "board_x": 464,
+   "board_y": 38,
+   "from_panel_left": -324,
+   "from_panel_right": 796,
+   "from_panel_top": 19,
+   "bg": [
+    253,
+    250,
+    242
+   ]
+  }
+ }
+}

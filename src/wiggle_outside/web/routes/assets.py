@@ -27,8 +27,6 @@ FONT_FILES: Final[frozenset[str]] = frozenset(
     {
         "CabinetGrotesk-Variable.woff2",
         "Switzer-Variable.woff2",
-        # The handwritten margin notes (TC-008). SIL OFL 1.1; committed with its licence.
-        "PatrickHand-Regular.woff2",
     }
 )
 WOFF2: Final = "font/woff2"

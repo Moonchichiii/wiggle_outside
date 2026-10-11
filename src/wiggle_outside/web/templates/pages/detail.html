@@ -13,10 +13,6 @@
 {% from "partials/notice.html" import notice with context %}
 {% from "partials/bingo.html" import bingo with context %}
 
-{% block intro %}
-<p class="wo-intro">{{ copy.INTRO }}</p>
-{% endblock %}
-
 {% block main %}
 <p class="wo-no-print"><a class="wo-back" href="{{ page.back_url }}">{{ copy.BACK_TO_RESULTS }}</a></p>
 

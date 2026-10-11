@@ -12,9 +12,9 @@
 @import "./components/card.css";
 @import "./components/detail.css";
 /* Last, so the print rules win on cascade order instead of on `!important`. */
-/* The visual-direction pass for the form page; refines the above. */
-@import "./components/board.css";
-@import "./components/decor.css";
+/* The approved board, ported from docs/design-kit/kit.css (TC-008): the stage and panel,
+   the kit's type and control metrics, and the decoration placement. Refines the above. */
+@import "./components/kit.css";
 @import "./components/print.css";
 
 /* Tailwind v4 scans these for utility class names. */

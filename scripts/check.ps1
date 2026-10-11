@@ -49,18 +49,19 @@ function Invoke-Gate {
 Write-Host 'Wiggle Outside gates (M0 set; see TC-006 for what WP9b adds)'
 
 # --- 0. Build prerequisites ---------------------------------------------------------
-# Not a gate: the Tailwind build gate is WP9b's (TC-006). But the stylesheet is a
-# gitignored build artifact, and one test asserts the page serves non-empty CSS, so a
-# fresh checkout - including CI - has to build it before pytest runs. Skipped when bun
-# is unavailable, and the test that needs it will say so rather than this failing here.
+# Not a gate: the Tailwind build gate is WP9b's (TC-006). But the stylesheet and the
+# board artwork are gitignored build artifacts, and tests assert the page serves
+# non-empty CSS and real pictures, so a fresh checkout - including CI - has to build
+# them before pytest runs. Skipped when bun is unavailable, and the tests that need them
+# say so rather than this failing here.
 if (Get-Command bun -ErrorAction SilentlyContinue) {
     Write-Host ''
-    Write-Host '== building the stylesheet (prerequisite, not a gate) =================='
+    Write-Host '== building the stylesheet and artwork (prerequisite, not a gate) ======'
     bun install --frozen-lockfile 2>&1 | Out-Null
-    bun run build:css
+    bun run build
     if ($LASTEXITCODE -ne 0) {
-        $script:Failures.Add('bun run build:css')
-        Write-Host '-- FAIL: bun run build:css' -ForegroundColor Red
+        $script:Failures.Add('bun run build')
+        Write-Host '-- FAIL: bun run build' -ForegroundColor Red
     }
 }
 else {

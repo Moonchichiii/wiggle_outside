@@ -36,16 +36,6 @@
   font-display: swap;
 }
 
-/* The handwritten margin notes (TC-008). Decorative only, so no fallback metrics: if it
-   never loads the notes simply render in the body face. SIL OFL 1.1, committed. */
-@font-face {
-  font-family: "Patrick Hand";
-  src: url("/static/fonts/PatrickHand-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
 /* Metric-matched fallbacks. Cabinet's line box is 13.5 % shorter than Segoe UI's and
    Switzer's is 7.5 % shorter, with Switzer's x-height 6.2 % larger — so without these
    the text jumps on swap. */
@@ -68,28 +58,27 @@
 }
 
 @theme {
-  /* --- Colour (section 1.1). Text on sage, peach, alert and success is ink only. --- */
-  --color-oatmeal: #f2ede4;
-  --color-card: #fffcf6;
-  --color-ink: #191c20;
-  --color-ink-soft: #42464d;
-  --color-sage: #d3e0d0;
-  --color-peach: #f7d6c8;
-  --color-butter: #fae8c3;
+  /* --- Colour (section 1.1). Text on sage, peach, alert and success is ink only. ---
+     Values measured from the approved board by the design kit (docs/design-kit, TC-008);
+     where the kit and the earlier section 1.1 values differed, the kit's won. */
+  --color-oatmeal: #f3ece1;
+  --color-card: #fbf9f3;
+  --color-ink: #1b1d1f;
+  --color-ink-soft: #3d4146;
+  --color-sage: #dce6d3;
+  --color-peach: #f6d3c6;
+  --color-butter: #fbecc0;
   --color-alert: #ead5d1;
   --color-success: #d7e4d7;
   --color-action: #2c5234;
   --color-action-hover: #22412a;
-  --color-link: #1e4a85;
+  --color-link: #24452c;
   --color-error: #8a2a17;
-
-  /* --- Decoration palette (the approved board, TC-008). Artwork only; never text UI. --- */
-  --color-decor-paper: #e9efe1;
-  --color-decor-tape: #bbd2a4;
-  --color-decor-wood: #c9975b;
-  --color-decor-wood-deep: #9a6b36;
-  --color-decor-stone: #b9b3a6;
-  --font-hand: "Patrick Hand", "Segoe Print", "Bradley Hand", cursive;
+  /* The kit's hairline for tiles and fields, the selected tile's edge, and the weather
+     band (TC-008). Never text colours. */
+  --color-line: #d8d2c6;
+  --color-sage-line: #557150;
+  --color-weather: #f1eee6;
 
   /* --- Type scale (section 1.2). Sizes and line heights are paired. --- */
   --text-sm: 1rem;
@@ -123,9 +112,12 @@
   --spacing-s7: 48px;
   --spacing-s8: 64px;
 
-  /* --- Border, shadow, focus (sections 1.3 and 1.4) --- */
+  /* --- Border, shadow, focus (sections 1.3 and 1.4; widths and shadows from the kit) --- */
   --border-width-ink: 2px;
-  --shadow-card: 3px 3px 0 rgb(25 28 32 / 0.16);
+  --border-width-panel: 3px;
+  --border-width-line: 1.5px;
+  --shadow-card: 4px 5px 0 rgb(27 29 31 / 0.12), 0 18px 40px -24px rgb(60 45 20 / 0.35);
+  --shadow-button: 0 2px 0 rgb(0 0 0 / 0.15);
   --outline-width-focus: 3px;
   --outline-offset-focus: 2px;
 
@@ -133,22 +125,30 @@
   --container-measure: 40rem;
 }
 
-/* Corners, one per component type (section 1.3). The layout grid stays straight;
-   only corners are irregular. */
+/* Corners, one per component type (section 1.3), as the kit measured them: the panel
+   is the one irregular, hand-drawn shape; everything inside it is a plain round. */
+@utility wonk-panel {
+  border-radius: 30px 26px 32px 24px / 26px 30px 24px 32px;
+}
+
+@utility wonk-panel-edge {
+  border-radius: 34px 28px 36px 26px / 28px 34px 26px 36px;
+}
+
 @utility wonk-card {
-  border-radius: 16px 6px 14px 8px / 8px 14px 6px 16px;
+  border-radius: 14px;
 }
 
 @utility wonk-button {
-  border-radius: 10px 14px 8px 12px;
+  border-radius: 12px;
 }
 
 @utility wonk-tile {
-  border-radius: 12px 8px 14px 6px;
+  border-radius: 9px;
 }
 
 @utility wonk-field {
-  border-radius: 6px 10px 8px 12px;
+  border-radius: 8px;
 }
 
 /* Focus is never removed (section 1.4). Forced colours uses the system highlight. */

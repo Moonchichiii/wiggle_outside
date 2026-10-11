@@ -14,19 +14,22 @@ text, controls and focus indicators stay straight and stable.
 
 | Token | Hex | Role |
 |---|---|---|
-| `oatmeal` | `#F2EDE4` | Page background |
-| `card` | `#FFFCF6` | Form panel, detail view, fields |
-| `ink` | `#191C20` | All body text, borders, icons |
-| `ink-soft` | `#42464D` | Secondary text: hints, meta lines |
-| `sage` | `#D3E0D0` | Idea card background (variant 1) |
-| `peach` | `#F7D6C8` | Idea card background (variant 2) |
-| `butter` | `#FAE8C3` | Idea card background (variant 3); selected tile fill |
+| `oatmeal` | `#F3ECE1` | Page background (TC-008: measured from the board by the design kit) |
+| `card` | `#FBF9F3` | Form panel, detail view, fields (TC-008) |
+| `ink` | `#1B1D1F` | All body text, borders, icons (TC-008) |
+| `ink-soft` | `#3D4146` | Secondary text: hints, meta lines (TC-008) |
+| `sage` | `#DCE6D3` | Idea card background (variant 1); selected tile fill (TC-008) |
+| `peach` | `#F6D3C6` | Idea card background (variant 2) (TC-008) |
+| `butter` | `#FBECC0` | Idea card background (variant 3) (TC-008) |
 | `alert` | `#EAD5D1` | Error notice background |
 | `success` | `#D7E4D7` | Success notice background |
 | `action` | `#2C5234` | Primary button background |
 | `action-hover` | `#22412A` | Primary button hover and pressed |
-| `link` | `#1E4A85` | Links, focus ring, selected-tile border |
+| `link` | `#24452C` | Links and focus ring (TC-008: the board's green, not blue) |
 | `error` | `#8A2A17` | Error text and error borders |
+| `line` | `#D8D2C6` | Hairline edge of tiles, fields and check rows; never text (TC-008) |
+| `sage-line` | `#557150` | Selected-tile border; never text (TC-008) |
+| `weather` | `#F1EEE6` | The weather strip's band; never text (TC-008) |
 
 **Rules.** Text on `sage`, `peach`, `alert` and `success` is `ink` only. The coloured inks
 (`action`, `link`, `error`) and `ink-soft` appear as text only on `oatmeal`, `card` or
@@ -192,8 +195,8 @@ fewer than 20 path commands per icon, no filters, scripts, rasters or external r
 | location-pin | "Use my location" | 24 | decorative | `aria-hidden` |
 | sun, cloud, rain, wind, sunset, thermometer | card weather line | 32, 48 | decorative (text states the weather) | `aria-hidden` |
 | info, check, alert | notices | 24 | decorative (text carries meaning) | `aria-hidden` |
-| tape-strip | card tops | 64 × 16 | decorative | `aria-hidden`, separate file |
-| leaf-doodle, cloud-doodle | page margins, ≥ 64 rem only | 48–96 | decorative | `aria-hidden`, separate file |
+| ~~tape-strip~~ | ~~card tops~~ | — | superseded: the board's cards carry its cut-out artwork instead (TC-008) | — |
+| ~~leaf-doodle, cloud-doodle~~ | ~~page margins~~ | — | superseded by the board's decorations, placed per `docs/design-kit/kit.css` (TC-008) | — |
 
 Rune Icons (D47) are **declined for v1**: all icons are this small original set. At 24 px every icon keeps at least 2 px gaps between strokes. No illustration shows water
 edges, climbing, heights, fire or roads.

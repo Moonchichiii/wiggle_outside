@@ -12,13 +12,14 @@ WORKDIR /build
 COPY package.json bun.lock bunfig.toml ./
 RUN bun install --frozen-lockfile
 
-# frontend/ carries css/, js/, svg/ and fonts/. The fonts are gitignored under the
+# frontend/ carries css/, img/, svg/ and fonts/. The fonts are gitignored under the
 # Fontshare licence (TC-007), so they are present only when the build context supplies
 # them from private storage; copying the whole directory means the build works either
 # way, and without them tokens.css falls back to the system stack.
 COPY frontend/ ./frontend/
 COPY src/ ./src/
-RUN bun run build:css
+# The stylesheet and the board artwork (TC-008), into src/wiggle_outside/web/static/.
+RUN bun run build
 
 
 # --- Runtime ------------------------------------------------------------------------
@@ -43,7 +44,7 @@ COPY pyproject.toml uv.lock .python-version README.md LICENSE ./
 RUN uv sync --frozen --no-dev --no-install-project
 
 COPY src/ ./src/
-# The built stylesheet and the fonts, from the frontend stage.
+# The built stylesheet, the board artwork and the fonts, from the frontend stage.
 COPY --from=frontend /build/src/wiggle_outside/web/static/ ./src/wiggle_outside/web/static/
 COPY --from=frontend /build/frontend/fonts/ ./frontend/fonts/
 

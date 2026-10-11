@@ -1,9 +1,11 @@
 """Screenshot the running app, for comparing against the approved visual direction.
 
-    uv run python scripts/shoot.py            # 390 and 1440
-    uv run python scripts/shoot.py 390        # one width
+    uv run python scripts/shoot.py                       # the form at 390, 1440, 1920
+    uv run python scripts/shoot.py --results 390         # one page, one width
+    (--errors, --results, --detail, --night)
 
-Writes out/shot-<width>.png. Needs the app on 127.0.0.1:8000 and `bun run build:css`.
+Writes out/shot-<page>-<width>.png. Needs the app on 127.0.0.1:8443 (night: 8444) and
+`bun run build`. Compare with docs/design-kit/shots/.
 Playwright is a dev dependency; WP9b owns the CSP, axe and journey runs that use it for
 real. This is an eyeball aid, not a check.
 """
@@ -20,7 +22,7 @@ URL: Final = BASE + "/"
 # The night page needs a daylight-blocked planner; see scripts/night_server.py.
 NIGHT_BASE: Final = "https://127.0.0.1:8444"
 NIGHT_URL: Final = NIGHT_BASE + "/"
-WIDTHS: Final = (390, 1440)
+WIDTHS: Final = (390, 1440, 1920)
 TALL: Final = 1100
 
 
@@ -42,7 +44,12 @@ def submit_form(page: object, *, invalid: bool = False) -> None:
 
 
 def main() -> int:
-    flags = {"--results": "results", "--errors": "errors", "--night": "night"}
+    flags = {
+        "--results": "results",
+        "--errors": "errors",
+        "--night": "night",
+        "--detail": "detail",
+    }
     args = [a for a in sys.argv[1:] if a not in flags]
     mode = next((name for flag, name in flags.items() if flag in sys.argv), "form")
     widths = [int(a) for a in args] or list(WIDTHS)
@@ -60,8 +67,12 @@ def main() -> int:
             # The fonts must have swapped in before the shot, or the screenshot shows
             # the fallback and the comparison is meaningless.
             page.wait_for_timeout(400)
-            if mode in {"results", "errors", "night"}:
+            if mode != "form":
                 submit_form(page, invalid=mode == "errors")
+                page.wait_for_timeout(300)
+            if mode == "detail":
+                page.click(".wo-card-link a")
+                page.wait_for_load_state("networkidle")
                 page.wait_for_timeout(300)
             target = OUT / f"shot-{mode}-{width}.png"
             page.screenshot(path=str(target), full_page=True)

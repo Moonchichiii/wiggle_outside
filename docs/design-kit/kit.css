@@ -1,0 +1,185 @@
+/* Wiggle Outside: board design kit (reference implementation).
+   Measured from docs/mocks/reference/visual-direction-v2.png. The board's form panel is
+   496 px wide; every decoration offset below is in board pixels and scaled by --s, so the
+   whole composition grows or shrinks with the panel. Port these rules into the app's
+   stylesheet; the class names are only suggestions. */
+
+:root {
+  --oatmeal: #f3ece1;
+  --paper: #fbf9f3;
+  --ink: #1b1d1f;
+  --ink-soft: #3d4146;
+  --line: #d8d2c6;
+  --sage: #dce6d3;
+  --sage-line: #557150;
+  --peach: #f6d3c6;
+  --butter: #fbecc0;
+  --green: #2c5234;
+  --green-hover: #22412a;
+  --link: #24452c;
+  --panel-board-w: 496; /* the board's panel width, unitless */
+  --panel-w: 520px;     /* the app's panel width */
+  --font-head: "Cabinet Grotesk", "Poppins", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Switzer", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--oatmeal); color: var(--ink); }
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.45;
+  background: var(--oatmeal);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* --- Stage: the panel plus its decorated margins ------------------------------------- */
+/* The scale factor is a plain number so calc() can multiply px offsets by it. */
+.stage { --k: 1.05; position: relative; width: var(--panel-w); margin: 32px auto 120px; }
+@media (min-width: 1400px) { .stage { --k: 1.12; } }
+.stage { --panel-w: calc(496px * var(--k)); }
+
+.decor { position: absolute; pointer-events: none; user-select: none; z-index: 0; }
+.decor img { display: block; width: 100%; height: auto; }
+.d-left  { right: calc(100% + var(--gap-l) * var(--k)); }
+.d-right { left:  calc(100% + var(--gap-r) * var(--k)); }
+.decor { top: calc(var(--y) * var(--k)); width: calc(var(--w) * var(--k)); }
+
+/* Positions measured on the board (board px): --gap is the distance from the panel edge,
+   --y from the panel top. Left items are measured against the form panel, right items
+   against the results panel, so one app panel gets both margins. */
+.d-sun          { --w: 154px; --y: 18px;  --gap-l: 30px; }
+.d-small-people { --w: 156px; --y: 231px; --gap-l: 39px; }
+.d-sprig-lt     { --w: 62px;  --y: 186px; --gap-l: 15px; }
+.d-sprig-lm     { --w: 55px;  --y: 463px; --gap-l: 155px; }
+.d-grass-lb     { --w: 113px; --y: 919px; --gap-l: 51px; }
+.d-nature-ideas { --w: 185px; --y: 18px;  --gap-r: 30px; }
+.d-sprig-rt     { --w: 55px;  --y: 250px; --gap-r: 42px; }
+.d-curiosity    { --w: 117px; --y: 378px; --gap-r: 72px; }
+.d-sprig-rm     { --w: 56px;  --y: 458px; --gap-r: 23px; }
+.d-signpost     { --w: 202px; --y: 543px; --gap-r: 23px; }
+
+/* Only when there is room for both margins (panel + 2 x ~260 px). */
+@media (max-width: 1099px) { .decor { display: none; } .decor.d-phone { display: block; } }
+
+/* --- The panel --------------------------------------------------------------------- */
+.panel {
+  position: relative;
+  z-index: 1;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 30px 26px 32px 24px / 26px 30px 24px 32px;
+  box-shadow: 4px 5px 0 rgb(27 29 31 / 0.12), 0 18px 40px -24px rgb(60 45 20 / 0.35);
+  padding: 30px 28px 28px;
+}
+/* A second, slightly offset hairline gives the hand-inked double edge seen on the board. */
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: -6px -5px -5px -6px;
+  border: 1.5px solid rgb(27 29 31 / 0.55);
+  border-radius: 34px 28px 36px 26px / 28px 34px 26px 36px;
+  pointer-events: none;
+}
+
+.brand { display: flex; align-items: center; gap: 6px; margin: 0 0 14px;
+  font-family: var(--font-head); font-weight: 800; font-size: 23px; letter-spacing: -0.01em; }
+.brand img { width: 20px; height: auto; }
+h1 { font-family: var(--font-head); font-weight: 800; font-size: 54px; line-height: 1.02;
+  letter-spacing: -0.025em; margin: 0 0 8px; }
+.lede { font-size: 17px; color: var(--ink-soft); margin: 0 0 22px; }
+
+fieldset { border: 0; margin: 0 0 20px; padding: 0; min-width: 0; }
+legend, .q { font-weight: 650; font-size: 17px; margin: 0 0 8px; padding: 0; }
+.q .opt { font-weight: 400; font-size: 14px; color: var(--ink-soft); }
+
+.tiles { display: grid; gap: 10px; }
+.tiles.c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.tiles.c3 { grid-template-columns: 1.1fr 1.1fr 1fr; }
+.tiles.c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+.tile {
+  display: flex; align-items: center; gap: 10px;
+  min-height: 52px; padding: 8px 12px;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 9px;
+  font-size: 16px; cursor: pointer; white-space: nowrap;
+}
+.tiles.c2 .tile { min-height: 60px; padding-inline: 16px; }
+.tile input { width: 20px; height: 20px; margin: 0; flex: none; accent-color: var(--ink); }
+.tile svg { width: 26px; height: 26px; flex: none; }
+.tile:has(input:checked) { background: var(--sage); border-color: var(--sage-line); }
+.tile:has(input:focus-visible) { outline: 3px solid var(--link); outline-offset: 2px; }
+
+.town { display: grid; grid-template-columns: 1fr auto; gap: 12px; }
+input[type="text"] {
+  width: 100%; min-height: 48px; padding: 10px 14px; font: inherit; color: var(--ink);
+  background: var(--paper); border: 1.5px solid var(--line); border-radius: 8px;
+}
+.btn-loc {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px;
+  font: inherit; font-size: 15px; background: var(--paper); color: var(--ink);
+  border: 1.5px solid var(--line); border-radius: 8px; cursor: pointer; white-space: nowrap;
+}
+.btn-loc svg { width: 22px; height: 22px; }
+
+.checks { margin: 14px 0 18px; }
+.check { display: flex; align-items: center; gap: 12px; min-height: 44px; font-size: 16px;
+  border-bottom: 1px solid var(--line); cursor: pointer; }
+.check:last-child { border-bottom: 0; }
+.check input { width: 20px; height: 20px; margin: 0; accent-color: var(--ink); }
+.hint { font-size: 14px; color: var(--ink-soft); margin: -2px 0 8px; }
+
+.btn-go {
+  display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%;
+  min-height: 56px; border: 0; border-radius: 12px; background: var(--green); color: #fff;
+  font-family: var(--font-body); font-size: 24px; font-weight: 550; cursor: pointer;
+  box-shadow: 0 2px 0 rgb(0 0 0 / 0.15);
+}
+.btn-go:hover { background: var(--green-hover); }
+.btn-go svg { width: 24px; height: 24px; }
+
+/* --- Results ----------------------------------------------------------------------- */
+.summary { font-size: 19px; margin: 0; }
+.summary + a { display: inline-block; margin: 2px 0 18px; }
+a { color: var(--link); text-decoration-thickness: 1.5px; text-underline-offset: 3px; font-weight: 550; }
+.weather {
+  display: flex; align-items: center; gap: 14px; padding: 12px 16px; margin-bottom: 18px;
+  background: #f1eee6; border-radius: 12px; font-size: 15px;
+}
+.weather small { display: block; color: var(--ink-soft); font-size: 12.5px; }
+.weather .w-ico { margin-left: auto; width: 52px; }
+.weather > svg { width: 30px; height: 30px; flex: none; }
+.results h1, h1.results-h { font-size: 44px; letter-spacing: -0.03em; }
+.interests { font-weight: 550; margin: 0 0 10px; }
+.card {
+  position: relative; border-radius: 14px; padding: 18px 22px 16px; margin-bottom: 10px;
+  min-height: 190px;
+}
+.card.sage { background: var(--sage); } .card.peach { background: var(--peach); } .card.butter { background: var(--butter); }
+.card h2 { font-family: var(--font-head); font-weight: 800; font-size: 29px; line-height: 1.1;
+  margin: 0; letter-spacing: -0.015em; padding-right: 120px; }
+.card .hook { font-size: 17px; margin: 2px 0 12px; padding-right: 120px; }
+.card .facts { list-style: none; margin: 0 0 10px; padding: 0; font-size: 14.5px; }
+.card .facts li { display: flex; align-items: center; gap: 12px; min-height: 23px; }
+.card .facts svg { width: 16px; height: 16px; flex: none; }
+.card .illo { position: absolute; top: 12px; right: 18px; width: 118px; }
+.card .corner { position: absolute; right: 16px; bottom: 12px; width: 52px; }
+
+/* --- Phones ------------------------------------------------------------------------ */
+@media (max-width: 600px) {
+  .stage { --k: 1; width: auto; margin: 72px 12px 64px; }
+  .panel { padding: 22px 18px 20px; }
+  h1 { font-size: 40px; }
+  .tiles.c4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tiles.c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tiles.c3 .tile { flex-direction: column; gap: 4px; padding: 8px 4px; }
+  .town { grid-template-columns: 1fr; }
+  .card h2, .card .hook { padding-right: 84px; }
+  .card .illo { width: 84px; }
+  .decor.d-phone.d-sun { right: auto; left: 6px; top: -66px; width: 74px; }
+  .decor.d-phone.d-sprig-rt { left: auto; right: 10px; top: -58px; width: 34px; }
+}
+@media print { .decor { display: none; } }

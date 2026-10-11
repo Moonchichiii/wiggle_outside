@@ -150,25 +150,25 @@ INTERESTS_LEGEND_BY_WHO: Final[Mapping[Who, str]] = MappingProxyType(
 # The 14 tags as display labels (D39). "Change answers" prefills the interests field
 # with these, never with the original free text, because these are what we recognised
 # (CONTRACTS section 7, CC-C). Lower case: they read as a list, not as proper nouns.
-# Activity illustrations for the result cards (the approved visual direction, TC-008).
-# Keyed by catalogue activity id, so a puddle activity never shows a tree. Anything not
-# listed falls back to the generic leaf; the name is chosen by code, never by the model.
+# Activity illustrations for the result cards: the three pictures cut from the approved
+# concept board (docs/design-kit/board/card-*.png, TC-008), keyed by catalogue activity
+# id. Trees for the tree activities, the magnifier for anything that looks closely, and
+# the sun and cloud for the rest; the name is chosen by code, never by the model.
 ACTIVITY_ILLUSTRATIONS: Final[Mapping[str, str]] = MappingProxyType(
     {
-        "tree-twins": "illo-trees",
-        "leaf-colour-hunt": "illo-leaf",
-        "leaf-study-solo": "illo-leaf",
-        "nature-bingo": "illo-bingo",
-        "puddle-jumping": "illo-puddle",
-        "minibeast-safari": "illo-magnifier",
-        "i-spy-far": "illo-magnifier",
-        "shape-safari": "illo-magnifier",
-        "sky-watch": "illo-sky",
-        "watch-the-world": "illo-sky",
-        "cloud-spotting": "illo-sky",
+        "tree-twins": "card-trees",
+        "bark-rubbing": "card-trees",
+        "stick-houses": "card-trees",
+        "nature-bingo": "card-magnifier",
+        "minibeast-safari": "card-magnifier",
+        "i-spy-far": "card-magnifier",
+        "shape-safari": "card-magnifier",
+        "track-detective": "card-magnifier",
+        "colour-match": "card-magnifier",
+        "leaf-study-solo": "card-magnifier",
     }
 )
-DEFAULT_ILLUSTRATION: Final = "illo-leaf"
+DEFAULT_ILLUSTRATION: Final = "card-sun-cloud"
 
 INTEREST_TAG_LABELS: Final[Mapping[InterestTag, str]] = MappingProxyType(
     {

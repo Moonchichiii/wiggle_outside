@@ -1,0 +1,28 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Form · Wiggle Outside kit</title><link rel="stylesheet" href="kit.css"></head><body>
+<div class="stage">
+<div class="decor d-left d-sun d-phone" aria-hidden="true"><img src="board/sun.png" alt=""></div>
+<div class="decor d-left d-sprig-lt" aria-hidden="true"><img src="board/sprig-left-top.png" alt=""></div>
+<div class="decor d-left d-small-people" aria-hidden="true"><img src="board/note-small-people.png" alt=""></div>
+<div class="decor d-left d-sprig-lm" aria-hidden="true"><img src="board/sprig-left-mid.png" alt=""></div>
+<div class="decor d-left d-grass-lb" aria-hidden="true"><img src="board/grass-left-bottom.png" alt=""></div>
+<div class="decor d-right d-nature-ideas" aria-hidden="true"><img src="board/note-nature-ideas.png" alt=""></div>
+<div class="decor d-right d-sprig-rt d-phone" aria-hidden="true"><img src="board/sprig-right-top.png" alt=""></div>
+<div class="decor d-right d-curiosity" aria-hidden="true"><img src="board/note-curiosity.png" alt=""></div>
+<div class="decor d-right d-sprig-rm" aria-hidden="true"><img src="board/sprig-right-mid.png" alt=""></div>
+<div class="decor d-right d-signpost" aria-hidden="true"><img src="board/signpost.png" alt=""></div>
+<main class="panel">
+<p class="brand">Wiggle Outside <img src="board/brand-sprig.png" alt=""></p>
+<h1>A little fresh air?</h1>
+<p class="lede">A few details. Up to three outdoor ideas near you.</p>
+<form method="post" action="#">
+<fieldset><legend>Who&rsquo;s coming?</legend><div class="tiles c2"><label class="tile"><input type="radio" name="who" value="kids" checked><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="17" cy="9" r="2.3"/><path d="M15.5 14.2c3 .2 5.2 2.4 5.2 5.3"/></svg><span>Me + kids</span></label><label class="tile"><input type="radio" name="who" value="solo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="7.5" r="3.5"/><path d="M4.5 20.5c0-4.2 3.4-7 7.5-7s7.5 2.8 7.5 7"/></svg><span>Just me</span></label></div></fieldset>
+<fieldset><legend>Kids&rsquo; ages</legend><div class="tiles c4"><label class="tile"><input type="checkbox" name="age" value="0-2"><span>0&ndash;2</span></label><label class="tile"><input type="checkbox" name="age" value="3-5" checked><span>3&ndash;5</span></label><label class="tile"><input type="checkbox" name="age" value="6-9"><span>6&ndash;9</span></label><label class="tile"><input type="checkbox" name="age" value="10-12"><span>10&ndash;12</span></label></div></fieldset>
+<fieldset><legend>Time, there and back</legend><div class="tiles c4"><label class="tile"><input type="radio" name="t" value="30"><span>30 min</span></label><label class="tile"><input type="radio" name="t" value="60" checked><span>1 hour</span></label><label class="tile"><input type="radio" name="t" value="120"><span>2 hours</span></label><label class="tile"><input type="radio" name="t" value="240"><span>Half day</span></label></div></fieldset>
+<fieldset><legend>Energy to spend</legend><div class="tiles c3"><label class="tile"><input type="radio" name="e" value="gentle" checked><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14z"/><path d="M5 19 13 11"/></svg><span>Gentle</span></label><label class="tile"><input type="radio" name="e" value="moderate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-4 0-6-2.5-6-6 3.5 0 6 2 6 6zM12 11c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6z"/></svg><span>Moderate</span></label><label class="tile"><input type="radio" name="e" value="energetic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 19 8.5 8l4.5 7 3-4.5L22 19"/></svg><span>High</span></label></div></fieldset>
+<fieldset><legend>Your town</legend><div class="town"><input type="text" aria-label="Your town" value="Växjö"><button type="button" class="btn-loc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><path d="M12 2v3.5M12 18.5V22M2 12h3.5M18.5 12H22"/></svg>Use my location</button></div></fieldset>
+<fieldset><legend class="q">What are they into? <span class="opt">(optional)</span></legend><input type="text" aria-label="What are they into?" value="birds, puddles"></fieldset>
+<div class="checks"><label class="check"><input type="checkbox"> Bringing a stroller</label><label class="check"><input type="checkbox"> Prefer places reported as step-free</label></div>
+<button class="btn-go" type="submit">Find outings <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+</form>
+</main></div></body></html>

@@ -25,8 +25,6 @@
 {% set fixed_copy = page.heading != copy.RESULTS_HEADING %}
 
 {% block main %}
-{# Every page sits in the cream panel (the approved board, TC-008). #}
-<div class="wo-panel">
 <section class="wo-results" aria-labelledby="results-heading">
 <h2 class="wo-results-heading" id="results-heading" tabindex="-1">{{ page.heading }}</h2>
 {% if fixed_copy and page.notices %}
@@ -68,6 +66,8 @@
 <p class="wo-weather-line">{% if page.weather.example %}<span class="wo-weather-example">{{ page.weather.example }}</span>{{ copy.ANSWERS_JOIN }}{% endif %}{{ page.weather.line }}</p>
 {% if page.weather.example_note %}<p class="wo-weather-note">{{ page.weather.example_note }}</p>{% endif %}
 </div>
+{# The board's sun and cloud at the strip's right: decoration, not the forecast. #}
+<img class="wo-weather-art" src="/static/board/card-sun-cloud.png" alt="" aria-hidden="true" width="114" height="86">
 </div>
 {% endif %}
 
@@ -100,5 +100,4 @@
 </div>
 {% endif %}
 </section>
-</div>
 {% endblock %}
