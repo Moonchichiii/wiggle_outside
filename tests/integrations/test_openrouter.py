@@ -465,3 +465,17 @@ def test_the_largest_contracted_request_fits_the_cap() -> None:
     )
     size = len(openrouter.serialise(openrouter.request_body(MODEL, widest)))
     assert size <= openrouter.MAX_REQUEST_BYTES, size
+
+
+def test_the_v2_prompt_says_a_generic_pair_is_a_valid_pick() -> None:
+    """Observed live on 11 October: offered only place-free pairs, the model picked none.
+
+    The rule makes the generic case explicit, so a run with places unavailable can still
+    end as a model result (plan_outing._ask_model -> source MODEL).
+    """
+    prompt = openrouter.system_prompt("select.v2")
+    assert "every pair is acceptable" in prompt
+    assert "match nothing in <family_text> is still acceptable" in prompt
+    assert 'A pair whose place_kind is "none"' in prompt
+    assert "as valid a pick as any other" in prompt
+    assert 'when every pair has place_kind "none", still pick up to 3' in prompt

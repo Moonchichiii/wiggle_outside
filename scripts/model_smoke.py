@@ -1,6 +1,6 @@
 """PLAN section 15 step 3: the hosted model smoke, on controlled input, against OpenRouter.
 
-    uv run python scripts/model_smoke.py [--typical-only]
+    uv run python scripts/model_smoke.py [--typical-only] [--generic-only]
 
 Two real calls through the real adapter: a typical request (the WALKTHROUGH family, four
 places) and the largest contracted one (twelve pairs, 120 characters of interest text).
@@ -39,7 +39,12 @@ from wiggle_outside.planner.catalogue import load_catalogue
 from wiggle_outside.planner.prompting import build_request, user_message
 from wiggle_outside.settings import Settings
 
-EVIDENCE: Final = Path(__file__).resolve().parent.parent / "docs" / "evidence" / "model-smoke.md"
+EVIDENCE_DIR: Final = Path(__file__).resolve().parent.parent / "docs" / "evidence"
+# `--generic-only`: the pairs a run builds when places are unavailable (no place at
+# all), to show whether the model picks among them (select.v2 rule 1). Its evidence
+# goes to its own file so the typical smoke stays as recorded.
+GENERIC_ONLY: Final = "--generic-only" in sys.argv
+EVIDENCE: Final = EVIDENCE_DIR / ("model-smoke-generic.md" if GENERIC_ONLY else "model-smoke.md")
 ORIGIN: Final = Coordinates(lat=60.93, lon=17.04)  # the WALKTHROUGH fixture origin
 AGES: Final = frozenset({AgeBand.B3_5, AgeBand.B6_9})
 ENERGY: Final = Energy.MODERATE
@@ -243,12 +248,18 @@ async def main() -> int:
             return 2
         calls = [
             Call(
+                "Generic-only request (places unavailable: no place in any pair)",
+                controlled_pairs(()),
+                TYPICAL_TEXT,
+            )
+            if GENERIC_ONLY
+            else Call(
                 "Typical request (WALKTHROUGH family, 4 places)",
                 controlled_pairs(TYPICAL_PLACES),
                 TYPICAL_TEXT,
             )
         ]
-        if "--typical-only" not in sys.argv:
+        if "--typical-only" not in sys.argv and not GENERIC_ONLY:
             calls.append(
                 Call(
                     "Largest contracted request (12 pairs, 120-character text)",

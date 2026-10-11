@@ -140,4 +140,6 @@ Open-Meteo for the same point: 0.14 s, 0.03 s, 0.03 s.
 | 6 | Boston fixture-places journey, new search with cached geocode and weather | served by DeepInfra, 1608 / 82 / 0, finish `stop`, 1.44 s; the same two picks |
 | 7 | Back Bay live journey, overpass-api.de run | served by CoreWeave, 650 / 20 / 0, finish `stop`, 1.95 s; interests only, no pick (generic pairs) |
 | 8 | Back Bay live journey, kumi run | served by DeepInfra, 651 / 20 / 0, finish `stop`, 1.23 s; interests only, no pick (generic pairs) |
-| 9 to 25 | unspent | |
+| 9 | generic-only smoke, first wording of the new select.v2 rule | served by DeepInfra, 699 / 27 / 0, 1.28 s; no pick (model-smoke-generic.md) |
+| 10 | generic-only smoke, final wording | served by CoreWeave, 735 / 103 / 0, 1.42 s; three validated picks |
+| 11 to 25 | unspent | |
