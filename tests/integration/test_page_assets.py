@@ -7,6 +7,8 @@ route tests only compared paths, and the template tests rendered through a fixtu
 supplied its own assets. Nothing asserted the two ends met.
 """
 
+import base64
+import hashlib
 import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
@@ -18,6 +20,9 @@ if TYPE_CHECKING:
 
 LINK: Final = re.compile(r'<link[^>]+rel="stylesheet"[^>]*>', re.IGNORECASE)
 HREF: Final = re.compile(r'href="([^"]+)"')
+HREF_ANY: Final = re.compile(r'src="([^"]+)"')
+INTEGRITY: Final = re.compile(r'integrity="([^"]+)"')
+SCRIPT: Final = re.compile(r"(<script[^>]*>)(.*?)</script>", re.IGNORECASE | re.DOTALL)
 HTTP_OK: Final = 200
 MIN_CSS_BYTES: Final = 1000
 
@@ -62,10 +67,36 @@ def test_the_stylesheet_url_serves_non_empty_css(served_html: str, asgi_client: 
 
 def test_the_page_carries_no_inline_style_or_script(served_html: str) -> None:
     # The CSP forbids both (PLAN section 9). Asserted on what is actually served, not
-    # only on a template rendered in a test.
-    assert "<script" not in served_html.lower()
+    # only on a template rendered in a test. A script is allowed only as an external,
+    # same-origin, integrity-pinned file with no body (TC-011).
+    for tag, body in SCRIPT.findall(served_html):
+        assert body.strip() == "", tag
+        assert 'src="/static/' in tag, tag
+        assert 'integrity="sha384-' in tag, tag
+        assert " defer" in tag, tag
+    assert "<script>" not in served_html.lower()
     assert "style=" not in served_html.lower()
     assert "javascript:" not in served_html.lower()
+
+
+def test_every_script_is_served_as_javascript_with_a_matching_integrity(
+    served_html: str, asgi_client: TestClient
+) -> None:
+    # TC-011: the build hashes location.js into static/ and names it in manifest.json.
+    tags = [tag for tag, _ in SCRIPT.findall(served_html)]
+    if not tags:
+        pytest.skip("run `bun run build` first, or ./scripts/check.ps1 which does")
+    for tag in tags:
+        src = HREF_ANY.search(tag)
+        integrity = INTEGRITY.search(tag)
+        assert src, tag
+        assert integrity, tag
+        response = asgi_client.get(src.group(1))
+        assert response.status_code == HTTP_OK
+        assert "javascript" in response.headers["content-type"]
+        digest = base64.b64encode(hashlib.sha384(response.content).digest()).decode()
+        assert integrity.group(1) == f"sha384-{digest}"
+        assert "geolocation" in response.text
 
 
 def test_every_inline_svg_has_intrinsic_dimensions(served_html: str) -> None:

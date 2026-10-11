@@ -76,6 +76,8 @@ MAX_BODY_BYTES: Final = 8 * 1024
 
 HTML_CACHE_CONTROL: Final = "no-store, private"
 STATIC_CACHE_CONTROL: Final = "public, max-age=31536000, immutable"
+# TC-011: /favicon.ico is not content-hashed, so a day rather than a year.
+FAVICON_CACHE_CONTROL: Final = "public, max-age=86400"
 
 # --- Hosts and origins (BACKEND-CONTRACT section 5) ---------------------------------
 

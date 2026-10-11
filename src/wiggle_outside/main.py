@@ -6,6 +6,7 @@ import integrations or storage (import-linter contracts 5 and 6).
 
 import logging
 import secrets
+import sys
 import time
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -48,6 +49,29 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 PROCESS_KEY_BYTES: Final = 32
+LOG_FORMAT: Final = "%(asctime)s %(levelname)s %(name)s: %(message)s"
+
+
+def configure_logging(level: int = logging.INFO, root: logging.Logger | None = None) -> bool:
+    """Send the application's log lines to stdout, once (TC-011).
+
+    uvicorn configures only its own loggers, so without this the root logger has no
+    handler and every `wiggle_outside.*` INFO line (counters, which provider served a
+    request, how each search ended) is dropped in production. A root handler that is
+    already there (a test runner, an operator's log config) is left alone. The lines
+    themselves carry counts, timings and names only: never interest text, coordinates
+    or the key (PLAN section 5). Returns whether a handler was added. `root` is for
+    tests; the process root logger otherwise.
+    """
+    if root is None:
+        root = logging.getLogger()
+    if root.handlers:
+        return False
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter(LOG_FORMAT))
+    root.addHandler(handler)
+    root.setLevel(level)
+    return True
 
 
 def readiness_body(state: AppState) -> str:
@@ -232,6 +256,7 @@ def _wire(state: AppState, planner: PlannerService | None) -> tuple[PlannerServi
 
 def create_app(settings: Settings | None = None, planner: PlannerService | None = None) -> FastAPI:
     """Build the app. An injected `planner` replaces the real one (tests, previews)."""
+    configure_logging()
     state = build_state(settings)
     planner, sessions = _wire(state, planner)
     resources = state.resources

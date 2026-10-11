@@ -1,0 +1,7 @@
+{# One external, hashed, integrity-pinned script from the build manifest, or nothing at
+   all when the build has not produced it (DESIGN-SPEC section 11: never inline). #}
+{% macro script_tag(assets, name) -%}
+{% if name in assets %}
+<script src="{{ assets[name].url }}"{% if assets[name].integrity %} integrity="{{ assets[name].integrity }}"{% endif %} defer></script>
+{% endif %}
+{%- endmacro %}

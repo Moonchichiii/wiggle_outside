@@ -380,6 +380,9 @@ fly status --app wiggle-outside
 curl.exe -s https://wiggle-outside.fly.dev/healthz   # ok
 curl.exe -s https://wiggle-outside.fly.dev/readyz    # app: ready / model: ready
 curl.exe -sI https://wiggle-outside.fly.dev/static/fonts/CabinetGrotesk-Variable.woff2 | Select-String "200|font/woff2"
+# TC-011: the page names its hashed stylesheet and script; both must answer 200.
+curl.exe -s https://wiggle-outside.fly.dev/ | Select-String -Pattern '(href|src)="/static/[^"]+"' -AllMatches | ForEach-Object { $_.Matches.Value }
+curl.exe -sI https://wiggle-outside.fly.dev/favicon.ico | Select-String "200|image/x-icon|max-age=86400"
 
 # 6. Record the image digest (docs/evidence/release.md) and keep it for rollback.
 fly image show --app wiggle-outside

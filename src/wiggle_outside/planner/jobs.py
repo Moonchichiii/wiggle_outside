@@ -314,26 +314,42 @@ class Planner:
         return job
 
     async def _run(self, job: _Job, run: Run) -> None:
-        grace = max(0.0, run.deadline - self._ports.clock.monotonic()) + DEADLINE_GRACE_S
+        started = self._ports.clock.monotonic()
+        grace = max(0.0, run.deadline - started) + DEADLINE_GRACE_S
         try:
             async with asyncio.timeout(grace):
                 planned = await plan_outing(self._ports, run, self._budgets)
         except TimeoutError:
             log.error("job %s overran its deadline and was cancelled", job.job_id[:8])  # noqa: TRY400  no traceback wanted
-            _finish(job, _failed(job.placeholder))
+            self._finish(job, _failed(job.placeholder), started)
             return
         except asyncio.CancelledError:
-            _finish(job, _failed(job.placeholder))
+            self._finish(job, _failed(job.placeholder), started)
             raise
         except Exception:
             log.exception("job %s failed", job.job_id[:8])
-            _finish(job, _failed(job.placeholder))
+            self._finish(job, _failed(job.placeholder), started)
             return
         if isinstance(planned, LocationChoiceNeeded):
             self._hold_candidates(job, run, planned)
-            _finish(job, planned.result)
+            self._finish(job, planned.result, started)
             return
-        _finish(job, planned)
+        self._finish(job, planned, started)
+
+    def _finish(self, job: _Job, result: PlanResult, started: float) -> None:
+        _finish(job, result)
+        # TC-011: one operator line per search. Names, counts and timings only: never
+        # the answers, the interest text or coordinates (PLAN section 5).
+        done = job.result if job.result is not None else result
+        log.info(
+            "job %s finished: state=%s source=%s ideas=%d error=%s elapsed=%.2fs",
+            job.job_id[:8],
+            done.state.value,
+            done.source.value,
+            len(done.ideas),
+            done.error.value if done.error is not None else "-",
+            self._ports.clock.monotonic() - started,
+        )
 
     def _hold_candidates(self, job: _Job, run: Run, planned: LocationChoiceNeeded) -> None:
         held = LocationCandidates(

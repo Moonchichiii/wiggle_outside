@@ -21,6 +21,19 @@
   margin-bottom: var(--spacing-s5);
 }
 
+/* TC-011: the candidate list is the one question on its page, with its own heading. */
+.wo-choice-heading {
+  margin: 0 0 var(--spacing-s2);
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.wo-choice-intro {
+  margin-bottom: var(--spacing-s3);
+}
+
 .wo-fieldset {
   min-width: 0;
   margin: 0 0 var(--spacing-s4);
@@ -257,6 +270,12 @@
 .wo-btn-primary[aria-busy="true"] {
   background: var(--color-action-hover);
   border-color: var(--color-action-hover);
+}
+
+/* A control that cannot work is not offered: `hidden` must win over the button's own
+   display, or "Use my location" and "Print" would show with no script behind them. */
+.wo-btn[hidden] {
+  display: none;
 }
 
 .wo-btn-secondary {

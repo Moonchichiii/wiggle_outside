@@ -41,6 +41,11 @@ COPYRIGHT_SIGN: Final = chr(0x00A9)
 
 PAGE_TITLE: Final = "Wiggle Outside"  # D40
 FORM_PAGE_TITLE: Final = PAGE_TITLE
+# TC-011 (7): the one-sentence description search engines and link previews show.
+PAGE_DESCRIPTION: Final = (
+    "Weather, nearby places and a little inspiration in one short search. "
+    "Up to three outdoor ideas for right now, chosen with Gemma."
+)
 # The approved concept board (docs/mocks/reference/visual-direction-v2.png) puts the
 # product name small in a masthead and this question as the page heading.
 FORM_HEADING: Final = "A little fresh air?"
@@ -120,6 +125,13 @@ ENERGY_ICONS: Final[Mapping[Energy, str]] = MappingProxyType(
 
 WHERE_LEGEND: Final = "Where are you?"
 USE_MY_LOCATION: Final = "Use my location"
+# TC-011: the button is shown only once location.js runs; these are its status line.
+# The browser is asked once; the coordinates are rounded to two decimals before they
+# are put in the form (PLAN section 5), and nothing is sent until the person submits.
+LOCATION_ASKING: Final = f"Asking your browser for your location{ELLIPSIS}"
+LOCATION_USING: Final = "Using your location, rounded to about a kilometre."
+LOCATION_DENIED: Final = "Your browser didn't share your location. Type a town or area instead."
+LOCATION_FAILED: Final = "We couldn't get your location. Type a town or area instead."
 PLACE_LABEL: Final = "Town or area"
 # BACKEND-CONTRACT section 9: local development may show the hosted note; it is not a
 # product mode of its own, so every mode gets the same disclosed wording.
@@ -136,7 +148,14 @@ PLACE_HINT_BY_MODE: Final[Mapping[DeploymentMode, str]] = MappingProxyType(
 # D46: the location carried into a prefilled "Change answers" form.
 CARRIED_LOCATION_SUFFIX: Final = " (kept from this search; no new place lookup)"
 CARRIED_LOCATION_ALTERNATIVE: Final = "or type a different town or area"
-LOCATION_CHOICE_LEGEND: Final = "Which place did you mean?"
+# TC-011: the candidate list has its own heading and its own button, so it cannot be
+# read as part of the form below it, which stays for anyone who wants to change answers.
+LOCATION_CHOICE_HEADING: Final = "Which place did you mean?"
+LOCATION_CHOICE_LEGEND: Final = "Places matching what you typed"
+LOCATION_CHOICE_INTRO: Final = (
+    "Pick one and we'll look there. Or change your answers below and search again."
+)
+USE_THIS_PLACE: Final = "Use this place"
 LOCATION_CHOICE_EXPIRES: Final = "This list of places expires at {time}."
 
 # --- Interests (D39) -----------------------------------------------------------------

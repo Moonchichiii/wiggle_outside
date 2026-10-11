@@ -4,6 +4,7 @@
    The form itself is the `plan_form` macro, shared with the "Change answers" disclosure
    on the results page, so both post exactly the same fields. #}
 {% extends "base.html" %}
+{% from "macros/script.html" import script_tag %}
 {% from "partials/fieldsets.html" import plan_form, location_choice with context %}
 
 {% block heading %}
@@ -17,4 +18,9 @@
 {% block main %}
 {{ location_choice(page) }}
 {{ plan_form(page) }}
+{% endblock %}
+
+{% block scripts %}
+{# TC-011: "Use my location", external and integrity-pinned; nothing without the build. #}
+{{ script_tag(page.meta.assets, "location.js") }}
 {% endblock %}

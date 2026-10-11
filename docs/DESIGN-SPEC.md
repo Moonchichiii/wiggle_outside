@@ -205,7 +205,9 @@ edges, climbing, heights, fire or roads.
   (accepted). Defaults only where decided: energy "Moderate" (D18);
   everything else starts unselected.
 - **"Use my location":** asks the browser once on click. It fills hidden rounded
-  coordinates and shows "Using your location". There is no reverse geocoding.
+  coordinates and shows "Using your location". There is no reverse geocoding. The button
+  is rendered hidden and shown only once `location.js` runs in a secure context with the
+  geolocation API, so without JavaScript only the town field is offered (TC-011).
 - **Submit and busy state (D43):** validation first (BACKEND-CONTRACT §7). With htmx the
   button shows "Finding outings…" at once and the note "This can take up to 20 seconds."
   appears in a polite live region; repeat clicks are ignored and the server deduplicates.

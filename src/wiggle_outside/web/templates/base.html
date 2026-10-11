@@ -6,7 +6,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="{{ copy.PAGE_DESCRIPTION }}">
 <title>{% block title %}{{ page.meta.title }}{% endblock %}</title>
+<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
 {% for name, asset in page.meta.assets.items() %}
 {% if name.endswith(".css") %}
 <link rel="stylesheet" href="{{ asset.url }}"{% if asset.integrity %} integrity="{{ asset.integrity }}"{% endif %}>
@@ -25,7 +28,9 @@
    inner one a plain section. #}
 <div class="wo-panel wo-page-panel">
 <header class="wo-masthead">
-<p class="wo-brand">{{ copy.PAGE_TITLE }}{{ icon("leaf-sprig", "wo-brand-leaf") }}</p>
+{# TC-011: the brand is the way home. A link with the product name as its text; the
+   leaf is decorative (aria-hidden in the icon macro). #}
+<a class="wo-brand" href="/" rel="home">{{ copy.PAGE_TITLE }}{{ icon("leaf-sprig", "wo-brand-leaf") }}</a>
 {% block heading %}{% endblock %}
 {% block intro %}{% endblock %}
 </header>

@@ -5,16 +5,20 @@ Nothing outside the static root is servable, and the only font files are the two
 faces, which may be absent (TC-007) and then 404 cleanly.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from starlette.responses import FileResponse, Response
 
 from wiggle_outside.web.routes.assets import resolve_static
 from wiggle_outside.web.security import (
+    FAVICON_CACHE_CONTROL,
     HTTP_NOT_FOUND,
     STATIC_CACHE_CONTROL,
     security_headers,
 )
+
+FAVICON: Final = "favicon.ico"
+ICON_TYPE: Final = "image/x-icon"
 
 # FastAPI resolves a handler's annotations when the route is registered, so Request
 # and Response stay runtime imports: under TYPE_CHECKING it reads `request` as a
@@ -36,3 +40,16 @@ def register(router: APIRouter, context: WebContext) -> None:
         if found is None:
             return Response(status_code=HTTP_NOT_FOUND, headers=headers)
         return FileResponse(found.path, media_type=found.media_type, headers=headers)
+
+    # TC-011: browsers ask for this name unprompted. The build copies the sun from the
+    # artwork here; it is not content-hashed, so it carries a one-day cache instead.
+    icon_headers = {"Cache-Control": FAVICON_CACHE_CONTROL} | security_headers(
+        context.settings.mode
+    )
+
+    @router.get("/favicon.ico")
+    async def favicon() -> Response:
+        found = resolve_static(FAVICON, context.static_root, context.fonts_root)
+        if found is None:
+            return Response(status_code=HTTP_NOT_FOUND, headers=icon_headers)
+        return FileResponse(found.path, media_type=ICON_TYPE, headers=icon_headers)

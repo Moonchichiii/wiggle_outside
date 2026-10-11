@@ -6,6 +6,7 @@ event the test releases, never by sleeping.
 
 import asyncio
 import dataclasses
+import logging
 from datetime import timedelta
 
 import pytest
@@ -362,3 +363,26 @@ async def test_a_job_that_overruns_its_deadline_is_cancelled_and_fails_safely(
     assert result.error is ErrorCode.UNEXPECTED_FAILURE
     assert p.active_jobs() == 0
     assert r.places.calls == [], "nothing after the hang ran"
+
+
+# --- The operator line (TC-011) ---------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_a_finished_job_logs_one_line_with_source_state_and_timing_only(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    p, _ = planner(rig())
+    with caplog.at_level(logging.INFO, logger="wiggle_outside.planner.jobs"):
+        ref = await p.start_or_join(S1, K1, ANSWERS)
+        done = await p.wait(S1, ref.job_id)
+
+    lines = [r.getMessage() for r in caplog.records if " finished: " in r.getMessage()]
+    assert len(lines) == 1
+    assert lines[0].startswith(
+        f"job {ref.job_id[:8]} finished: state={done.state.value} source={done.source.value} "
+        f"ideas={len(done.ideas)} error=- elapsed="
+    )
+    # Names, counts and timings only: never the answers (PLAN section 5).
+    assert "Bergby" not in lines[0]
+    assert "60." not in lines[0].split("elapsed=")[0]

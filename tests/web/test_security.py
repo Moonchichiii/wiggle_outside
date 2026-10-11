@@ -4,6 +4,7 @@ Every refusal here is 403 SESSION_INVALID or a transport status, never a silent 
 and every one of them is still a full page with the PLAN section 9 headers.
 """
 
+import re
 from collections.abc import Iterator
 
 import pytest
@@ -127,8 +128,12 @@ def test_html_is_never_stored(harness: Harness) -> None:
 def test_the_pages_we_emit_carry_no_inline_script_or_style(harness: Harness) -> None:
     shown = harness.client.get(harness.plan().headers["location"])
 
-    for forbidden in ("<script", "<style", " style=", " onclick="):
+    for forbidden in ("<script>", "<style", " style=", " onclick=", "javascript:"):
         assert forbidden not in shown.text
+    # TC-011: a script may appear only as an external, same-origin, integrity-pinned file.
+    for tag in re.findall(r"<script[^>]*>", shown.text):
+        assert 'src="/static/' in tag
+        assert 'integrity="sha384-' in tag
 
 
 # --- The origin rule ----------------------------------------------------------------

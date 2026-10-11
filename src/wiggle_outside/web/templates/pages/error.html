@@ -10,6 +10,7 @@
    above it. Nothing here announces twice (ERROR-HANDLING section 5): on a full page load
    neither region is a live region. #}
 {% extends "base.html" %}
+{% from "macros/script.html" import script_tag %}
 {% from "partials/notice.html" import notice with context %}
 {% from "partials/fieldsets.html" import plan_form, location_choice with context %}
 
@@ -28,4 +29,9 @@
 {{ plan_form(page.form) }}
 {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+{# TC-011: "Use my location", external and integrity-pinned; nothing without the build. #}
+{{ script_tag(page.meta.assets, "location.js") }}
 {% endblock %}

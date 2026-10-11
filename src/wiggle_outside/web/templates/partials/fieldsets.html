@@ -3,7 +3,7 @@
    Keyboard order: who, ages, time, energy, where, location, interests, submit. #}
 {% from "macros/tile.html" import tiles %}
 {% from "macros/field.html" import text_field, field_error, bare_text_field %}
-{% from "macros/button.html" import secondary %}
+{% from "macros/icon.html" import icon %}
 {% from "partials/error_summary.html" import error_summary with context %}
 
 {% macro described_by(hint_id, anchor, error) -%}
@@ -57,9 +57,14 @@
 <div class="wo-location-row">
 {{ bare_text_field("place", "place", page.place, "place-hint",
                    page.field_errors.get("place"), 80, "address-level2") }}
-{{ secondary(copy.USE_MY_LOCATION, "button", "location-pin") }}
+{# TC-011: rendered hidden and shown by location.js, so a button that cannot work is never
+   offered. The browser is asked on click; the rounded coordinates go into this form's
+   hidden fields and travel with the ordinary submit. The status line carries its own
+   wording as data attributes, so the script holds no copy. #}
+<button class="wo-btn wo-btn-secondary" type="button" data-wo-locate aria-describedby="locate-status" hidden>{{ icon("location-pin") }}{{ copy.USE_MY_LOCATION }}</button>
 </div>
 <p class="wo-hint" id="place-hint">{{ page.place_hint }}</p>
+<p class="wo-hint wo-locate-status" id="locate-status" role="status" data-wo-locate-status data-asking="{{ copy.LOCATION_ASKING }}" data-using="{{ copy.LOCATION_USING }}" data-denied="{{ copy.LOCATION_DENIED }}" data-failed="{{ copy.LOCATION_FAILED }}" hidden></p>
 </fieldset>
 {%- endmacro %}
 
@@ -144,10 +149,14 @@
 {% macro location_choice(page) -%}
 {% if page.candidates %}
 {# BACKEND-CONTRACT section 3: at most five candidates; the town field stays editable. #}
-<form class="wo-panel wo-choice-form" method="post" action="/location-choice">
+{# TC-011: its own heading and its own button, so the list reads as the one question on
+   this page and never as part of the form below, which stays for changing answers. #}
+<form class="wo-panel wo-choice-form" method="post" action="/location-choice" aria-labelledby="choice-heading">
 <input type="hidden" name="csrf_token" value="{{ page.session.csrf_token }}">
+<h2 class="wo-choice-heading" id="choice-heading">{{ copy.LOCATION_CHOICE_HEADING }}</h2>
+<p class="wo-hint wo-choice-intro">{{ copy.LOCATION_CHOICE_INTRO }}</p>
 <fieldset class="wo-fieldset">
-<legend class="wo-legend">{{ copy.LOCATION_CHOICE_LEGEND }}</legend>
+<legend class="wo-legend wo-vh">{{ copy.LOCATION_CHOICE_LEGEND }}</legend>
 {% if page.candidates_expire_at %}
 <p class="wo-hint" id="candidates-hint">{{ copy.LOCATION_CHOICE_EXPIRES.format(time=page.candidates_expire_at) }}</p>
 {% endif %}
@@ -155,7 +164,7 @@
          "candidates-hint" if page.candidates_expire_at else "", false) }}
 </fieldset>
 <div class="wo-actions">
-<button class="wo-btn wo-btn-primary" type="submit">{{ copy.SUBMIT }}<span class="wo-btn-arrow" aria-hidden="true">→</span></button>
+<button class="wo-btn wo-btn-primary" type="submit">{{ copy.USE_THIS_PLACE }}<span class="wo-btn-arrow" aria-hidden="true">→</span></button>
 </div>
 </form>
 {% endif %}

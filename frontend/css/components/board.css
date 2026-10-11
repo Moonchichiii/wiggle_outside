@@ -50,6 +50,9 @@
   line-height: 1.1;
   letter-spacing: -0.035em;
 }
+/* TC-011: the brand is a link home; it keeps the ink colour and the heading face. */
+.wo-brand, .wo-brand:visited { color: inherit; text-decoration: none; width: fit-content; }
+.wo-brand:hover { text-decoration: underline; text-underline-offset: 4px; }
 .wo-brand-leaf { color: var(--color-action); }
 .wo-masthead .wo-title, .wo-results-heading {
   margin: 0 0 8px;

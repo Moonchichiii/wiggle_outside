@@ -277,6 +277,7 @@ PLAN §9. Every POST: urlencoded only, ≤ 8 KiB, CSRF token, Origin check (BACK
 | GET `/healthz` | liveness, `ok` only; Fly health check; not counted in B2 | text | — | 0 |
 | GET `/readyz` | app readiness; model readiness reported separately in the body as `model: ready \| unavailable` | text | — | 0 |
 | GET `/static/{hashed}` | assets, immutable cache | — | — | 0 |
+| GET `/favicon.ico` | the tab icon, exported from the approved sun artwork; one-day cache; browsers ask for this name unprompted (TC-011) | — | — | 0 |
 | ~~GET `/examples`, `/examples/{id}`~~ | **inactive**: replay demo (D24 superseded by D48); not built, returns 404 | — | — | 0 |
 
 **Detail stability.** Results are immutable (D46), so a detail URL shows the same
@@ -531,6 +532,7 @@ rules re-homed, the acceptance checks affected, and the approver. Conventions:
 | TC-008 | The approved visual direction implemented, artwork included | `051570b`, `d03c08b`, `5f8c048`, `3c1eb1d` | accepted (Mats) |
 | TC-009 | Deadline budget 3 / 9 / 6 / 2, measured; both Overpass attempts share the places stage | pending (checkpoint commit by Mats) | accepted (Mats, 11 Oct) |
 | TC-010 | Live Gemma through OpenRouter with the approved-provider allowlist (NextBit, DeepInfra, CoreWeave) | pending (checkpoint commit by Mats) | accepted (Mats, with the reviewer's binding changes) |
+| TC-011 | Round 1: "Use my location" as a built, hashed enhancement; the choice page's own heading and button; the brand links home; app logs on stdout; `/favicon.ico`. Round 2: "Plan for tomorrow" | pending (Mats commits; deploy between the rounds) | accepted (Mats, 11 Oct) |
 
 ### 10.1 Contract changes raised by a package (CC)
 

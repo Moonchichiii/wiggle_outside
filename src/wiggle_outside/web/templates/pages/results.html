@@ -12,6 +12,7 @@
    Works with no JavaScript: "Change answers" is a native <details> and every control is
    inside its own form. #}
 {% extends "base.html" %}
+{% from "macros/script.html" import script_tag %}
 {% from "macros/icon.html" import icon %}
 {% from "partials/fieldsets.html" import plan_form with context %}
 {% from "partials/notice.html" import notice, lede with context %}
@@ -101,4 +102,9 @@
 {% endif %}
 </section>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{# TC-011: "Use my location", external and integrity-pinned; nothing without the build. #}
+{{ script_tag(page.meta.assets, "location.js") }}
 {% endblock %}
