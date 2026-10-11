@@ -52,7 +52,8 @@
   background-image: url("decor/illo-bingo.svg"); background-size: contain; background-position: center;
 }
 @media (width >= 68rem) {
-  .wo-page { min-height: 960px; }
+  /* Room for the ground artwork; under a 900px viewport so the form page never scrolls. */
+  .wo-page { min-height: 880px; }
 }
 @media (width < 68rem) {
   .wo-decor .wo-art { display: none; }

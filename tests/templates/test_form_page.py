@@ -318,10 +318,14 @@ def test_the_time_tiles_say_what_half_day_means(rendered: Mapping[str, str]) -> 
 
 def test_the_short_hints_sit_beside_the_fields(rendered: Mapping[str, str]) -> None:
     html = rendered["empty"]
-    assert "Type a town or area, or use your location." in html
+    assert 'for="place">Town or area</label>' in html
+    assert "or type a town or area" not in html
+    assert esc(copy.PLACE_HINT_BY_MODE[MODE]) in html
+    assert "Town or area only." not in html
     assert "Please don&#39;t enter a street address." in html
-    assert "Sent via OpenRouter to an approved AI provider." in html
-    assert "never log it" in html
+    assert esc(copy.INTERESTS_HINT) in html
+    assert "kept about an hour" in html
+    assert esc(copy.STEP_FREE_HINT) in html
 
 
 def test_the_full_explanations_live_in_a_native_disclosure(

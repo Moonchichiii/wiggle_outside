@@ -278,8 +278,8 @@ Cards fade and rise 8 px over 240 ms with an 80 ms stagger; hover lift 2 px, 120
 | Ages | Kids' ages — hint: Pick all that apply. — 0–2 / 3–5 / 6–9 / 10–12 |
 | Time | Time, there and back — 30 min / 1 hour / 2 hours / Half day; hint "Half day means about 4 hours." |
 | Energy (8.18, Mats) | How much energy today? — hint: We may suggest something gentler. — Gentle / Moderate / High (the energy ceiling, D18, is unchanged) |
-| Where | Where are you? — Use my location / or type a town or area |
-| Where hint | Type a town or area, or use your location. Town or area only. Please don't enter a street address. (The OpenStreetMap lookup and its 30-day cache are explained under "How your information is used", a native disclosure below the form.) |
+| Where | Where are you? — Use my location / Town or area |
+| Where hint | Type a town or area, or use your location. Please don't enter a street address. (The OpenStreetMap lookup and its 30-day cache are explained under "How your information is used", a native disclosure below the form.) |
 | Interests (D39) | What are they into? (optional) — for "Just me": What are you into? (optional) |
 | Interests hint | For example: birds, puddles, running. Optional. Don't include personal details. We send this to our AI model provider to choose ideas; we don't store it. (No language claim until the PRODUCT-FIT §3.9 evaluation has run.) |
 | Interest labels | We think they're into: {tags}. — note: To change these, edit "What are they into?" under Change answers. |

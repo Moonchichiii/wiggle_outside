@@ -120,12 +120,11 @@ ENERGY_ICONS: Final[Mapping[Energy, str]] = MappingProxyType(
 
 WHERE_LEGEND: Final = "Where are you?"
 USE_MY_LOCATION: Final = "Use my location"
-PLACE_LABEL: Final = "or type a town or area"
+PLACE_LABEL: Final = "Town or area"
 # BACKEND-CONTRACT section 9: local development may show the hosted note; it is not a
 # product mode of its own, so every mode gets the same disclosed wording.
 _PLACE_HINT: Final = (
-    "Type a town or area, or use your location. Town or area only. Please don't enter a "
-    "street address."
+    "Type a town or area, or use your location. Please don't enter a street address."
 )
 PLACE_HINT_BY_MODE: Final[Mapping[DeploymentMode, str]] = MappingProxyType(
     {
@@ -200,9 +199,7 @@ INTERESTS_OPTIONAL: Final = "(optional)"
 # process memory with the search and its result until the result is removed
 # (retain_until, about an hour), and is never logged or written to disk.
 INTERESTS_HINT: Final = (
-    "For example: birds, puddles, running. Optional. Don't include personal details. "
-    "Sent via OpenRouter to an approved AI provider. We keep your text only while your "
-    "results are available, about an hour, and never log it."
+    "Optional. No personal details. Sent to an approved AI provider; kept about an hour."
 )
 # The disclosure under the form: a native <details>, no JavaScript needed.
 INFO_USE_SUMMARY: Final = "How your information is used"
@@ -214,7 +211,8 @@ INFO_USE_LOCATION: Final = (
     "for a while so repeat searches cost nothing."
 )
 INFO_USE_INTERESTS: Final = (
-    "Your interests: the text goes through OpenRouter to one of the approved model "
+    "Your interests (for example: birds, puddles, running): the text goes through "
+    "OpenRouter to one of the approved model "
     "providers it selects, chosen because OpenRouter's published data policy says they "
     "neither train on nor retain prompts. That policy is the basis of the approved "
     "list; it is not an independent review of each provider's terms. We don't store the "
@@ -235,9 +233,7 @@ INTERESTS_PREFILLED_HINT: Final = (
 OPTIONAL_SUMMARY: Final = "Anything to account for?"
 STROLLER_LABEL: Final = "We're bringing a stroller"
 STEP_FREE_LABEL: Final = "Prefer places reported as step-free"
-STEP_FREE_HINT: Final = (
-    "Places OpenStreetMap reports as step-free come first. We can't check this ourselves."
-)
+STEP_FREE_HINT: Final = "Places OpenStreetMap reports as step-free come first; we can't check it."
 
 # --- Submit and the busy state (D43) ---------------------------------------------------
 

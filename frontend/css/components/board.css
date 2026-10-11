@@ -144,6 +144,33 @@
 .wo-card-link a { color: var(--color-action); font-size: 1.0625rem; font-weight: 600; text-decoration: underline; }
 .wo-card-link a::after { content: " →"; margin-left: 6px; }
 
+/* Desktop tightening (11 October, second pass): the whole form fits 1440 x 900. Only
+   sizes, gaps and the placement of hints and the two checkboxes change; nothing below
+   1100px. Tiles never go under 44px. Last among the form rules so it wins on order. */
+@media (width >= 68.75rem) {
+  /* The page itself must not scroll at 900px: no decorative minimum height here. */
+  .wo-page { min-height: 0; padding-top: 12px; padding-bottom: 10px; }
+  .wo-page-panel { padding: 12px 28px 14px; }
+  .wo-brand { margin-bottom: 4px; }
+  .wo-masthead { margin-bottom: 8px; }
+  .wo-masthead .wo-title { font-size: 2.5rem; margin-bottom: 2px; }
+  .wo-fieldset { margin-bottom: 7px; }
+  .wo-legend { margin-bottom: 2px; }
+  /* A tile group's hint sits after its question, on the same line. */
+  .wo-fieldset:has(> .wo-legend + .wo-hint + .wo-tiles) > .wo-legend { float: left; margin: 0 10px 2px 0; }
+  .wo-fieldset:has(> .wo-legend + .wo-hint + .wo-tiles) > .wo-hint { margin-bottom: 2px; line-height: 1.8; }
+  .wo-tiles { clear: both; gap: 8px; }
+  .wo-tile, .wo-tile:has(input:checked) { min-height: 44px; padding-block: 5px; }
+  .wo-field-label { margin: 2px 0 3px; }
+  .wo-location-row + .wo-hint { margin-top: 3px; margin-bottom: 0; }
+  .wo-hint#interests-hint { margin-bottom: 4px; }
+  .wo-info-use { margin-bottom: 2px; }
+  /* The two checkboxes side by side; their hint underneath on one line. */
+  .wo-extras { display: flex; flex-wrap: wrap; align-items: center; column-gap: 28px; margin-top: 4px; padding-top: 2px; }
+  .wo-extras > .wo-checkrow { border-bottom: 0; }
+  .wo-extras > .wo-hint { flex-basis: 100%; margin: 0 0 2px; }
+  .wo-plan-form .wo-actions .wo-btn-primary { margin-top: 4px; }
+}
 @media (width < 40rem) {
   .wo-page { padding: 72px 14px 64px; }
   .wo-page-panel { padding: 24px 18px; }
