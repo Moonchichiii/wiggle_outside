@@ -5,15 +5,18 @@ away.
 
 Answer five short questions — who is coming, how long you have, how much energy, where you
 are, anything to account for — and Wiggle Outside offers up to three grounded ideas, each
-one a real nearby place paired with a reviewed activity that actually suits the weather,
-the daylight and the ages you named. If nothing suitable exists right now, it says so
-rather than padding the list.
+one a nearby place from OpenStreetMap paired with a reviewed activity that suits the
+forecast, the daylight and the ages you named. If nothing suitable exists right now, it
+says so rather than padding the list.
 
-An open model (Gemma 4) ranks activity–place pairs that the application has already
-validated, and picks one reviewed story hook and up to two reason codes per idea. It
-writes none of the text you read, and it never invents a place. When the model is
-unavailable the application falls back to its own deterministic ranking and labels the
-result as such.
+An open model (Gemma 4 26B A4B, reached through OpenRouter) ranks activity–place pairs
+that the application has already validated, and picks one reviewed story hook and up to
+two reason codes per idea. It writes none of the text you read, and it never invents a
+place. When the model is unavailable the application falls back to its own deterministic
+ranking and labels the result as such. The model prompt goes through OpenRouter to one
+of the approved providers it selects; the approved list rests on OpenRouter's published
+data policy per provider (no training, no prompt retention), not on an independent
+review of each provider's terms (TC-010).
 
 Built for the Hacktoberfest Open-Source AI Challenge, Week 1 ("Touch Grass").
 

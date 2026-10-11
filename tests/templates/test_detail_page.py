@@ -154,19 +154,19 @@ def test_the_print_context_carries_the_date_timezone_and_place(
         f"near Bergby, Uppsala lan, Sweden."
     )
     assert printed.weather_line == (
-        "Weather checked at 10:31 on Sat 10 Oct 2026; times are estimates."
+        "Forecast checked at 10:31 on Sat 10 Oct 2026; times are estimates."
     )
     assert printed.source_line == (
         "Place data © OpenStreetMap contributors; weather from Open-Meteo."
     )
-    assert printed.note == "Check the weather again before you go if plans change."
+    assert printed.note == "Check the forecast again before you go if plans change."
     html = rendered["bingo"]
     for line in (printed.context_line, printed.weather_line, printed.source_line, printed.note):
         assert esc(line) in html
 
 
 def test_the_full_weather_line_is_on_the_detail_page(pages: Mapping[str, DetailPage]) -> None:
-    expected = f"Weather for 10:31{copy.EN_DASH}11:31, checked at 10:31"
+    expected = f"Forecast for 10:31{copy.EN_DASH}11:31, checked at 10:31"
     assert pages["bingo"].weather.line.startswith(expected)
 
 

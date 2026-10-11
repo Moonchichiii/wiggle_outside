@@ -48,6 +48,11 @@ CANDIDATES_TTL: Final = timedelta(minutes=10)
 SHUTDOWN_WAIT_S: Final = 5.0
 # A running job's placeholder is never rendered; it only tells the web layer to wait.
 RUNNING_RETENTION: Final = timedelta(hours=1)
+# ARCHITECTURE section 4: the serialised result cap. A result over it is never stored.
+RESULT_CAP_BYTES: Final = 32 * 1024
+# The workflow bounds every stage at its deadline; this guard is the last resort if it
+# did not, so no job can outlive its deadline by more than this.
+DEADLINE_GRACE_S: Final = 1.0
 
 type PublishCandidates = Callable[[str, LocationCandidates], None]
 
@@ -81,8 +86,14 @@ def submission_fingerprint(answers: Answers) -> str:
             answers.stroller,
             answers.step_free,
             answers.interest_text,
+            answers.location_label,
         )
     )
+
+
+def serialized_size(result: PlanResult) -> int:
+    """Measure a result as the bytes of its canonical repr (the one serialisation)."""
+    return len(repr(result).encode("utf-8"))
 
 
 @dataclass(slots=True)
@@ -303,8 +314,14 @@ class Planner:
         return job
 
     async def _run(self, job: _Job, run: Run) -> None:
+        grace = max(0.0, run.deadline - self._ports.clock.monotonic()) + DEADLINE_GRACE_S
         try:
-            planned = await plan_outing(self._ports, run, self._budgets)
+            async with asyncio.timeout(grace):
+                planned = await plan_outing(self._ports, run, self._budgets)
+        except TimeoutError:
+            log.error("job %s overran its deadline and was cancelled", job.job_id[:8])  # noqa: TRY400  no traceback wanted
+            _finish(job, _failed(job.placeholder))
+            return
         except asyncio.CancelledError:
             _finish(job, _failed(job.placeholder))
             raise
@@ -364,6 +381,10 @@ def _consume(held: LocationCandidates, candidate_id: str, job_id: str) -> Locati
 
 
 def _finish(job: _Job, result: PlanResult) -> None:
+    if serialized_size(result) > RESULT_CAP_BYTES:
+        # Bounded storage never takes an oversized record (ARCHITECTURE section 4).
+        log.error("job %s produced a result over %d bytes", job.job_id[:8], RESULT_CAP_BYTES)
+        result = _failed(job.placeholder)
     job.result = result
     job.done.set()
 

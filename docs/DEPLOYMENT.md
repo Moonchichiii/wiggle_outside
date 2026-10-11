@@ -35,8 +35,14 @@ O3 (public app reaching the build machine) is **removed**: it contradicts the bo
 
 - **Model:** `google/gemma-4-26b-a4b-it` on OpenRouter (Gemma 4 26B A4B, instruction-
   tuned). E4B is not offered by the managed APIs checked.
-- **One pinned endpoint:** `provider.only` = the chosen endpoint,
-  `allow_fallbacks: false`, `require_parameters: true` (structured output required).
+- ~~**One pinned endpoint:** `provider.only` = the chosen endpoint,
+  `allow_fallbacks: false`, `require_parameters: true` (structured output required).~~
+  **Approved providers, not open routing (TC-010):** `provider.only` = NextBit,
+  DeepInfra, CoreWeave (slugs `nextbit`, `deepinfra`, `coreweave`, verified against the
+  model's endpoint list on 11 October 2026), `require_parameters: true`, fallbacks
+  allowed only within that list, `data_collection: "deny"`. The account carries the same
+  allowlist. Which provider served each request is logged with the usage and latency
+  (TC-010).
 - **Both candidates support** `response_format`, `structured_outputs`, `max_tokens`,
   `reasoning` and `include_reasoning` (OpenRouter endpoints API, **verified**).
 
@@ -49,14 +55,19 @@ O3 (public app reaching the build machine) is **removed**: it contradicts the bo
 | Zero data retention (`provider.zdr: true`) | supported as a request filter (**verified**) | not confirmed: the OpenRouter ZDR list we could read showed only Io Net for this model, and Io Net lacks structured-output support; the list was truncated (**unknown**) | not confirmed (**unknown**); abuse logging makes ZDR unlikely through OpenRouter |
 | Processing location | EU in-region routing is enterprise-only (**verified**) | **unknown** (not stated; ask DeepInfra) | endpoint is "global"; region **unknown** |
 
-**Recommendation: DeepInfra**, because it states no disk storage, no prompt logging and
+~~**Recommendation: DeepInfra**, because it states no disk storage, no prompt logging and
 no training, and it is cheaper, **subject to two confirmations before any spending**:
 that the "Google models" exception does not cover Gemma hosted by DeepInfra, and where
 the processing happens. If either answer is unacceptable, fall back to Google (no
-training; abuse logging and a 24 h cache apply) or to O1. `zdr: true` is **not** set,
+training; abuse logging and a 24 h cache apply) or to O1.~~ `zdr: true` is **not** set,
 because no endpoint that supports structured output is confirmed as ZDR for this model;
-setting it would leave no endpoint. The privacy notice and the post say plainly that the
-answers and the model prompt are processed by OpenRouter and the chosen provider.
+setting it would leave no endpoint.
+
+**Privacy text (TC-010), to be used verbatim in the notice and the post:** the model
+prompt goes through OpenRouter to one of the approved providers it selects, chosen
+because OpenRouter's published data policy says they neither train on nor retain
+prompts. That policy is the basis of the approved list; it is not an independent review
+of each provider's terms. Nothing more is claimed (TC-010).
 
 ### 1.2 Fixed hosting cost (O2)
 

@@ -529,6 +529,8 @@ rules re-homed, the acceptance checks affected, and the approver. Conventions:
 | TC-006 | M0 time-boxed to five gates; WP9b carries the rest, in parallel | `3d91f31` | accepted (Mats) |
 | TC-007 | P1 resolved: fonts supplied, self-hosted, never committed (FFL 2.0) | `c9856b0` | accepted (Mats) |
 | TC-008 | The approved visual direction implemented, artwork included | `051570b`, `d03c08b`, `5f8c048`, `3c1eb1d` | accepted (Mats) |
+| TC-009 | Deadline budget 3 / 9 / 6 / 2, measured; both Overpass attempts share the places stage | pending (checkpoint commit by Mats) | accepted (Mats, 11 Oct) |
+| TC-010 | Live Gemma through OpenRouter with the approved-provider allowlist (NextBit, DeepInfra, CoreWeave) | pending (checkpoint commit by Mats) | accepted (Mats, with the reviewer's binding changes) |
 
 ### 10.1 Contract changes raised by a package (CC)
 

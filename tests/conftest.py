@@ -18,6 +18,9 @@ from fastapi.testclient import TestClient
 # is ever reached by a test (sockets off the machine are refused below).
 os.environ.setdefault("WO_CONTACT_EMAIL", "tests@example.invalid")
 os.environ.setdefault("WO_DB_PATH", ":memory:")
+# The hosted model key must never reach a test: with it the app would build the real
+# adapter and report "model: ready". Cleared for this process only.
+os.environ["OPENROUTER_API_KEY"] = ""
 
 from wiggle_outside.main import create_app
 from wiggle_outside.settings import Settings

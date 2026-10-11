@@ -11,13 +11,22 @@ from wiggle_outside.core.types import DeploymentMode
 
 ENV_PREFIX: Final = "WO_"
 
-# D32: the 20 s budget, split geocode 3 / places and weather 4 / queue and model 11,
-# leaving 2 s for fallback assembly and rendering. Accepted working defaults, not
-# measurements.
+# D32 as revised by TC-009 (Mats, 11 October 2026): the 20 s budget is split geocode 3 /
+# places and weather 9 / model including its queue wait 6 / 2 s reserved for fallback
+# assembly and rendering. The two Overpass attempts (the one permitted retry) share the
+# 9 s: an attempt may use what is left of it, so the retry only happens when the first
+# attempt failed early. Measured: a Vaxjo places query took 2 to 5 s when the public
+# instance was healthy and 6 s or more under load; the model answered in 1.68 s. Every
+# stage gets min(its budget, what is left), and the absolute 20 s deadline is
+# authoritative when earlier stages use up their share. Figures: docs/evidence.
 GEOCODE_BUDGET_S: Final = 3.0
-PROVIDERS_BUDGET_S: Final = 4.0
-MODEL_BUDGET_S: Final = 11.0
+PROVIDERS_BUDGET_S: Final = 9.0
+MODEL_BUDGET_S: Final = 6.0
 RENDER_RESERVE_S: Final = 2.0
+
+# The hosted model key is read from the unprefixed name the Fly secret carries. It is
+# never written to a file, a log or the repository (DEPLOYMENT section 3).
+OPENROUTER_API_KEY_ENV: Final = "OPENROUTER_API_KEY"
 
 
 def _env(name: str, default: str) -> str:
@@ -52,7 +61,6 @@ class Settings:
 
     openrouter_url: str
     model_id: str
-    model_provider_only: str
     openrouter_api_key: str | None
 
     ollama_url: str
@@ -63,7 +71,7 @@ class Settings:
 
     @classmethod
     def from_env(cls) -> Settings:
-        key = _env("OPENROUTER_API_KEY", "").strip()
+        key = os.environ.get(OPENROUTER_API_KEY_ENV, "").strip()
         return cls(
             mode=DeploymentMode(_env("MODE", DeploymentMode.LOCAL.value)),
             host=_env("HOST", "127.0.0.1"),
@@ -75,7 +83,6 @@ class Settings:
             contact_email=_env("CONTACT_EMAIL", ""),
             openrouter_url=_env("OPENROUTER_URL", "https://openrouter.ai/api/v1/chat/completions"),
             model_id=_env("MODEL_ID", "google/gemma-4-26b-a4b-it"),
-            model_provider_only=_env("MODEL_PROVIDER_ONLY", "deepinfra/fp8"),
             openrouter_api_key=key or None,
             ollama_url=_env("OLLAMA_URL", "http://127.0.0.1:11434/api/chat"),
             daily_run_limit=_env_int("DAILY_RUN_LIMIT", 200),

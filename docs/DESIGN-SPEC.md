@@ -307,10 +307,10 @@ Cards fade and rise 8 px over 240 ms with an 80 ms stagger; hover lift 2 px, 120
 | Stroller (D42) | We're bringing a stroller |
 | Step-free (D42 P, accepted 8.20) | Prefer places reported as step-free — hint: Places OpenStreetMap reports as step-free come first. We can't check this ourselves. |
 | Uncertainty | Admission not verified · Reported free admission (only for OSM `fee=no`, D37) · Step-free access not verified · OpenStreetMap reports step-free access (only the ones that apply) |
-| Weather line (results, once) | Weather for {start}–{end}, checked at {time}: {summary} |
+| Weather line (results, once) | Forecast for {start}–{end}, checked at {time}: {summary} (TC-010: the forecast is called a forecast) |
 | Bingo heading | Your bingo card |
 | Card link | Read the full activity |
-| Historical | This information is no longer current. Planned for {date}, {start}–{end}, weather checked at {time}. Plan again for fresh ideas. |
+| Historical | This information is no longer current. Planned for {date}, {start}–{end}, forecast checked at {time}. Plan again for fresh ideas. (TC-010) |
 | Print context | Planned for {date}, {start}–{end} ({timezone}), near {location}. Weather checked at {time} on {date}; times are estimates. Check the weather again before you go if plans change. |
 
 Errors use ERROR-HANDLING §2 copy: what happened, whether answers are kept, what to do next.

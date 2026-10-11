@@ -17,9 +17,10 @@ import httpx
 from fastapi import FastAPI
 
 from wiggle_outside.core.types import DeploymentMode, LocationCandidates
-from wiggle_outside.integrations import nominatim, open_meteo, overpass
+from wiggle_outside.integrations import nominatim, open_meteo, openrouter, overpass
 from wiggle_outside.planner.catalogue import load_catalogue
 from wiggle_outside.planner.jobs import Planner
+from wiggle_outside.planner.model_stage import ModelWiring, model_stage
 from wiggle_outside.planner.plan_outing import AllowanceOutcome, Budgets, Ports
 from wiggle_outside.planner.ports import PlannerService, Ranker
 from wiggle_outside.settings import (
@@ -94,6 +95,8 @@ class Resources:
     db: Database
     allowance: DailyAllowance | None
     planner: Planner
+    # The hosted model adapter, or None without a key (then every run is a fallback).
+    ranker: Ranker | None = None
 
     async def open(self) -> None:
         await self.db.open()
@@ -116,7 +119,7 @@ class AppState:
     settings: Settings
     # 32 random bytes made at startup and never stored (CONTRACTS section 7).
     process_key: bytes
-    # None until WP5 wires a model adapter. /readyz reports readiness from this, not from
+    # The wired adapter, or None. /readyz reports readiness from this, not from
     # configuration, so it cannot claim a model the process does not have.
     ranker: Ranker | None = None
     resources: Resources | None = None
@@ -124,21 +127,14 @@ class AppState:
     @property
     def model_status(self) -> str:
         """What /readyz reports for the model (PLAN section 6: reported separately)."""
-        if self.ranker is None:
-            return "unavailable"
-        if (
-            self.settings.mode is DeploymentMode.HOSTED_LIVE
-            and self.settings.openrouter_api_key is None
-        ):
-            return "unavailable"
-        return "ready"
+        return "unavailable" if self.ranker is None else "ready"
 
 
 def build_state(settings: Settings | None = None) -> AppState:
     return AppState(
         settings=settings or Settings.from_env(),
         process_key=secrets.token_bytes(PROCESS_KEY_BYTES),
-        ranker=None,  # WP5 supplies the adapter; until then the app serves fallbacks.
+        ranker=None,  # set by _wire once the resources exist
     )
 
 
@@ -156,6 +152,24 @@ def build_resources(settings: Settings, sessions: SessionStore) -> Resources:
     allowance = (
         DailyAllowance(db, settings.daily_run_limit)
         if settings.mode is DeploymentMode.HOSTED_LIVE
+        else None
+    )
+    catalogue = load_catalogue()
+    # TC-010: the hosted model whenever a key is present, in any mode; without one the
+    # app serves the labelled fallback and /readyz says so.
+    ranker = openrouter.from_settings(client, settings)
+    model = (
+        model_stage(
+            ModelWiring(
+                ranker=ranker,
+                catalogue=catalogue,
+                gate=gate,
+                counters=counters,
+                clock=clock,
+                d39_enabled=settings.d39_enabled,
+            )
+        )
+        if ranker is not None
         else None
     )
 
@@ -176,11 +190,11 @@ def build_resources(settings: Settings, sessions: SessionStore) -> Resources:
         weather=cached_weather(
             open_meteo.from_settings(client, settings), store, gate, flight, counters, clock
         ),
-        catalogue=load_catalogue(),
+        catalogue=catalogue,
         clock=clock,
         counters=counters,
         allowance=_AllowancePort(allowance) if allowance is not None else None,
-        model=None,  # WP5: the one model call per run; until then every run is a fallback.
+        model=model,
     )
     planner = Planner(
         ports,
@@ -189,7 +203,7 @@ def build_resources(settings: Settings, sessions: SessionStore) -> Resources:
         deadline_s=max(1.0, settings.deadline_seconds - RENDER_RESERVE_S),
         publish_candidates=publish,
     )
-    return Resources(client=client, db=db, allowance=allowance, planner=planner)
+    return Resources(client=client, db=db, allowance=allowance, planner=planner, ranker=ranker)
 
 
 def _wire(state: AppState, planner: PlannerService | None) -> tuple[PlannerService, SessionStore]:
@@ -212,6 +226,7 @@ def _wire(state: AppState, planner: PlannerService | None) -> tuple[PlannerServi
     resources = build_resources(state.settings, sessions)
     built.append(resources.planner)
     state.resources = resources
+    state.ranker = resources.ranker
     return resources.planner, sessions
 
 

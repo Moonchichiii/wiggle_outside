@@ -33,7 +33,7 @@ NOMINATIM_INTERVAL_S: Final = 1.0
 # An admitted attempt holds its slot for at most the providers stage budget
 # (settings.PROVIDERS_BUDGET_S), so a slot cannot leak when `pace` runs out of deadline or
 # the caller is cancelled before `record`.
-LEASE_S: Final = 4.0
+LEASE_S: Final = 9.0
 
 # One timestamp per provider costs nothing; the per-key negative cache is bounded.
 MAX_NEGATIVE_ENTRIES: Final = 1_000

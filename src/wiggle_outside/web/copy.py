@@ -190,9 +190,15 @@ INTEREST_TAG_LABELS: Final[Mapping[InterestTag, str]] = MappingProxyType(
 )
 
 INTERESTS_OPTIONAL: Final = "(optional)"
+# TC-010: the model prompt goes through OpenRouter to one of the approved providers it
+# selects. The basis for the approved list is OpenRouter's published data policy per
+# provider (no training, no prompt retention), not an independent review of each
+# provider's terms; the hint says exactly that, no more.
 INTERESTS_HINT: Final = (
     "For example: birds, puddles, running. Optional. Don't include personal details. "
-    "We send this to our AI model provider to choose ideas; we don't store it."
+    "We send this through OpenRouter to one of the approved model providers it selects, "
+    "chosen because OpenRouter's published data policy says they neither train on nor "
+    "retain prompts; we don't store it."
 )
 # D46: "Change answers" prefills the recognised tag labels, never the original text.
 INTERESTS_PREFILLED_HINT: Final = (
@@ -375,7 +381,7 @@ AGES_JOIN: Final = ", "
 PLAN_AGAIN: Final = "Plan again"
 HISTORICAL: Final = (
     f"This information is no longer current. Planned for {{date}}, {{start}}{EN_DASH}{{end}}, "
-    f"weather checked at {{time}}. Plan again for fresh ideas."
+    f"forecast checked at {{time}}. Plan again for fresh ideas."
 )
 
 # --- The shared weather line, shown once above the ideas ------------------------------
@@ -384,7 +390,7 @@ HISTORICAL: Final = (
 # when the result carries NoticeId.REPLAY, which only fixture planners set.
 EXAMPLE_FORECAST: Final = "Example forecast"
 EXAMPLE_NOTE: Final = "Illustrative places and weather"
-WEATHER_LINE: Final = "Weather for {window}, checked at {time}: {summary}"
+WEATHER_LINE: Final = "Forecast for {window}, checked at {time}: {summary}"
 WEATHER_WINDOW: Final = f"{{start}}{EN_DASH}{{end}}"
 WEATHER_SUMMARY: Final = "{condition}{rain}, {temperature}, wind up to {wind} km/h."
 WEATHER_RAIN: Final = " (up to {percent} %)"
@@ -485,11 +491,11 @@ PRINT_HELP: Final = ERROR_MESSAGES[ErrorCode.PRINT_HELP]
 PRINT_CONTEXT: Final = (
     f"Planned for {{date}}, {{start}}{EN_DASH}{{end}} ({{tz}}), near {{location}}."
 )
-PRINT_WEATHER: Final = "Weather checked at {time} on {date}; times are estimates."
+PRINT_WEATHER: Final = "Forecast checked at {time} on {date}; times are estimates."
 PRINT_SOURCE: Final = (
     f"Place data {COPYRIGHT_SIGN} OpenStreetMap contributors; weather from Open-Meteo."
 )
-PRINT_NOTE: Final = "Check the weather again before you go if plans change."
+PRINT_NOTE: Final = "Check the forecast again before you go if plans change."
 
 # --- Notices that are not rows of the ERROR-HANDLING table ---------------------------
 

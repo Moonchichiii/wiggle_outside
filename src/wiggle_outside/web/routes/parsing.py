@@ -225,6 +225,8 @@ def read_plan(values: Mapping[str, Sequence[str]], *, d39_enabled: bool) -> Plan
             stroller=stroller,
             step_free=step_free,
             interest_text=interests,
+            # CC-004: only meaningful with carried coordinates; a typed place is geocoded.
+            location_label=label if isinstance(location, Coordinates) else None,
         ),
         errors={},
         key=key,

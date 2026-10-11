@@ -96,12 +96,16 @@ class CacheNamespace(StrEnum):
     GEOCODE = "geocode"
     PLACES = "places"
     WEATHER = "weather"
+    # The model is never cached; the namespace only names the gate key (TC-010).
+    MODEL = "model"
 
 
 class ProviderName(StrEnum):
     NOMINATIM = "nominatim"
     OVERPASS = "overpass"
     OPEN_METEO = "open_meteo"
+    # The hosted model route (TC-010): gated like a provider, never cached.
+    OPENROUTER = "openrouter"
 
 
 @dataclass(frozen=True, slots=True)

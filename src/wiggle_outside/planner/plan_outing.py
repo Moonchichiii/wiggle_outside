@@ -6,15 +6,18 @@ rule, the run-wide severe and heat rules, per-entry eligibility - then pairs, th
 model call if a model stage is wired, else the labelled deterministic fallback (D44).
 
 Every stage gets only what remains of the one monotonic deadline; adapters answer
-`TransportFailure` when nothing remains. Provider failures are outcomes, never
-exceptions; cancellation propagates. Nothing here stores a verdict: a resubmission is a
-new run and re-evaluates everything (TC-002).
+`TransportFailure` when nothing remains, and the workflow cancels any call that is
+still running at its stage deadline (`_bounded`), so the absolute deadline holds even if
+an adapter overran its own bound. Provider failures are outcomes, never exceptions;
+cancellation propagates. Nothing here stores a verdict: a resubmission is a new run and
+re-evaluates everything (TC-002).
 """
 
 import asyncio
 import secrets
 from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime, timedelta, tzinfo
+from functools import partial
 from typing import TYPE_CHECKING, Final, Literal, Protocol
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -24,7 +27,7 @@ from wiggle_outside.core.errors import ErrorCode
 from wiggle_outside.core.ideas import ReasonContext, allowed_reason_ids, parse_selection
 from wiggle_outside.core.places import ANY_PLACE_KIND, PairPlan, pair_candidates, to_pairs
 from wiggle_outside.core.ranking import RankingInputs
-from wiggle_outside.core.result import Empty, Ok, Outcome
+from wiggle_outside.core.result import Empty, Ok, Outcome, TransportFailure
 from wiggle_outside.core.types import (
     MAX_CANDIDATES,
     Activity,
@@ -91,6 +94,8 @@ DAYLIGHT_CODES: Final[frozenset[ErrorCode]] = frozenset(
 )
 # Stage names for the counters (ARCHITECTURE section 14): counts only, never answers.
 STAGE_DONE: Final = "stage_done"
+# A call cancelled at its stage deadline (ARCHITECTURE section 4: Generating -> Cancelling).
+STAGE_TIMEOUT: Final = "stage_timeout"
 
 type AllowanceOutcome = Literal["reserved", "limit_reached", "unavailable"]
 type ModelStage = Callable[[tuple[Pair, ...], str | None, float], Awaitable[Outcome[RawSelection]]]
@@ -207,9 +212,13 @@ async def _locate(ports: Ports, run: Run, budgets: Budgets) -> _Located | Planne
         return _Located(origin=run.origin, label=run.label or YOUR_LOCATION)
     location = run.answers.location
     if isinstance(location, Coordinates):
-        return _Located(origin=location, label=run.label or YOUR_LOCATION)
+        # CC-004: a "Change answers" form carries the earlier label with its coordinates.
+        label = run.label or run.answers.location_label or YOUR_LOCATION
+        return _Located(origin=location, label=label)
     deadline = _stage_deadline(ports, run, budgets.geocode_s)
-    found = await ports.geocoder.resolve(location, deadline)
+    found = await _bounded(
+        ports, "geocode", partial(ports.geocoder.resolve, location, deadline), deadline
+    )
     ports.counters.incr(STAGE_DONE, "geocode")
     return _from_hits(ports, run, found)
 
@@ -275,14 +284,26 @@ async def _fetch(
     """Fetch places and weather concurrently, each on the same bounded stage deadline."""
     deadline = _stage_deadline(ports, run, budgets.providers_s)
     window = constraints(run.answers, run.planned_start).window
+    # Each call is bounded on its own, so a hanging weather call cannot lose the places.
     places, weather = await asyncio.gather(
-        ports.places.nearby(
-            located.origin,
-            radius_m(run.answers),
-            place_kinds(ports.catalogue.activities()),
+        _bounded(
+            ports,
+            "places",
+            partial(
+                ports.places.nearby,
+                located.origin,
+                radius_m(run.answers),
+                place_kinds(ports.catalogue.activities()),
+                deadline,
+            ),
             deadline,
         ),
-        ports.weather.window(located.origin, window.start, window.end, deadline),
+        _bounded(
+            ports,
+            "weather",
+            partial(ports.weather.window, located.origin, window.start, window.end, deadline),
+            deadline,
+        ),
     )
     ports.counters.incr(STAGE_DONE, "weather_places")
     return places, weather
@@ -444,7 +465,8 @@ async def _ask_model(
     if model is None:
         return (), interests
     text = run.answers.interest_text
-    raw = await model(pairs, text, _stage_deadline(ports, run, budgets.model_s))
+    deadline = _stage_deadline(ports, run, budgets.model_s)
+    raw = await _bounded(ports, "choosing", partial(model, pairs, text, deadline), deadline)
     ports.counters.incr(STAGE_DONE, "choosing")
     if not isinstance(raw, Ok):
         return (), interests
@@ -524,7 +546,8 @@ def typed_summary(answers: Answers) -> AnswersSummary:
     """Summarise answers before (or without) a location: the typed text as the label."""
     location = answers.location
     if isinstance(location, Coordinates):
-        return _summary(answers, _Located(origin=location, label=YOUR_LOCATION))
+        label = answers.location_label or YOUR_LOCATION
+        return _summary(answers, _Located(origin=location, label=label))
     return _summary(answers, _Located(origin=Coordinates(lat=0.0, lon=0.0), label=location.text))
 
 
@@ -539,6 +562,27 @@ def _now(ports: Ports) -> datetime:
 def _stage_deadline(ports: Ports, run: Run, budget_s: float) -> float:
     """Give each stage only the remaining budget, capped at its own share."""
     return min(run.deadline, ports.clock.monotonic() + budget_s)
+
+
+async def _bounded[T](
+    ports: Ports, stage: str, call: Callable[[], Awaitable[Outcome[T]]], deadline: float
+) -> Outcome[T]:
+    """Run one provider or model call, cancelling it at the stage deadline.
+
+    Adapters bound themselves; this is the outer guard (ARCHITECTURE section 4) so that
+    a call that overruns its own bound is cancelled rather than the deadline missed.
+    The cancelled call answers like a transport failure and the run goes on to its
+    labelled fallback or its honest unavailable page. A cancellation from outside
+    (shutdown) is not a timeout and propagates. The call is created inside the guard,
+    so a job cancelled before this point leaves no coroutine behind.
+    """
+    remaining = deadline - ports.clock.monotonic()
+    try:
+        async with asyncio.timeout(max(0.0, remaining)):
+            return await call()
+    except TimeoutError:
+        ports.counters.incr(STAGE_TIMEOUT, stage)
+        return TransportFailure()
 
 
 def _new_id() -> str:

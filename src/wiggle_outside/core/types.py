@@ -190,6 +190,11 @@ class Answers:
     step_free: bool  # D42 P: a preference, never a filter
     # D39: memory only. Excluded from repr, hashing and comparison so it cannot leak.
     interest_text: str | None = field(default=None, repr=False, hash=False, compare=False)
+    # CC-004: the display label a "Change answers" form carries with its coordinates (the
+    # earlier geocode label), so the resubmission keeps it. None with a typed place, or
+    # for device coordinates ("Your location"). Validated by the form reader (<= 80,
+    # printable); never a lookup input.
+    location_label: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

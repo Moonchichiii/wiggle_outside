@@ -161,7 +161,7 @@ def test_the_weather_line_is_shown_once_and_never_per_card(
     # The en dash and the degree sign come from the copy table, so the expected string
     # carries no ambiguous character of its own (see copy.py's note on the linter).
     assert weather.line == (
-        f"Weather for 10:31{DASH}11:31, checked at 10:31: cloudy with showers possible "
+        f"Forecast for 10:31{DASH}11:31, checked at 10:31: cloudy with showers possible "
         f"(up to 40 %), 11{DASH}12 {copy.DEGREE}C, wind up to 18 km/h."
     )
     assert rendered["three"].count(esc(weather.line)) == 1
@@ -332,7 +332,7 @@ def test_the_daylight_pages_keep_the_answers_and_promise_no_weather(
     assert page.interests is None
     html = rendered[state]
     assert "wo-cards" not in html
-    assert "Weather for" not in html
+    assert "Forecast for" not in html
     # The answers summary and "Change answers" stay (mock 05-night.html).
     assert page.answers.lines[0].startswith("Me and the kids")
     assert esc(copy.CHANGE_ANSWERS) in html
@@ -370,7 +370,7 @@ def test_the_historical_view_says_it_is_no_longer_current() -> None:
     assert page.is_historical
     assert page.historical_text == (
         f"This information is no longer current. Planned for Sat 10 Oct 2026, "
-        f"10:31{DASH}11:31, weather checked at 10:31. Plan again for fresh ideas."
+        f"10:31{DASH}11:31, forecast checked at 10:31. Plan again for fresh ideas."
     )
     assert page.plan_again.label == copy.PLAN_AGAIN
     assert page.plan_again.method == "get"
