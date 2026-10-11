@@ -16,6 +16,7 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
 from wiggle_outside.core.errors import ErrorCode, NoticeId
+from wiggle_outside.core.packing import PackingItem, Snack
 from wiggle_outside.core.types import (
     AgeBand,
     DeploymentMode,
@@ -440,9 +441,12 @@ HISTORICAL: Final = (
 EXAMPLE_FORECAST: Final = "Example forecast"
 EXAMPLE_NOTE: Final = "Illustrative places and weather"
 WEATHER_LINE: Final = "Forecast for {window}, checked at {time}: {summary}"
-WEATHER_WINDOW: Final = f"{{start}}{EN_DASH}{{end}}"
-# The window is on a later local date than now: a plan-ahead result (TC-011).
+# TC-012: the forecast line always names the day in the place's own time.
+WEATHER_WINDOW: Final = f"today, {{start}}{EN_DASH}{{end}}"
+# The window is on the next local date: a plan-ahead result (TC-011).
 WEATHER_WINDOW_TOMORROW: Final = f"tomorrow, {{start}}{EN_DASH}{{end}}"
+# Any other date (a historical view): the date itself.
+WEATHER_WINDOW_DATED: Final = f"{{date}}, {{start}}{EN_DASH}{{end}}"
 WEATHER_SUMMARY: Final = "{condition}{rain}, {temperature}, wind up to {wind} km/h."
 WEATHER_RAIN: Final = " (up to {percent} %)"
 WEATHER_TEMPERATURE_RANGE: Final = f"{{low}}{EN_DASH}{{high}} {DEGREE}C"
@@ -491,6 +495,16 @@ INTERESTS_NOTE: Final = 'To change these, edit "{legend}" under Change answers.'
 
 # hooks.toml's derived reason `matches_interest`, rendered from validated tags only.
 INTEREST_MATCH: Final = "Matches the interests: {tags}."
+# TC-012: the card's short form of the same match.
+CARD_MATCH: Final = "Matches: {tags}"
+# TC-012: the place's own OpenStreetMap page, by its OSM id (node, way or relation), in a
+# new tab. No route is promised and no coordinate travels; a place without a usable OSM
+# id gets no link.
+DIRECTIONS_URL: Final = "https://www.openstreetmap.org/{kind}/{number}"
+DIRECTIONS_LABEL: Final = f"View place on OpenStreetMap {chr(0x2197)}"
+DIRECTIONS_CONTEXT: Final = "(opens in a new tab)"
+# The one compact box above the cards that gathers the notices (TC-012).
+NOTICES_HEADING: Final = "About these ideas"
 
 # --- Idea cards (section 9, tightened in 8.12) ---------------------------------------
 
@@ -506,8 +520,11 @@ DISTANCE_CLOSE_BY: Final = "close by"
 # detail page carries the qualification (DESIGN-SPEC section 9).
 DISTANCE_STRAIGHT_LINE_SUFFIX: Final = " in a straight line"
 TIMES: Final = f"{{travel}} min there and back {MIDDLE_DOT} {{duration}} min activity"
-# A place-free idea has no journey, so only the activity is timed (TC-011).
-TIMES_ACTIVITY_ONLY: Final = "{duration} min activity"
+# A place-free idea has no journey: it starts where you are (TC-011, TC-012 wording).
+TIMES_ACTIVITY_ONLY: Final = f"Start nearby {MIDDLE_DOT} {{duration}} min activity"
+DETAIL_TIMES_ACTIVITY_ONLY: Final = (
+    f"Start nearby {MIDDLE_DOT} about {{duration}} min activity (estimate)"
+)
 DETAIL_TIMES: Final = "About {times} (estimates)"
 
 # OSM place kinds as words. A kind that is not listed falls back to the tag with its
@@ -614,3 +631,49 @@ MONTHS: Final[tuple[str, ...]] = (
     "Nov",
     "Dec",
 )
+
+# --- "Before you go" (TC-012 part E) --------------------------------------------------------------
+# The rules are core/packing.py; this is the reviewed wording, keyed by its items.
+
+PACKING_HEADING: Final = "Before you go"
+PACKING_GROUP_LITTLE_ONES: Final = "For the little ones"
+PACKING_GROUP_WEATHER: Final = "For the weather"
+PACKING_GROUP_IDEAS: Final = "For these ideas"
+PACKING_SNACK_LABEL: Final = "Snack idea"
+PACKING_REMINDER: Final = "A quick reminder, not a complete list."
+PACKING_ITEMS: Final[Mapping[PackingItem, str]] = MappingProxyType(
+    {
+        PackingItem.NAPPIES: "Nappies and wipes",
+        PackingItem.CHANGE_OF_CLOTHES: "A change of clothes",
+        PackingItem.MUSLIN: "A muslin or bib",
+        PackingItem.SMALL_TOY: "A favourite small toy for the pushchair",
+        PackingItem.WIPES: "Wipes or a damp cloth",
+        PackingItem.SPARE_TROUSERS: "Spare trousers and socks",
+        PackingItem.TREASURE_BAG: "A small bag for treasures they find",
+        PackingItem.OWN_BACKPACK: "A small backpack they carry themselves",
+        PackingItem.WATER_BOTTLE_EACH: "A water bottle each",
+        PackingItem.PUSHCHAIR_RAIN_COVER: "Pushchair rain cover",
+        PackingItem.PUSHCHAIR_SUNSHADE: "Sunshade for the pushchair",
+        PackingItem.HAND_SANITISER: "Hand sanitiser or wipes for before snacks",
+        PackingItem.WATERPROOF_JACKETS: "Waterproof jackets",
+        PackingItem.WELLIES: "Wellies",
+        PackingItem.WARM_LAYER: "A warm layer each",
+        PackingItem.HATS_AND_GLOVES: "Hats and gloves",
+        PackingItem.WINDPROOF: "Something windproof",
+        PackingItem.SUN_HATS_AND_CREAM: "Sun hats and sun cream",
+        PackingItem.EXTRA_WATER: "Extra water",
+        PackingItem.CHARGED_PHONE: "A charged phone",
+    }
+)
+SNACKS: Final[Mapping[Snack, str]] = MappingProxyType(
+    {
+        Snack.COLD: "A flask of warm cocoa and a cinnamon bun to share.",
+        Snack.MILD: "A box of cut fruit and a few crackers. Apple slices travel well.",
+        Snack.WARM: "Frozen yoghurt tubes in a cool bag, and an ice cream on the way home.",
+        Snack.RAIN: "Something you can eat with one hand under the hood: a banana or a cereal bar.",
+        Snack.SOLO: "A flask of coffee and something sweet.",
+        # With a 0-2 coming, the only line: no food suggestion for the youngest.
+        Snack.YOUNGEST: "Your usual age-appropriate snacks and drinks.",
+    }
+)
+SNACK_SANDWICH: Final = "Plus a proper sandwich each."

@@ -21,6 +21,18 @@
 {{ tape() }}
 <h3 class="wo-card-title" id="idea-{{ idea.idea_id }}-title">{{ idea.title }}</h3>
 <p class="wo-card-intro">{{ idea.intro }}</p>
+{# TC-012: what the model chose, said on the card: at most two reviewed reasons and the
+   interests this activity matches. The same data the detail page shows in full. #}
+{% if idea.reasons %}
+<ul class="wo-card-reasons">
+{% for reason in idea.reasons[:2] %}
+<li>{{ icon("check", "", 24) }}<span>{{ reason }}</span></li>
+{% endfor %}
+</ul>
+{% endif %}
+{% if idea.match_labels %}
+<p class="wo-card-match">{{ icon("check", "", 24) }}<span>{{ copy.CARD_MATCH.format(tags=idea.match_labels) }}</span></p>
+{% endif %}
 {# The board splits the practical detail into one row per fact, each with its own
    icon: where, how long, and what we cannot vouch for. Same words, same order. #}
 <p class="wo-card-practical">{{ icon("location-pin", "", 24) }}<span>
@@ -29,6 +41,9 @@
 {%- if idea.place.distance %}{{ copy.PRACTICAL_JOIN }}{{ idea.place.distance }}{% endif -%}
 </span></p>
 <p class="wo-card-practical">{{ icon("walker", "", 24) }}<span>{{ idea.times }}</span></p>
+{% if idea.place.directions_url %}
+<p class="wo-card-map"><a href="{{ idea.place.directions_url }}" target="_blank" rel="noopener noreferrer">{{ copy.DIRECTIONS_LABEL }}<span class="wo-vh"> {{ copy.DIRECTIONS_CONTEXT }}</span></a></p>
+{% endif %}
 {% if idea.place.uncertainty %}
 <ul class="wo-labels">
 {% for label in idea.place.uncertainty %}

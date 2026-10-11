@@ -49,7 +49,7 @@ OVERSIZED: Final = overpass.MAX_RESPONSE_BYTES + 1
 SLOW_S: Final = 30.0
 EXPECTED_PLACES: Final = 4
 # The stage budget the adapter has at DEADLINE, as the `[timeout:N]` setting.
-EXPECTED_TIMEOUT: Final = int(overpass.STAGE_BUDGET_S)
+EXPECTED_TIMEOUT: Final = int(overpass.ATTEMPT_BUDGET_S)  # TC-012: half the stage per attempt
 
 
 @dataclass(frozen=True, slots=True)
@@ -176,7 +176,7 @@ async def test_no_request_text_can_reach_the_query() -> None:
 @pytest.mark.parametrize(
     ("deadline", "expected"),
     [
-        pytest.param(NOW + 10.0, overpass.STAGE_BUDGET_S, id="the-stage-budget-is-smaller"),
+        pytest.param(NOW + 10.0, overpass.ATTEMPT_BUDGET_S, id="the-attempt-budget-is-smaller"),
         pytest.param(NOW + 1.5, 1.5, id="the-remaining-deadline-is-smaller"),
     ],
 )
@@ -335,12 +335,23 @@ async def test_a_transport_failure_is_the_only_retryable_outcome(failure: Except
     ("status", "expected"),
     [
         pytest.param(429, RETRY_AFTER_S, id="too-many-requests"),
-        pytest.param(504, RETRY_AFTER_S, id="gateway-timeout"),
     ],
 )
 async def test_the_provider_saying_no_carries_its_delay(status: int, expected: float) -> None:
     answered = await _nearby(httpx.Response(status, headers={"Retry-After": "90"}, text="slow"))
     assert answered.outcome == QuotaOrUnavailable(retry_after_s=expected)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("status", [500, 502, 503, 504])
+async def test_a_server_error_is_a_failed_attempt_so_the_retry_may_change_instance(
+    status: int,
+) -> None:
+    # TC-012: Overpass answers 504 when overloaded; the one retry then goes to the
+    # alternative instance, which a cooldown on this key would prevent.
+    answered = await _nearby(httpx.Response(status, headers={"Retry-After": "90"}, text="slow"))
+    assert isinstance(answered.outcome, TransportFailure)
+    assert answered.route.call_count == 1
 
 
 @pytest.mark.asyncio

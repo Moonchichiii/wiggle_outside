@@ -22,3 +22,8 @@ Commit: 8ec3b472daadf8f031ba79cc1a6c903efee89c03
 
 - commit: 34011ce
 - digest: sha256:aa6f8791824d1dfebc28e14225d33862e95dd3c771af1ea915d80a0dcfb644fa
+
+## Deploy 4 (final fixes)
+
+- commit: bb170b6
+- digest: sha256:f61163bd621753c2916c343e9f6d793bf629e6bfa5ec35c81bb4ebbf99537133

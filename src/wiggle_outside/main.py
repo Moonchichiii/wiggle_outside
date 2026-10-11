@@ -231,7 +231,13 @@ def build_resources(settings: Settings, sessions: SessionStore) -> Resources:
             nominatim.from_settings(client, settings), store, gate, flight, counters, clock
         ),
         places=cached_places(
-            overpass.from_settings(client, settings), store, gate, flight, counters, clock
+            overpass.from_settings(client, settings),
+            store,
+            gate,
+            flight,
+            counters,
+            clock,
+            fallback=overpass.fallback_from_settings(client, settings),
         ),
         weather=cached_weather(
             open_meteo.from_settings(client, settings), store, gate, flight, counters, clock

@@ -129,12 +129,10 @@ def test_a_result_with_no_ideas_renders_no_card_markup(rendered: Mapping[str, st
     assert esc(copy.ERROR_MESSAGES[ErrorCode.NO_MATCHES]) in html
 
 
-def test_fewer_matches_counts_what_is_actually_shown(pages: Mapping[str, ResultPage]) -> None:
-    template = copy.ERROR_MESSAGES[ErrorCode.FEWER_MATCHES]
-    assert template.format(count=2) in [n.body for n in pages["two"].notices]
-    # TC-011: the singular for one idea.
-    assert copy.FEWER_MATCHES_ONE in [n.body for n in pages["one"].notices]
-    assert template.format(count=1) not in [n.body for n in pages["one"].notices]
+def test_fewer_matches_is_not_said_the_cards_show_it(pages: Mapping[str, ResultPage]) -> None:
+    # TC-012: the count is visible on the page itself, so the line is gone.
+    for name in ("two", "one"):
+        assert not [n for n in pages[name].notices if "matching idea" in n.body], name
     # No unfilled placeholder ever reaches a page.
     for page in pages.values():
         for item in page.notices:
@@ -164,7 +162,7 @@ def test_the_weather_line_is_shown_once_and_never_per_card(
     # The en dash and the degree sign come from the copy table, so the expected string
     # carries no ambiguous character of its own (see copy.py's note on the linter).
     assert weather.line == (
-        f"Forecast for 10:31{DASH}11:31, checked at 10:31: cloudy with showers possible "
+        f"Forecast for today, 10:31{DASH}11:31, checked at 10:31: cloudy with showers possible "
         f"(up to 40 %), 11{DASH}12 {copy.DEGREE}C, wind up to 18 km/h."
     )
     assert rendered["three"].count(esc(weather.line)) == 1
@@ -174,7 +172,7 @@ def test_times_are_in_the_locations_timezone(pages: Mapping[str, ResultPage]) ->
     # The fixture window is 08:31-09:31 UTC, which is 10:31-11:31 in Europe/Stockholm.
     weather = pages["three"].weather
     assert weather is not None
-    assert weather.window == f"10:31{DASH}11:31"
+    assert weather.window == f"today, 10:31{DASH}11:31"  # TC-012: the day is named
     assert weather.checked_at == "10:31"
     assert "08:31" not in weather.line
 
@@ -253,10 +251,12 @@ def test_the_interest_match_line_uses_the_results_own_tags(
     assert leaves.interest_match is None
 
 
-def test_the_match_line_is_not_on_the_card(rendered: Mapping[str, str]) -> None:
-    # 8.12: reasons and the match line live on the detail page, not on the card.
+def test_the_card_carries_the_short_match_not_the_detail_sentence(
+    rendered: Mapping[str, str],
+) -> None:
+    # TC-012: the card says "Matches: birds"; the detail page keeps the full sentence.
     assert "Matches the interests" not in rendered["three"]
-    assert esc("It's close by.") not in rendered["three"]
+    assert "Matches: " in rendered["three"]
 
 
 # --- D39 labels, no match, unclear, not applied (PRODUCT-FIT 3.4) ---------------------

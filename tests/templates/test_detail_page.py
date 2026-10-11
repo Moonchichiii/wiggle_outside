@@ -167,7 +167,7 @@ def test_the_print_context_carries_the_date_timezone_and_place(
 
 
 def test_the_full_weather_line_is_on_the_detail_page(pages: Mapping[str, DetailPage]) -> None:
-    expected = f"Forecast for 10:31{copy.EN_DASH}11:31, checked at 10:31"
+    expected = f"Forecast for today, 10:31{copy.EN_DASH}11:31, checked at 10:31"
     assert pages["bingo"].weather.line.startswith(expected)
 
 

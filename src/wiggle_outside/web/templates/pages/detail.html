@@ -48,7 +48,10 @@
 {%- if page.idea.place.name %}<strong>{{ page.idea.place.name }}</strong>{{ copy.PRACTICAL_JOIN }}{% endif -%}
 {{ page.idea.place.kind_label }}
 {%- if page.idea.place.distance %}{{ copy.PRACTICAL_JOIN }}{{ page.idea.place.distance }}{% if page.idea.place.distance != copy.DISTANCE_CLOSE_BY %}{{ copy.DISTANCE_STRAIGHT_LINE_SUFFIX }}{% endif %}{% endif %}</p>
-<p class="wo-detail-times">{{ copy.DETAIL_TIMES.format(times=page.idea.times) }}</p>
+<p class="wo-detail-times">{{ page.idea.times_detail }}</p>
+{% if page.idea.place.directions_url %}
+<p class="wo-card-map"><a href="{{ page.idea.place.directions_url }}" target="_blank" rel="noopener noreferrer">{{ copy.DIRECTIONS_LABEL }}<span class="wo-vh"> {{ copy.DIRECTIONS_CONTEXT }}</span></a></p>
+{% endif %}
 {% if page.idea.place.uncertainty %}
 <ul class="wo-labels">
 {% for label in page.idea.place.uncertainty %}

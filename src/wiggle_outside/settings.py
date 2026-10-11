@@ -56,6 +56,8 @@ class Settings:
     # Provider endpoints are configuration, never supplied by users (PLAN section 9).
     nominatim_url: str
     overpass_url: str
+    # TC-012: the one alternative instance the permitted retry may go to.
+    overpass_fallback_url: str
     open_meteo_url: str
     contact_email: str
 
@@ -79,6 +81,9 @@ class Settings:
             db_path=_env("DB_PATH", "./data/wiggle.sqlite"),
             nominatim_url=_env("NOMINATIM_URL", "https://nominatim.openstreetmap.org"),
             overpass_url=_env("OVERPASS_URL", "https://overpass-api.de/api/interpreter"),
+            overpass_fallback_url=_env(
+                "OVERPASS_FALLBACK_URL", "https://overpass.kumi.systems/api/interpreter"
+            ),
             open_meteo_url=_env("OPEN_METEO_URL", "https://api.open-meteo.com/v1/forecast"),
             contact_email=_env("CONTACT_EMAIL", ""),
             openrouter_url=_env("OPENROUTER_URL", "https://openrouter.ai/api/v1/chat/completions"),

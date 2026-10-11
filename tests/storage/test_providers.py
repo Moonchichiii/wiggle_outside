@@ -19,7 +19,7 @@ from fakes import (
     weather_window,
 )
 
-from wiggle_outside.core.result import Empty, Ok, Outcome
+from wiggle_outside.core.result import Empty, Ok, Outcome, TransportFailure
 from wiggle_outside.core.types import Coordinates, GeocodeHits, Place, TypedPlace, WeatherWindow
 from wiggle_outside.planner.ports import (
     CacheStore,
@@ -334,3 +334,57 @@ def test_the_local_date_is_the_entrys_own_timezone_so_the_pacific_case_is_right(
 
     assert weather_codec(evening, evening + timedelta(hours=1)).covers(entry) is True
     assert weather_codec(next_morning, next_morning + timedelta(hours=1)).covers(entry) is False
+
+
+# --- TC-012 part C: the one retry goes to the alternative instance ---------------------
+
+
+@dataclass(slots=True)
+class _Places:
+    outcomes: list[Outcome[tuple[Place, ...]]]
+    calls: int = 0
+
+    async def nearby(self, *_: object) -> Outcome[tuple[Place, ...]]:
+        self.calls += 1
+        return self.outcomes.pop(0)
+
+
+@pytest.mark.asyncio
+async def test_after_a_transport_failure_the_retry_goes_to_the_fallback_instance() -> None:
+    built, _store, counters, clock = wiring()
+    primary = _Places([TransportFailure()])
+    fallback = _Places([Ok((PLACE,))])
+    wrapped = cached_places(
+        primary, built.store, built.gate, built.flight, counters, clock, fallback=fallback
+    )
+
+    answered = await wrapped.nearby(AT, RADIUS, KINDS, DEADLINE)
+
+    assert answered == Ok((PLACE,))
+    assert (primary.calls, fallback.calls) == (1, 1)
+
+
+@pytest.mark.asyncio
+async def test_a_good_first_answer_never_touches_the_fallback() -> None:
+    built, _store, counters, clock = wiring()
+    primary = _Places([Ok((PLACE,))])
+    fallback = _Places([Ok((PLACE,))])
+    wrapped = cached_places(
+        primary, built.store, built.gate, built.flight, counters, clock, fallback=fallback
+    )
+
+    await wrapped.nearby(AT, RADIUS, KINDS, DEADLINE)
+
+    assert (primary.calls, fallback.calls) == (1, 0)
+
+
+@pytest.mark.asyncio
+async def test_without_a_fallback_the_retry_goes_to_the_same_instance() -> None:
+    built, _store, counters, clock = wiring()
+    primary = _Places([TransportFailure(), Ok((PLACE,))])
+    wrapped = cached_places(primary, built.store, built.gate, built.flight, counters, clock)
+
+    answered = await wrapped.nearby(AT, RADIUS, KINDS, DEADLINE)
+
+    assert answered == Ok((PLACE,))
+    assert primary.calls == 2

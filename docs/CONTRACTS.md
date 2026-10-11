@@ -534,6 +534,7 @@ rules re-homed, the acceptance checks affected, and the approver. Conventions:
 | TC-009 | Deadline budget 3 / 9 / 6 / 2, measured; both Overpass attempts share the places stage | pending (checkpoint commit by Mats) | accepted (Mats, 11 Oct) |
 | TC-010 | Live Gemma through OpenRouter with the approved-provider allowlist (NextBit, DeepInfra, CoreWeave) | pending (checkpoint commit by Mats) | accepted (Mats, with the reviewer's binding changes) |
 | TC-011 | Round 1: "Use my location" as a built, hashed enhancement; the choice page's own heading and button; the brand links home; app logs on stdout; `/favicon.ico`. Round 2: "Plan for tomorrow" | pending (Mats commits; deploy between the rounds) | accepted (Mats, 11 Oct) |
+| TC-012 | The results page: one notice box, the picks' reasons and matched interests on the cards, the place on OpenStreetMap, "Before you go"; an alternative Overpass instance for the one retry. Gemma's free-text note withdrawn | pending (Mats commits, one per part) | accepted (Mats, 12 Oct) |
 
 ### 10.1 Contract changes raised by a package (CC)
 

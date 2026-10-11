@@ -50,3 +50,15 @@
   font-size: var(--text-sm);
   font-weight: 600;
 }
+
+/* TC-012: the one notice box above the cards. */
+.wo-notices .wo-notice-lead {
+  margin: 0;
+  font-weight: 600;
+}
+
+.wo-notice-secondary {
+  margin-top: var(--spacing-s1);
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+}

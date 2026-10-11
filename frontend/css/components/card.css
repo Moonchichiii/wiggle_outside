@@ -142,3 +142,44 @@
     }
   }
 }
+
+/* TC-012: the model's choices on the card: at most two reasons and the matched interests,
+   in the same compact row style as the practical lines. */
+.wo-card-reasons {
+  display: grid;
+  gap: var(--spacing-s1);
+  margin: 0 0 var(--spacing-s2);
+  padding: 0;
+  list-style: none;
+}
+
+.wo-card-reasons li,
+.wo-card-match {
+  display: flex;
+  gap: var(--spacing-s2);
+  align-items: flex-start;
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+.wo-card-match {
+  margin-bottom: var(--spacing-s3);
+  font-weight: 600;
+}
+
+
+/* TC-012: the route there, a plain link in the card's row rhythm. */
+.wo-card-map {
+  margin: 0 0 var(--spacing-s3);
+}
+
+.wo-card-map a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--color-action);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

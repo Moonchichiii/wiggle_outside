@@ -8,6 +8,7 @@ autoescape at the HTML boundary (BACKEND-CONTRACT section 7). Nothing here rende
 Importing this module has no side effects: `build_environment()` is called explicitly.
 """
 
+import re
 from collections.abc import Mapping
 from dataclasses import replace
 from pathlib import Path
@@ -16,6 +17,7 @@ from typing import TYPE_CHECKING, Final
 from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
 
 from wiggle_outside.core.errors import ErrorCode, NoticeId
+from wiggle_outside.core.packing import PackingInputs, PackingList, packing_list
 from wiggle_outside.core.types import (
     COORD_DP,
     AgeBand,
@@ -47,6 +49,8 @@ from wiggle_outside.web.views import (
     NoticeKind,
     NoticeView,
     Option,
+    PackingGroupView,
+    PackingView,
     PageMeta,
     PlaceView,
     PrintView,
@@ -424,7 +428,22 @@ def _place_view(pair: Pair) -> PlaceView:
         kind_label=_kind_label(pair.place),
         distance=distance,
         uncertainty=_uncertainty(pair.place),
+        directions_url=_directions_url(pair.place),
     )
+
+
+# The Overpass adapter's place identity: "<osm type>:<osm id>" (integrations.overpass).
+OSM_IDENTITY: Final = re.compile(r"^(node|way|relation):([0-9]+)$")
+
+
+def _directions_url(place: Place | None) -> str | None:
+    """Link the place's own OpenStreetMap page from its OSM id, or None without one."""
+    if place is None:
+        return None
+    found = OSM_IDENTITY.match(place.place_id)
+    if found is None:
+        return None
+    return copy.DIRECTIONS_URL.format(kind=found.group(1), number=found.group(2))
 
 
 # --- The shared weather line ---------------------------------------------------------------
@@ -452,10 +471,14 @@ def _forecast(weather: WeatherSummary) -> str:
 
 
 def _weather_view(weather: WeatherSummary, now: datetime, *, example: bool = False) -> WeatherView:
-    # TC-011: a window on a later local date than now says so (a plan-ahead result).
+    # TC-012: the day is always named, in the place's time: today, tomorrow, or the date.
     at = ZoneInfo(weather.tz)
-    later = weather.window_start.astimezone(at).date() > now.astimezone(at).date()
-    window = (copy.WEATHER_WINDOW_TOMORROW if later else copy.WEATHER_WINDOW).format(
+    days_ahead = (weather.window_start.astimezone(at).date() - now.astimezone(at).date()).days
+    template = {0: copy.WEATHER_WINDOW, 1: copy.WEATHER_WINDOW_TOMORROW}.get(
+        days_ahead, copy.WEATHER_WINDOW_DATED
+    )
+    window = template.format(
+        date=_date(weather.window_start, weather.tz),
         start=_time(weather.window_start, weather.tz),
         end=_time(weather.window_end, weather.tz),
     )
@@ -518,15 +541,20 @@ def _matched_interests(
     return tuple(tag for tag in tags if tag in activity.interests)
 
 
-def _interest_match(activity: Activity, interests: Interests | None) -> str | None:
-    """Build the match line from the result's own validated tags (PRODUCT-FIT 3.3)."""
+def _match_labels(activity: Activity, interests: Interests | None) -> str | None:
+    """Join the labels of the result's validated tags this activity matches, or None."""
     if interests is None or interests.outcome is not InterestOutcome.MATCHED:
         return None
     matched = _matched_interests(activity, interests.tags)
     if not matched:
         return None
-    labels = copy.INTERESTS_LIST_JOIN.join(copy.INTEREST_TAG_LABELS[tag] for tag in matched)
-    return copy.INTEREST_MATCH.format(tags=labels)
+    return copy.INTERESTS_LIST_JOIN.join(copy.INTEREST_TAG_LABELS[tag] for tag in matched)
+
+
+def _interest_match(activity: Activity, interests: Interests | None) -> str | None:
+    """Build the match line from the result's own validated tags (PRODUCT-FIT 3.3)."""
+    labels = _match_labels(activity, interests)
+    return None if labels is None else copy.INTEREST_MATCH.format(tags=labels)
 
 
 def _interests_view(result: PlanResult, *, d39_enabled: bool) -> InterestsView | None:
@@ -554,6 +582,13 @@ def _times(pair: Pair) -> str:
     return copy.TIMES.format(travel=pair.travel_min, duration=pair.duration_min)
 
 
+def _times_detail(pair: Pair) -> str:
+    """Build the detail page's line: the same facts as the card, with the estimate said."""
+    if pair.place is None:
+        return copy.DETAIL_TIMES_ACTIVITY_ONLY.format(duration=pair.duration_min)
+    return copy.DETAIL_TIMES.format(times=_times(pair))
+
+
 def _idea_views(result: PlanResult, catalogue: Catalogue) -> tuple[IdeaView, ...]:
     """One view per idea, in the result's display order. Never padded (0-3, FEWER_MATCHES).
 
@@ -574,8 +609,10 @@ def _idea_views(result: PlanResult, catalogue: Catalogue) -> tuple[IdeaView, ...
                 intro=hooks[idea.hook_id],
                 reasons=tuple(reasons[reason_id] for reason_id in idea.reason_ids),
                 interest_match=_interest_match(activity, result.interests),
+                match_labels=_match_labels(activity, result.interests),
                 place=_place_view(idea.pair),
                 times=_times(idea.pair),
+                times_detail=_times_detail(idea.pair),
                 detail_url=f"/results/{result.job_id}/ideas/{idea.pair.idea_id}",
                 illustration=copy.ACTIVITY_ILLUSTRATIONS.get(
                     activity.activity_id, copy.DEFAULT_ILLUSTRATION
@@ -585,15 +622,14 @@ def _idea_views(result: PlanResult, catalogue: Catalogue) -> tuple[IdeaView, ...
     return tuple(views)
 
 
-def _notice_body(code: NoticeId | ErrorCode, idea_count: int) -> str | None:
+def _notice_body(code: NoticeId | ErrorCode) -> str | None:
     """Return the reviewed text for one notice, or None when there is none to render."""
     if isinstance(code, NoticeId):
         # REPLAY has no reviewed copy: the replay demo is inactive (D24, D48).
         return copy.NOTICE_MESSAGES.get(code)
     if code is ErrorCode.FEWER_MATCHES:
-        if idea_count == 1:
-            return copy.FEWER_MATCHES_ONE
-        return copy.ERROR_MESSAGES[code].format(count=idea_count)
+        # TC-012: the count is visible on the page itself; the line is not shown.
+        return None
     if code in NOT_A_RESULT_NOTICE:
         return None
     return copy.ERROR_MESSAGES[code]
@@ -616,7 +652,7 @@ def _result_notice_body(result: PlanResult, code: NoticeId | ErrorCode) -> str |
     if code in INTEREST_NOTICES and not _interpreted(result):
         # TC-011: an interests notice needs an interpretation of text that was given.
         return None
-    return _notice_body(code, len(result.ideas))
+    return _notice_body(code)
 
 
 def _morning_body(result: PlanResult) -> str:
@@ -651,7 +687,7 @@ def _notice_views(result: PlanResult) -> tuple[NoticeView, ...]:
     if error is not None and error not in NOT_A_RESULT_NOTICE:
         # The daylight copy is calm, deliberate guidance, not an alert (ERROR-HANDLING 1).
         kind: NoticeKind = "info" if error in DAYLIGHT_CODES else "alert"
-        error_body = _notice_body(error, len(result.ideas))
+        error_body = _notice_body(error)
         if error_body is not None:
             bodies.append((kind, error_body))
     for code in result.notices:
@@ -661,8 +697,19 @@ def _notice_views(result: PlanResult) -> tuple[NoticeView, ...]:
         if body is not None:
             bodies.append(("info", body))
     return tuple(
-        NoticeView(kind=kind, heading=None, body=body, actions=()) for kind, body in bodies
+        NoticeView(kind=kind, heading=None, body=body, actions=())
+        for kind, body in _lead_first(result, bodies)
     )
+
+
+def _lead_first(
+    result: PlanResult, bodies: list[tuple[NoticeKind, str]]
+) -> list[tuple[NoticeKind, str]]:
+    """Put the most important line first (TC-012): a morning plan says what the page is."""
+    if NoticeId.PLANNED_FOR_MORNING not in result.notices:
+        return bodies
+    morning = _morning_body(result)
+    return [("info", morning), *[(kind, body) for kind, body in bodies if body != morning]]
 
 
 def _historical_text(result: PlanResult) -> str | None:
@@ -746,6 +793,7 @@ def present_result(  # noqa: PLR0913, PLR0917
         is_historical=is_historical,
         historical_text=_historical_text(result) if is_historical else None,
         plan_again=ActionView(label=copy.PLAN_AGAIN, url="/", method="get", csrf_token=None),
+        packing=_packing_view(result, catalogue),
     )
 
 
@@ -909,3 +957,54 @@ def render_detail(env: Environment, page: DetailPage) -> str:
 def render_error(env: Environment, page: ErrorPage) -> str:
     """Render the error page, with the answer-keeping form when there is one."""
     return env.get_template("pages/error.html").render(page=page, copy=copy)
+
+
+# --- "Before you go" (TC-012 part E) ------------------------------------------------------
+
+
+def _packing_view(result: PlanResult, catalogue: Catalogue) -> PackingView | None:
+    """Build the list from the planned window's forecast, the answers and the ideas."""
+    weather = result.weather
+    if weather is None or not result.ideas:
+        return None
+    by_id = {activity.activity_id: activity for activity in catalogue.activities()}
+    items = tuple(item for idea in result.ideas for item in by_id[idea.pair.activity_id].optional)
+    built = packing_list(
+        PackingInputs(
+            who=result.answers.who,
+            age_bands=result.answers.age_bands,
+            stroller=result.answers.stroller,
+            time_budget=result.answers.time_budget,
+            condition=weather.condition,
+            temp_min_c=weather.temp_min_c,
+            temp_max_c=weather.temp_max_c,
+            precip_probability=weather.max_precip_probability,
+            wind_kmh=weather.max_wind_kmh,
+            idea_items=items,
+        )
+    )
+    groups = (
+        PackingGroupView(
+            heading=copy.PACKING_GROUP_WEATHER,
+            items=tuple(copy.PACKING_ITEMS[item] for item in built.weather),
+        ),
+        PackingGroupView(
+            heading=copy.PACKING_GROUP_LITTLE_ONES,
+            items=tuple(copy.PACKING_ITEMS[item] for item in built.little_ones),
+        ),
+        PackingGroupView(heading=copy.PACKING_GROUP_IDEAS, items=built.ideas),
+    )
+    return PackingView(
+        heading=copy.PACKING_HEADING,
+        groups=tuple(group for group in groups if group.items),
+        snack_label=copy.PACKING_SNACK_LABEL,
+        snack=_snack_line(built),
+        reminder=copy.PACKING_REMINDER,
+    )
+
+
+def _snack_line(built: PackingList) -> str:
+    parts = [copy.SNACKS[built.snack]]
+    if built.sandwich:
+        parts.append(copy.SNACK_SANDWICH)
+    return " ".join(parts)

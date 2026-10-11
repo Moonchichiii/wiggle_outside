@@ -104,3 +104,50 @@
   display: grid;
   gap: var(--spacing-s5);
 }
+
+/* TC-012: the "Before you go" box under the ideas. */
+.wo-packing {
+  margin-top: var(--spacing-s5);
+  padding: var(--spacing-s4);
+  background: var(--color-card);
+  border: var(--border-width-ink) solid var(--color-ink);
+
+  @apply wonk-tile;
+}
+
+.wo-packing-heading {
+  margin: 0 0 var(--spacing-s3);
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.wo-packing-group {
+  min-width: 0;
+  margin: 0 0 var(--spacing-s3);
+  padding: 0;
+  border: 0;
+}
+
+.wo-packing-legend {
+  margin-bottom: var(--spacing-s1);
+  padding: 0;
+  font-weight: 700;
+}
+
+.wo-packing-items {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wo-packing-snack {
+  margin: var(--spacing-s3) 0 var(--spacing-s1);
+}
+
+.wo-packing-reminder {
+  margin: 0;
+}

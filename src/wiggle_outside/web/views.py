@@ -170,6 +170,8 @@ class PlaceView:
     kind_label: str
     distance: str | None
     uncertainty: tuple[str, ...]  # fee and access labels, always "as reported"
+    # TC-012: OpenStreetMap directions to the place's own coordinates; None = generic.
+    directions_url: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -178,14 +180,35 @@ class IdeaView:
     variant: IdeaVariant
     title: str
     intro: str  # Hook.text verbatim, no placeholders
-    reasons: tuple[str, ...]  # detail page only
-    interest_match: str | None
+    reasons: tuple[str, ...]  # the card shows at most two; the detail page all
+    interest_match: str | None  # the detail page's sentence
     place: PlaceView
     times: str
     detail_url: str
     # The card's activity illustration, as a decor asset stem (visual direction, TC-008).
     # Empty means the generic leaf; the name never comes from the model.
     illustration: str = ""
+    # TC-012: the matched tag labels for the card's short "Matches: ..." line.
+    match_labels: str | None = None
+    # TC-012: the detail page's version of the times line, which qualifies the estimate.
+    times_detail: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class PackingGroupView:
+    heading: str
+    items: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class PackingView:
+    """Hold the Before-you-go box (TC-012): tickable, nothing saved, works without JS."""
+
+    heading: str
+    groups: tuple[PackingGroupView, ...]  # only groups with items
+    snack_label: str
+    snack: str
+    reminder: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -203,6 +226,8 @@ class ResultPage:
     is_historical: bool
     historical_text: str | None
     plan_again: ActionView
+    # TC-012: present when the result has ideas and a forecast.
+    packing: PackingView | None = None
 
 
 @dataclass(frozen=True, slots=True)

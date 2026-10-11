@@ -93,6 +93,9 @@ class _CachedGeocoder:
 class _CachedPlaces:
     inner: PlacesProvider
     engine: Engine
+    # TC-012: the one alternative instance. The wrapper retries once after a transport
+    # failure (a timeout, or a 5xx the adapter reports as one); that attempt goes here.
+    fallback: PlacesProvider | None = None
 
     async def nearby(
         self,
@@ -101,12 +104,20 @@ class _CachedPlaces:
         kinds: frozenset[str],
         deadline: float,
     ) -> Outcome[tuple[Place, ...]]:
+        attempts = 0
+
+        async def attempt(at_deadline: float) -> Outcome[tuple[Place, ...]]:
+            nonlocal attempts
+            attempts += 1
+            provider = self.fallback if attempts > 1 and self.fallback is not None else self.inner
+            return await provider.nearby(at, radius_m, kinds, at_deadline)
+
         return await obtain(
             self.engine,
             Request(
                 key=places_key(at, radius_m, kinds),
                 deadline=deadline,
-                inner=partial(self.inner.nearby, at, radius_m, kinds),
+                inner=attempt,
                 codec=PLACES_CODEC,
             ),
         )
@@ -159,9 +170,13 @@ def cached_places(  # noqa: PLR0913, PLR0917
     flight: SingleFlight,
     counters: Counters,
     clock: Clock,
+    *,
+    fallback: PlacesProvider | None = None,
 ) -> PlacesProvider:
     wiring = CacheWiring(store=store, gate=gate, flight=flight, counters=counters, clock=clock)
-    return _CachedPlaces(inner=inner, engine=_engine(wiring, ProviderName.OVERPASS, PLACES_TTL))
+    return _CachedPlaces(
+        inner=inner, engine=_engine(wiring, ProviderName.OVERPASS, PLACES_TTL), fallback=fallback
+    )
 
 
 def cached_weather(  # noqa: PLR0913, PLR0917

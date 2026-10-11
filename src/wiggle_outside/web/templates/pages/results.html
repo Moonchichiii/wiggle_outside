@@ -72,11 +72,26 @@
 </div>
 {% endif %}
 
-{% for view in page.notices %}
-{% if not (fixed_copy and loop.first) %}
-{{ notice(view) }}
-{% endif %}
+{# TC-012: one compact box gathers the notices, the most important line first and the
+   rest as short secondary lines; the places warning stays visible inside it. The box
+   takes the first notice's kind, so a warning that leads still looks like one. #}
+{% set shown = page.notices[1:] if fixed_copy else page.notices %}
+{% if shown %}
+<section class="wo-notice wo-notice-{{ shown[0].kind }} wo-notices" aria-labelledby="notices-heading">
+{{ icon({"info": "info", "success": "check", "alert": "alert"}[shown[0].kind]) }}
+<div class="wo-notice-body">
+<h2 class="wo-vh" id="notices-heading">{{ copy.NOTICES_HEADING }}</h2>
+<p class="wo-notice-text wo-notice-lead">{{ shown[0].body }}</p>
+{% if shown | length > 1 %}
+<ul class="wo-notice-list wo-notice-secondary">
+{% for view in shown[1:] %}
+<li>{{ view.body }}</li>
 {% endfor %}
+</ul>
+{% endif %}
+</div>
+</section>
+{% endif %}
 
 {% if page.source_label %}
 {# The labelled fallback (DESIGN-SPEC section 7): catalogue picks after every normal
@@ -99,6 +114,25 @@
 {{ idea_card(idea) }}
 {% endfor %}
 </div>
+{% endif %}
+{% if page.packing %}
+{# TC-012: the packing list, built in code from the window, the ages, the time and the
+   ideas. Native checkboxes to tick while packing; nothing is submitted or saved. #}
+<section class="wo-packing" aria-labelledby="packing-heading">
+<h2 class="wo-packing-heading" id="packing-heading">{{ page.packing.heading }}</h2>
+{% for group in page.packing.groups %}
+<fieldset class="wo-packing-group">
+<legend class="wo-packing-legend">{{ group.heading }}</legend>
+<ul class="wo-packing-items">
+{% for item in group.items %}
+<li><label class="wo-checkrow"><input type="checkbox"><span>{{ item }}</span></label></li>
+{% endfor %}
+</ul>
+</fieldset>
+{% endfor %}
+<p class="wo-packing-snack"><strong>{{ page.packing.snack_label }}:</strong> {{ page.packing.snack }}</p>
+<p class="wo-hint wo-packing-reminder">{{ page.packing.reminder }}</p>
+</section>
 {% endif %}
 </section>
 </div>

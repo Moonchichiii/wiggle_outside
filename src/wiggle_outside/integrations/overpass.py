@@ -45,6 +45,9 @@ USER_AGENT: Final = "WiggleOutside/0.1"
 # BACKEND-CONTRACT section 7: decompressed responses capped at 2 MiB while streaming.
 MAX_RESPONSE_BYTES: Final = 2 * 1024 * 1024
 STAGE_BUDGET_S: Final = PROVIDERS_BUDGET_S
+# TC-012: one attempt may use at most half the stage, so the permitted retry (TC-009)
+# always has time to reach the alternative instance within the 9 s.
+ATTEMPT_BUDGET_S: Final = STAGE_BUDGET_S / 2
 CONNECT_BUDGET_S: Final = 2.0
 
 # PLAN section 3: the radius comes from the time budget and never exceeds 3 km.
@@ -123,7 +126,7 @@ class OverpassPlaces(PlacesProvider):
             # Nothing this provider can be asked for, so there is nothing to ask: an
             # empty answer rather than an empty query.
             return Empty()
-        budget = min(STAGE_BUDGET_S, deadline - self.monotonic())
+        budget = min(ATTEMPT_BUDGET_S, deadline - self.monotonic())
         if budget <= 0:
             # No time for an attempt; the same outcome the attempt would have had.
             return TransportFailure()
@@ -151,6 +154,18 @@ class OverpassPlaces(PlacesProvider):
 def from_settings(client: httpx.AsyncClient, settings: Settings) -> OverpassPlaces:
     """Build the adapter from configuration only (PLAN section 9: no URL from a request)."""
     return OverpassPlaces(client=client, base_url=settings.overpass_url)
+
+
+def fallback_from_settings(client: httpx.AsyncClient, settings: Settings) -> OverpassPlaces | None:
+    """Build the alternative-instance adapter (TC-012), or None when none is configured.
+
+    The same adapter, the same User-Agent and the same query; only the base URL differs,
+    and it is used only for the one permitted retry after a timeout or 5xx.
+    """
+    url = settings.overpass_fallback_url.strip()
+    if not url or url == settings.overpass_url:
+        return None
+    return OverpassPlaces(client=client, base_url=url)
 
 
 def _selectors(kinds: frozenset[str]) -> tuple[str, ...]:
@@ -216,9 +231,15 @@ def _capped(payload: bytes | None) -> _Fetched:
     return TransportFailure() if payload is None else _Body(payload)
 
 
-def _status_outcome(status: int, retry_after: str | None) -> Malformed | QuotaOrUnavailable:
-    if status == HTTP_TOO_MANY_REQUESTS or status >= HTTP_SERVER_ERROR:
+def _status_outcome(
+    status: int, retry_after: str | None
+) -> Malformed | QuotaOrUnavailable | TransportFailure:
+    if status == HTTP_TOO_MANY_REQUESTS:
         return QuotaOrUnavailable(retry_after_s=_retry_after_seconds(retry_after))
+    if status >= HTTP_SERVER_ERROR:
+        # TC-012: a 5xx (Overpass answers 504 when overloaded) is a failed attempt, so the
+        # one retry can go to the alternative instance; 429 still means back off.
+        return TransportFailure()
     # Anything else (a redirect we refuse to follow, a 4xx) is an answer we cannot use:
     # not cached, counted, never retried.
     return Malformed()
