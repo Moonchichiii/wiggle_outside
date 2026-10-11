@@ -13,7 +13,7 @@
   align-items: center;
   margin: 0 0 var(--spacing-s2);
   font-family: var(--font-heading);
-  font-size: var(--text-base);
+  font-size: var(--text-lg);
   font-weight: 800;
   letter-spacing: 0.01em;
 }
@@ -36,10 +36,15 @@
 }
 
 /* The board sets the whole thing in one narrow card, not a wide page: every page -
-   form, results, error, night - is this one column. */
+   form, results, error, night - is this one column, and the masthead sits inside the
+   card with the page, not above it. */
 .wo-masthead,
 .wo-column {
-  max-width: var(--wo-panel-w);
+  max-width: none;
+}
+
+.wo-masthead {
+  margin-bottom: var(--spacing-s5);
 }
 
 /* --- The card ---------------------------------------------------------------------- */
@@ -394,4 +399,50 @@
 .wo-card[data-illo] {
   padding-right: 96px;
   background-size: 84px 77px;
+}
+
+
+/* --- The hand-inked panel edge ------------------------------------------------------ */
+
+/* The board's panel is drawn, not ruled. The border and the offset shadow live on a
+   pseudo-element under the content, and only that layer passes through the inline
+   displacement filter in base.html - the text is never distorted. Without filter
+   support the layer is a plain ruled border, which is what it was before. */
+.wo-panel {
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  box-shadow: none;
+}
+
+.wo-panel::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -1px;
+  border: 3px solid var(--color-ink);
+  box-shadow: var(--shadow-card);
+  filter: url("#wo-ink");
+  pointer-events: none;
+
+  @apply wonk-card;
+}
+
+.wo-panel .wo-panel::before {
+  content: none;
+}
+
+/* The weather strip on the board: a soft band with the small example note under it. */
+.wo-weather-text {
+  min-width: 0;
+}
+
+.wo-weather-example {
+  font-weight: 600;
+}
+
+.wo-weather-note {
+  margin: 2px 0 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
 }

@@ -36,6 +36,16 @@
   font-display: swap;
 }
 
+/* The handwritten margin notes (TC-008). Decorative only, so no fallback metrics: if it
+   never loads the notes simply render in the body face. SIL OFL 1.1, committed. */
+@font-face {
+  font-family: "Patrick Hand";
+  src: url("/static/fonts/PatrickHand-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Metric-matched fallbacks. Cabinet's line box is 13.5 % shorter than Segoe UI's and
    Switzer's is 7.5 % shorter, with Switzer's x-height 6.2 % larger — so without these
    the text jumps on swap. */
@@ -72,6 +82,14 @@
   --color-action-hover: #22412a;
   --color-link: #1e4a85;
   --color-error: #8a2a17;
+
+  /* --- Decoration palette (the approved board, TC-008). Artwork only; never text UI. --- */
+  --color-decor-paper: #e9efe1;
+  --color-decor-tape: #bbd2a4;
+  --color-decor-wood: #c9975b;
+  --color-decor-wood-deep: #9a6b36;
+  --color-decor-stone: #b9b3a6;
+  --font-hand: "Patrick Hand", "Segoe Print", "Bradley Hand", cursive;
 
   /* --- Type scale (section 1.2). Sizes and line heights are paired. --- */
   --text-sm: 1rem;

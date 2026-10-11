@@ -187,10 +187,12 @@ class PreviewPlanner:
             ErrorCode.NO_MATCHES,
             ErrorCode.WEATHER_RESTRICTED,
         }
-        notices: tuple[NoticeId | ErrorCode, ...] = ()
+        # REPLAY marks fixture data, so the page labels the forecast and places as
+        # examples exactly as the board does. It has no notice copy of its own.
+        notices: tuple[NoticeId | ErrorCode, ...] = (NoticeId.REPLAY,)
         if self.source is Source.FALLBACK and not blocked:
             # The label is not decoration: a fallback result must say so (D44).
-            notices = (ErrorCode.MODEL_FALLBACK,)
+            notices = (NoticeId.REPLAY, ErrorCode.MODEL_FALLBACK)
         return PlanResult(
             job_id=secrets.token_urlsafe(ID_BYTES),
             state=JobState.FALLBACK if not blocked else JobState.COMPLETE,

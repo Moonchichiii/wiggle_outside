@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0 160 230" width="160" height="230" fill="none" role="img" aria-hidden="true">
-<path d="M74 24v186" stroke="#9A6B36" stroke-width="9" stroke-linecap="round"/>
-<path d="M78 24v186" stroke="#C9975B" stroke-width="4" stroke-linecap="round"/>
-<path d="M16 40h108l16 17-16 17H16z" fill="#C9975B" stroke="#9A6B36" stroke-width="2.2" stroke-linejoin="round"/><text x="70" y="63" font-family="Switzer, system-ui, sans-serif" font-size="17" font-weight="600" letter-spacing="1.6" fill="#191C20" text-anchor="middle">LOOK</text>
-<path d="M140 96H32l-16 17 16 17h108z" fill="#C9975B" stroke="#9A6B36" stroke-width="2.2" stroke-linejoin="round"/><text x="86" y="119" font-family="Switzer, system-ui, sans-serif" font-size="17" font-weight="600" letter-spacing="1.6" fill="#191C20" text-anchor="middle">EXPLORE</text>
-<path d="M16 152h108l16 17-16 17H16z" fill="#C9975B" stroke="#9A6B36" stroke-width="2.2" stroke-linejoin="round"/><text x="70" y="175" font-family="Switzer, system-ui, sans-serif" font-size="17" font-weight="600" letter-spacing="1.6" fill="#191C20" text-anchor="middle">WIGGLE</text>
-<path d="M50 214c6-7 42-7 52 0 5 4 2 9-8 9H58c-10 0-13-5-8-9z" fill="#B9B3A6" stroke="#42464D" stroke-width="1.8" stroke-linejoin="round"/>
-</svg>

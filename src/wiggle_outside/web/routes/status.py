@@ -83,6 +83,11 @@ _BY_CODE: Final[Mapping[ErrorCode, Outcome]] = MappingProxyType(
             HTTP_SERVER_ERROR, PageKind.NOTICE, ErrorCode.UNEXPECTED_FAILURE
         ),
         **{code: Outcome(HTTP_OK, PageKind.NOTICE, code) for code in _EVALUATED},
+        # The family daylight pages keep the answers summary and "Change answers" in
+        # the results heading position (BACKEND-CONTRACT 1, DESIGN-SPEC 12, mock 05), so
+        # they are results pages whose fixed copy present_result already renders.
+        ErrorCode.DAYLIGHT_NIGHT: RESULTS,
+        ErrorCode.DAYLIGHT_TOO_SHORT: RESULTS,
         **{code: Outcome(HTTP_SERVICE_UNAVAILABLE, PageKind.NOTICE, code) for code in _UNAVAILABLE},
     }
 )

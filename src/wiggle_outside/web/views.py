@@ -152,6 +152,10 @@ class WeatherView:
     line: str
     checked_at: str
     window: str
+    # Set only for fixture data: the board's "Example forecast" prefix and its
+    # "Illustrative places and weather" note. None for a real forecast (TC-008).
+    example: str | None = None
+    example_note: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

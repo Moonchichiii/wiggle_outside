@@ -380,6 +380,10 @@ HISTORICAL: Final = (
 
 # --- The shared weather line, shown once above the ideas ------------------------------
 
+# Fixture data is labelled exactly as the approved board labels it (TC-008). Shown only
+# when the result carries NoticeId.REPLAY, which only fixture planners set.
+EXAMPLE_FORECAST: Final = "Example forecast"
+EXAMPLE_NOTE: Final = "Illustrative places and weather"
 WEATHER_LINE: Final = "Weather for {window}, checked at {time}: {summary}"
 WEATHER_WINDOW: Final = f"{{start}}{EN_DASH}{{end}}"
 WEATHER_SUMMARY: Final = "{condition}{rain}, {temperature}, wind up to {wind} km/h."

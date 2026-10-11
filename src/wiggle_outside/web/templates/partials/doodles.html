@@ -1,22 +1,38 @@
 {# The illustrated margins of the approved visual direction
-   (docs/mocks/reference/visual-direction-v2.png, DESIGN-SPEC section 1.5).
+   (docs/mocks/reference/visual-direction-v2.png, DESIGN-SPEC section 1.5, TC-008).
 
-   Empty spans carrying CSS backgrounds: nothing here enters the accessibility tree,
-   takes focus or intercepts a click, and the whole layer disappears in print and in
-   forced colours. The artwork lives in frontend/svg/decor/. #}
+   Everything here is decorative and aria-hidden; nothing takes focus or a click, and the
+   layer disappears in print and forced colours. Pieces that carry words are real text so
+   the handwriting face applies (a background SVG cannot use a page font); pieces that are
+   pure drawing are CSS backgrounds from frontend/svg/decor/. #}
 <div class="wo-decor" aria-hidden="true">
 <span class="wo-d-sun"></span>
-<span class="wo-d-sprig-a"></span>
-<span class="wo-d-sprig-b"></span>
-<span class="wo-d-sprig-c"></span>
-<span class="wo-d-sprig-d"></span>
-<span class="wo-d-note-left"></span>
-<span class="wo-d-note-paper"></span>
-<span class="wo-d-note-right"></span>
-<span class="wo-d-signpost"></span>
+<span class="wo-d-sprig wo-d-sprig-1"></span>
+<span class="wo-d-sprig wo-d-sprig-2"></span>
+<span class="wo-d-sprig wo-d-sprig-3"></span>
+<span class="wo-d-sprig wo-d-sprig-4"></span>
+<span class="wo-d-sprig wo-d-sprig-5"></span>
+<span class="wo-d-sprig wo-d-sprig-6"></span>
+<span class="wo-d-leaf wo-d-leaf-1"></span>
+<span class="wo-d-leaf wo-d-leaf-2"></span>
+<span class="wo-d-leaf wo-d-leaf-3"></span>
+<span class="wo-d-note wo-d-note-left">Small<br>people<br>big<br>outdoors</span>
+<span class="wo-d-note wo-d-note-right">Curiosity<br>travels<br>well</span>
+<span class="wo-d-paper">Nature<br>ideas<br>for<br>real life</span>
+<span class="wo-d-signpost">
+<span class="wo-d-post"></span>
+<span class="wo-d-plank wo-d-plank-right">Look</span>
+<span class="wo-d-plank wo-d-plank-left">Explore</span>
+<span class="wo-d-plank wo-d-plank-right wo-d-plank-3">Wiggle</span>
+<span class="wo-d-base"></span>
+</span>
+<span class="wo-d-tuft wo-d-tuft-1"></span>
+<span class="wo-d-tuft wo-d-tuft-2"></span>
+<span class="wo-d-tuft wo-d-tuft-3"></span>
 <span class="wo-d-plant"></span>
 <span class="wo-d-puddle"></span>
 <span class="wo-d-stones"></span>
+<span class="wo-d-stones wo-d-stones-right"></span>
 <span class="wo-d-grass-left"></span>
 <span class="wo-d-grass-right"></span>
 </div>

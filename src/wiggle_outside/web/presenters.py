@@ -442,7 +442,7 @@ def _forecast(weather: WeatherSummary) -> str:
     )
 
 
-def _weather_view(weather: WeatherSummary) -> WeatherView:
+def _weather_view(weather: WeatherSummary, *, example: bool = False) -> WeatherView:
     window = copy.WEATHER_WINDOW.format(
         start=_time(weather.window_start, weather.tz),
         end=_time(weather.window_end, weather.tz),
@@ -453,6 +453,8 @@ def _weather_view(weather: WeatherSummary) -> WeatherView:
         line=copy.WEATHER_LINE.format(window=window, time=checked_at, summary=_forecast(weather)),
         checked_at=checked_at,
         window=window,
+        example=copy.EXAMPLE_FORECAST if example else None,
+        example_note=copy.EXAMPLE_NOTE if example else None,
     )
 
 
@@ -640,7 +642,11 @@ def present_result(  # noqa: PLR0913, PLR0917
         if fixed_copy and result.error is not None
         else copy.RESULTS_HEADING
     )
-    weather = None if fixed_copy or result.weather is None else _weather_view(result.weather)
+    weather = (
+        None
+        if fixed_copy or result.weather is None
+        else _weather_view(result.weather, example=NoticeId.REPLAY in result.notices)
+    )
     is_historical = now > result.valid_until
     return ResultPage(
         meta=PageMeta(
@@ -664,9 +670,10 @@ def present_result(  # noqa: PLR0913, PLR0917
         ideas=() if fixed_copy else _idea_views(result, catalogue),
         notices=_notice_views(result),
         interests=None if fixed_copy else _interests_view(result, d39_enabled=d39_enabled),
+        # A daylight page shows no picks, so there is nothing for the label to describe.
         source_label=(
             copy.ERROR_MESSAGES[ErrorCode.MODEL_FALLBACK]
-            if result.source is Source.FALLBACK
+            if result.source is Source.FALLBACK and not fixed_copy
             else None
         ),
         is_historical=is_historical,

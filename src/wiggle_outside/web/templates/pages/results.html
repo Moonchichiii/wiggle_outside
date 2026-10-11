@@ -24,12 +24,6 @@
    `notices`, so the body reads as a sentence under its heading rather than as a box. #}
 {% set fixed_copy = page.heading != copy.RESULTS_HEADING %}
 
-{# The masthead keeps the intro on every page (mocks 03 and 05). It is page chrome, not
-   result data, which is why it comes from the copy table rather than the view model. #}
-{% block intro %}
-<p class="wo-intro">{{ copy.INTRO }}</p>
-{% endblock %}
-
 {% block main %}
 {# Every page sits in the cream panel (the approved board, TC-008). #}
 <div class="wo-panel">
@@ -70,7 +64,10 @@
 {% if page.weather %}
 <div class="wo-weather">
 {{ icon(page.weather.icon, "wo-icon-48", 48) }}
-<p class="wo-weather-line">{{ page.weather.line }}</p>
+<div class="wo-weather-text">
+<p class="wo-weather-line">{% if page.weather.example %}<span class="wo-weather-example">{{ page.weather.example }}</span>{{ copy.ANSWERS_JOIN }}{% endif %}{{ page.weather.line }}</p>
+{% if page.weather.example_note %}<p class="wo-weather-note">{{ page.weather.example_note }}</p>{% endif %}
+</div>
 </div>
 {% endif %}
 
