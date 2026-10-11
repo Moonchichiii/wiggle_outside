@@ -16,6 +16,8 @@ from typing import TYPE_CHECKING, Final
 
 import httpx
 from fastapi import FastAPI
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.responses import Response
 
 from wiggle_outside.core.types import DeploymentMode, LocationCandidates
 from wiggle_outside.integrations import nominatim, open_meteo, openrouter, overpass
@@ -41,10 +43,12 @@ from wiggle_outside.storage.sqlite import MEMORY_PATH, Database
 from wiggle_outside.web.routes import WebContext, build
 from wiggle_outside.web.routes.assets import REPO_FONTS_DIR, STATIC_DIR, build_manifest
 from wiggle_outside.web.routes.rendering import JinjaPages
-from wiggle_outside.web.security import SessionStore, origin_policy
+from wiggle_outside.web.security import HTTP_SERVER_ERROR, SessionStore, origin_policy, page_headers
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
+    from collections.abc import AsyncIterator, Awaitable, Callable
+
+    from starlette.requests import Request
 
 log = logging.getLogger(__name__)
 
@@ -72,6 +76,24 @@ def configure_logging(level: int = logging.INFO, root: logging.Logger | None = N
     root.addHandler(handler)
     root.setLevel(level)
     return True
+
+
+def _uniform_http_error(
+    mode: DeploymentMode,
+) -> Callable[[Request, Exception], Awaitable[Response]]:
+    """Build the handler for the framework's own 404 and 405 (and any other HTTPException).
+
+    The body is empty, like the app's uniform 404 for an unknown or unowned result, so an
+    unknown path and an unknown result are indistinguishable; the status and any `Allow`
+    header the framework set are kept, and the page headers are added.
+    """
+
+    async def handle(request: Request, exc: Exception) -> Response:  # noqa: ARG001  the signature Starlette calls
+        status = exc.status_code if isinstance(exc, StarletteHTTPException) else HTTP_SERVER_ERROR
+        extra = dict(exc.headers or {}) if isinstance(exc, StarletteHTTPException) else {}
+        return Response(status_code=status, headers=page_headers(mode) | extra)
+
+    return handle
 
 
 def readiness_body(state: AppState) -> str:
@@ -279,6 +301,9 @@ def create_app(settings: Settings | None = None, planner: PlannerService | None 
         redoc_url=None,
         openapi_url=None,
     )
+    # A path or method the router does not own gets the app's own uniform answer with
+    # every security header, never the framework's JSON (PLAN section 9: every response).
+    app.add_exception_handler(StarletteHTTPException, _uniform_http_error(state.settings.mode))
 
     app.include_router(
         build(

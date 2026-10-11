@@ -31,10 +31,10 @@ def readiness_body(model_status: str) -> str:
 def register(router: APIRouter, context: WebContext) -> None:
     """Register the health endpoints on `router`."""
 
-    @router.get("/healthz")
+    @router.api_route("/healthz", methods=["GET", "HEAD"])
     async def healthz() -> Response:
         return plain_text(LIVE, context.settings.mode)
 
-    @router.get("/readyz")
+    @router.api_route("/readyz", methods=["GET", "HEAD"])
     async def readyz() -> Response:
         return plain_text(readiness_body(context.readiness()), context.settings.mode)

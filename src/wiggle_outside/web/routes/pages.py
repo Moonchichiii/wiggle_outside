@@ -58,11 +58,11 @@ def _not_found(context: WebContext) -> Response:
 def register(router: APIRouter, context: WebContext) -> None:
     """Register the GET pages on `router`."""
 
-    @router.get("/")
+    @router.api_route("/", methods=["GET", "HEAD"])
     async def form(request: Request) -> Response:
         return _render_form(context, request)
 
-    @router.get("/results/{job_id}")
+    @router.api_route("/results/{job_id}", methods=["GET", "HEAD"])
     async def results(request: Request, job_id: str) -> Response:
         owned = await _owned(context, request, job_id)
         if isinstance(owned, Response):
@@ -70,7 +70,7 @@ def register(router: APIRouter, context: WebContext) -> None:
         session, result = owned
         return _render_result(context, session, result)
 
-    @router.get("/results/{job_id}/ideas/{idea_id}")
+    @router.api_route("/results/{job_id}/ideas/{idea_id}", methods=["GET", "HEAD"])
     async def detail(request: Request, job_id: str, idea_id: str) -> Response:
         owned = await _owned(context, request, job_id)
         if isinstance(owned, Response):

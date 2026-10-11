@@ -34,7 +34,7 @@ def register(router: APIRouter, context: WebContext) -> None:
     """Register the static mount on `router`."""
     headers = {"Cache-Control": STATIC_CACHE_CONTROL} | security_headers(context.settings.mode)
 
-    @router.get("/static/{hashed:path}")
+    @router.api_route("/static/{hashed:path}", methods=["GET", "HEAD"])
     async def static(hashed: str) -> Response:
         found = resolve_static(hashed, context.static_root, context.fonts_root)
         if found is None:
@@ -47,7 +47,7 @@ def register(router: APIRouter, context: WebContext) -> None:
         context.settings.mode
     )
 
-    @router.get("/favicon.ico")
+    @router.api_route("/favicon.ico", methods=["GET", "HEAD"])
     async def favicon() -> Response:
         found = resolve_static(FAVICON, context.static_root, context.fonts_root)
         if found is None:
