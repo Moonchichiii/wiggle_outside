@@ -20,8 +20,12 @@ SVG_DIR: Final = REPO_ROOT / "frontend" / "svg"
 SPRITE: Final = (
     REPO_ROOT / "src" / "wiggle_outside" / "web" / "templates" / "partials" / "icon_sprite.html"
 )
-# DESIGN-SPEC section 5 names these six for the weather line. (Its tape strip went with
-# the board's cards, TC-008.) They did not exist before WP8's results work.
+CARD: Final = (
+    REPO_ROOT / "src" / "wiggle_outside" / "web" / "templates" / "partials" / "idea_card.html"
+)
+
+# DESIGN-SPEC section 5 names these six for the weather line, and the tape strip for the
+# card tops. They did not exist before WP8's results work.
 WEATHER_GLYPHS: Final[tuple[str, ...]] = (
     "sun",
     "cloud",
@@ -51,11 +55,11 @@ def inner(body: str) -> str:
     return body[start : body.rindex("</svg>")].strip()
 
 
-def test_the_weather_glyphs_exist_as_files() -> None:
-    assert set(files()) == set(WEATHER_GLYPHS)
+def test_the_weather_glyphs_and_the_tape_strip_exist_as_files() -> None:
+    assert set(files()) == {*WEATHER_GLYPHS, "tape-strip"}
 
 
-@pytest.mark.parametrize("name", WEATHER_GLYPHS)
+@pytest.mark.parametrize("name", [*WEATHER_GLYPHS, "tape-strip"])
 def test_each_file_has_intrinsic_dimensions(name: str) -> None:
     svg = re.search(r"<svg[^>]*>", files()[name])
     assert svg, f"{name}: no svg element"
@@ -64,7 +68,7 @@ def test_each_file_has_intrinsic_dimensions(name: str) -> None:
     assert 'aria-hidden="true"' in svg.group(0), f"{name}: decorative icons are aria-hidden"
 
 
-@pytest.mark.parametrize("name", WEATHER_GLYPHS)
+@pytest.mark.parametrize("name", [*WEATHER_GLYPHS, "tape-strip"])
 def test_each_file_follows_the_drawing_language(name: str) -> None:
     body = files()[name]
     assert 'stroke="currentColor"' in body, f"{name}: not currentColor"
@@ -81,10 +85,11 @@ def test_each_file_follows_the_drawing_language(name: str) -> None:
 
 @pytest.mark.parametrize("name", WEATHER_GLYPHS)
 def test_each_icon_has_round_caps(name: str) -> None:
+    # The tape strip is a closed shape, so it needs joins but not caps.
     assert 'stroke-linecap="round"' in files()[name], f"{name}: caps are not round"
 
 
-@pytest.mark.parametrize("name", WEATHER_GLYPHS)
+@pytest.mark.parametrize("name", [*WEATHER_GLYPHS, "tape-strip"])
 def test_each_icon_stays_under_twenty_path_commands(name: str) -> None:
     commands = sum(len(COMMAND.findall(d)) for d in PATH_D.findall(files()[name]))
     assert commands < MAX_PATH_COMMANDS, f"{name}: {commands} path commands"
@@ -95,6 +100,11 @@ def test_the_sprite_symbol_matches_its_file(name: str) -> None:
     assert symbols()[name].strip() == inner(files()[name]), (
         f"{name}: the sprite symbol and frontend/svg/{name}.svg have drifted apart"
     )
+
+
+def test_the_tape_strip_path_matches_the_card_template() -> None:
+    (path,) = PATH_D.findall(files()["tape-strip"])
+    assert path in CARD.read_text(encoding="utf-8")
 
 
 def test_every_sprite_symbol_has_a_viewbox_of_twentyfour() -> None:

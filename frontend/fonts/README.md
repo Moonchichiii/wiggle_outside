@@ -10,6 +10,14 @@ Two variable WOFF2 faces, used per DESIGN-SPEC §1.2 (D41):
 Both are from **[fontshare.com](https://www.fontshare.com/)**, the Indian Type Foundry's
 free font service, and are used unmodified.
 
+## Patrick Hand (committed)
+
+`PatrickHand-Regular.woff2` sets the handwritten margin notes of the approved visual
+direction (TC-008). It is by Patrick Wagesreiter, licensed under the **SIL Open Font
+License 1.1** (`OFL-PatrickHand.txt`), which permits redistribution, so unlike the two
+faces below it is committed. Chosen over Caveat and Architects Daughter because its
+upright, rounded marker capitals are the closest of the three to the board's lettering.
+
 ## The Fontshare files are deliberately not in this repository
 
 They are licensed under the **Fontshare Font Licence (FFL) 2.0**, which permits

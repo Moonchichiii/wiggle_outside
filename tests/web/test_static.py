@@ -95,10 +95,14 @@ def test_only_the_two_named_faces_are_servable(tmp_path: Path) -> None:
         break
 
 
-def test_the_servable_faces_are_exactly_the_two_we_ship() -> None:
-    # The two DESIGN-SPEC 1.2 faces (D41). Nothing else under /static/fonts/ is ever
-    # served.
-    assert {"CabinetGrotesk-Variable.woff2", "Switzer-Variable.woff2"} == FONT_FILES
+def test_the_servable_faces_are_exactly_the_three_we_ship() -> None:
+    # The two DESIGN-SPEC 1.2 faces (D41) and the OFL handwriting face for the margin
+    # notes (TC-008). Nothing else under /static/fonts/ is ever served.
+    assert {
+        "CabinetGrotesk-Variable.woff2",
+        "Switzer-Variable.woff2",
+        "PatrickHand-Regular.woff2",
+    } == FONT_FILES
 
 
 def test_the_manifest_names_the_logical_asset_and_its_hashed_file(tmp_path: Path) -> None:

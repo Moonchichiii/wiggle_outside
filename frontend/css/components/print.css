@@ -27,22 +27,13 @@
     box-shadow: none;
   }
 
-  .wo-stage {
-    width: auto;
-    min-height: 0;
-    margin: 0;
-  }
-
-  .wo-panel::before {
-    content: none;
+  .wo-page {
+    padding: 0;
   }
 
   /* Page chrome, controls and decoration do not print. */
-  .wo-decor,
-  .wo-brand-sprig,
-  .wo-weather-art,
-  .wo-card-illo,
-  .wo-card-corner,
+  .wo-doodle,
+  .wo-tape,
   .wo-no-print,
   .wo-btn,
   .wo-change,

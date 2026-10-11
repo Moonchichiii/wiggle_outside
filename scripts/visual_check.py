@@ -1,16 +1,15 @@
-"""Measure the board decorations against the kit's placement (docs/design-kit, TC-008).
+"""Measure the decorations against the rules of the visual-direction pass (TC-008).
 
     uv run python scripts/visual_check.py
 
-For each page (form, errors, results, detail, night) at 390, 1280, 1440, 1580 and 1920 px:
-every decoration sits where kit.css puts it (board pixels times the stage scale, measured
-from the panel's edges), none is cut off by the viewport, none overlaps the panel, no
-label is clipped, and the page does not scroll sideways. On a phone only the sun and one
-sprig show, above the panel. Exit 1 on any failure. An eyeball aid with teeth, not one of
-the WP9b gates.
+For each page (form, errors, results, night) at 390, 1280, 1440, 1580 and 1920 px:
+no decoration overlaps another (a piece standing in the grass excepted), none is cut
+off by the viewport, none overlaps the panel or the masthead, and no label is clipped.
+Exit 1 on any failure. An eyeball aid with teeth, not one of the WP9b gates.
 """
 
 import sys
+from itertools import combinations
 from typing import Final
 
 from playwright.sync_api import Page, sync_playwright
@@ -18,50 +17,30 @@ from playwright.sync_api import Page, sync_playwright
 MAIN: Final = "https://127.0.0.1:8443/"
 NIGHT: Final = "https://127.0.0.1:8444/"
 WIDTHS: Final = (390, 1280, 1440, 1580, 1920)
-PAGES: Final = ("form", "errors", "results", "detail", "night")
-PHONE_MAX: Final = 599
-DECOR_MIN: Final = 1100
-TOLERANCE_PX: Final = 1.5
+PAGES: Final = ("form", "errors", "results", "night")
+EDGE_TOLERANCE_PX: Final = 0.5
 
-# kit.css: (side, width, top, gap) in board pixels. Left pieces measure from the panel's
-# left edge, right pieces from its right edge, all tops from the panel's top.
-PLACEMENT: Final[dict[str, tuple[str, float, float, float]]] = {
-    "wo-d-sun": ("left", 154, 18, 30),
-    "wo-d-sprig-lt": ("left", 62, 186, 15),
-    "wo-d-small-people": ("left", 156, 231, 39),
-    "wo-d-sprig-lm": ("left", 55, 463, 155),
-    "wo-d-grass-lb": ("left", 113, 919, 51),
-    "wo-d-nature-ideas": ("right", 185, 18, 30),
-    "wo-d-sprig-rt": ("right", 55, 250, 42),
-    "wo-d-curiosity": ("right", 117, 378, 72),
-    "wo-d-sprig-rm": ("right", 56, 458, 23),
-    "wo-d-signpost": ("right", 202, 543, 23),
-}
-# The phone subset: (width, top, left or right offset from the stage).
-PHONE: Final[dict[str, tuple[float, float, str, float]]] = {
-    "wo-d-sun": (74, -66, "left", 6),
-    "wo-d-sprig-rt": (34, -58, "right", 10),
-}
+# Standing in the grass is layering, as on the board; it is not one piece covering another.
+GRASS: Final = ("grass-left", "grass-right")
+# The signpost's post, planks and base are one piece.
+SIGNPOST_PARTS: Final = ("wo-d-post", "wo-d-plank", "wo-d-base")
 
-BOXES_JS: Final = """() => [...document.querySelectorAll('.wo-stage > .wo-decor')]
+BOXES_JS: Final = """() => [...document.querySelectorAll('.wo-decor > *')]
   .filter(e => getComputedStyle(e).display !== 'none')
   .map(e => { const r = e.getBoundingClientRect();
     return {c: e.className, x: r.x + window.scrollX, y: r.y + window.scrollY,
             w: r.width, h: r.height}; })"""
-RECT_JS: Final = """(sel) => { const e = document.querySelector(sel);
+UI_JS: Final = """() => ['.wo-masthead', '.wo-panel'].map(s => {
+  const e = document.querySelector(s); if (!e) return null;
   const r = e.getBoundingClientRect();
-  return {x: r.x + window.scrollX, y: r.y + window.scrollY, w: r.width, h: r.height,
-          k: parseFloat(getComputedStyle(e).getPropertyValue('--wo-k')) || 1}; }"""
+  return {c: s, x: r.x + window.scrollX, y: r.y + window.scrollY,
+          w: r.width, h: r.height}; }).filter(Boolean)"""
 CLIP_JS: Final = """() => [...document.querySelectorAll(
-    '.wo-tile-label,.wo-card-title,.wo-legend,.wo-btn,.wo-brand')]
+    '.wo-tile-label,.wo-card-title,.wo-legend,.wo-d-note,.wo-d-paper,.wo-d-plank')]
   .filter(e => e.scrollWidth > e.clientWidth + 1 || e.scrollHeight > e.clientHeight + 1)
   .map(e => e.textContent.trim().slice(0, 30))"""
 
 Box = dict[str, float]
-
-
-def piece(box: Box) -> str:
-    return next(c for c in str(box["c"]).split() if c in PLACEMENT)
 
 
 def intersects(a: Box, b: Box) -> bool:
@@ -71,6 +50,13 @@ def intersects(a: Box, b: Box) -> bool:
         and a["y"] < b["y"] + b["h"]
         and b["y"] < a["y"] + a["h"]
     )
+
+
+def allowed(a: str, b: str) -> bool:
+    joined = a + " " + b
+    if any(part in joined for part in SIGNPOST_PARTS):
+        return True
+    return any(g in a for g in GRASS) or any(g in b for g in GRASS)
 
 
 def drive(page: Page, kind: str) -> None:
@@ -84,53 +70,34 @@ def drive(page: Page, kind: str) -> None:
     page.fill('input[name="place"]', "Bergby")
     page.click('button[type="submit"]')
     page.wait_for_load_state("networkidle")
-    if kind == "detail":
-        page.click(".wo-card-link a")
-        page.wait_for_load_state("networkidle")
 
 
-def expected_desktop(name: str, panel: Box) -> tuple[float, float, float]:
-    side, width, top, gap = PLACEMENT[name]
-    k = panel["k"]
-    x = panel["x"] - (gap + width) * k if side == "left" else panel["x"] + panel["w"] + gap * k
-    return x, panel["y"] + top * k, width * k
+def overlaps(boxes: list[Box]) -> list[str]:
+    return [
+        f"overlap: {a['c']} / {b['c']}"
+        for a, b in combinations(boxes, 2)
+        if intersects(a, b) and not allowed(str(a["c"]), str(b["c"]))
+    ]
 
 
-def expected_phone(name: str, stage: Box) -> tuple[float, float, float]:
-    width, top, side, offset = PHONE[name]
-    x = stage["x"] + offset if side == "left" else stage["x"] + stage["w"] - offset - width
-    return x, stage["y"] + top, width
+def off_canvas(boxes: list[Box], width: int) -> list[str]:
+    return [
+        f"off-canvas: {box['c']}"
+        for box in boxes
+        if box["x"] < -EDGE_TOLERANCE_PX or box["x"] + box["w"] > width + EDGE_TOLERANCE_PX
+    ]
 
 
-def placement(boxes: list[Box], panel: Box, stage: Box, width: int) -> list[str]:
-    phone = width <= PHONE_MAX
-    wanted = set(PHONE) if phone else (set(PLACEMENT) if width >= DECOR_MIN else set())
-    shown = {piece(box): box for box in boxes}
-    problems = [f"missing: {name}" for name in sorted(wanted - set(shown))]
-    problems += [f"shown but should not be: {name}" for name in sorted(set(shown) - wanted)]
-    for name in sorted(wanted & set(shown)):
-        box = shown[name]
-        x, y, w = expected_phone(name, stage) if phone else expected_desktop(name, panel)
-        off = max(abs(box["x"] - x), abs(box["y"] - y), abs(box["w"] - w))
-        if off > TOLERANCE_PX:
-            problems.append(f"misplaced: {name} by {off:.1f}px")
-    return problems
+def covering(boxes: list[Box], interface: list[Box]) -> list[str]:
+    return [
+        f"covers {ui['c']}: {box['c']}" for ui in interface for box in boxes if intersects(ui, box)
+    ]
 
 
 def check(page: Page, width: int) -> list[str]:
     boxes: list[Box] = page.evaluate(BOXES_JS)
-    panel: Box = page.evaluate(RECT_JS, "main.wo-panel")
-    stage: Box = page.evaluate(RECT_JS, ".wo-stage")
-    problems = placement(boxes, panel, stage, width)
-    problems += [
-        f"off-canvas: {piece(box)}"
-        for box in boxes
-        if box["x"] < -TOLERANCE_PX or box["x"] + box["w"] > width + TOLERANCE_PX
-    ]
-    # The kit sets the phone sun's box so its ray tips touch the panel's top edge; the
-    # placement check above already pins it, so only the desktop pieces are tested here.
-    if width > PHONE_MAX:
-        problems += [f"covers the panel: {piece(box)}" for box in boxes if intersects(panel, box)]
+    problems = overlaps(boxes) + off_canvas(boxes, width)
+    problems += covering(boxes, page.evaluate(UI_JS))
     problems += [f"clipped: {text!r}" for text in page.evaluate(CLIP_JS)]
     if page.evaluate("document.documentElement.scrollWidth") > width:
         problems.append("horizontal scroll")

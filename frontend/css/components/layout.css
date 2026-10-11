@@ -1,5 +1,5 @@
-/* Page shell and typography. DESIGN-SPEC sections 1.2, 1.3, 3, 4 and 5. Tokens only.
-   The stage, the panel and the decorations are kit.css and decor.css (TC-008). */
+/* Page shell, typography and the decorative margin doodles.
+   DESIGN-SPEC sections 1.2, 1.3, 3, 4 and 5. Tokens only. */
 
 .wo-body {
   margin: 0;
@@ -9,7 +9,39 @@
   font-size: var(--text-base);
   line-height: var(--text-base--line-height);
   overflow-wrap: break-word;
-  overflow-x: hidden;
+}
+
+/* Page gutter: 16 px below 30 rem, 24 px up to 64 rem, 32 px above (section 1.3). */
+.wo-page {
+  --wo-gutter: var(--spacing-s4);
+
+  position: relative;
+  max-width: 90rem;
+  margin-inline: auto;
+  padding: var(--spacing-s5) var(--wo-gutter) var(--spacing-s8);
+}
+
+@media (width >= 30rem) {
+  .wo-page {
+    --wo-gutter: var(--spacing-s5);
+  }
+}
+
+@media (width >= 64rem) {
+  .wo-page {
+    --wo-gutter: var(--spacing-s6);
+  }
+}
+
+/* One main column at every width (section 4; 8.9: no side-by-side form and results). */
+.wo-masthead,
+.wo-column {
+  max-width: 48rem;
+  margin-inline: auto;
+}
+
+.wo-masthead {
+  margin-bottom: var(--spacing-s4);
 }
 
 .wo-title {
@@ -59,4 +91,37 @@ a {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+.wo-doodle {
+  display: none;
+  position: absolute;
+  color: var(--color-ink);
+  opacity: 0.35;
+}
+
+@media (width >= 64rem) {
+  .wo-doodle {
+    display: block;
+  }
+}
+
+.wo-doodle-leaf {
+  top: var(--spacing-s5);
+  right: var(--spacing-s7);
+  width: 88px;
+  transform: rotate(-12deg);
+}
+
+.wo-doodle-cloud {
+  top: 120px;
+  right: 150px;
+  width: 72px;
+  transform: rotate(6deg);
+}
+
+@media print {
+  .wo-doodle {
+    display: none;
+  }
 }

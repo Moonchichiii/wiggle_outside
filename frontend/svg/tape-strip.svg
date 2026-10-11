@@ -1,0 +1,6 @@
+<!-- DESIGN-SPEC section 5: the card-top tape, 64 x 16, its own file, decorative and
+     aria-hidden. `fill="none"` keeps it a plain outline when the stylesheet fails; the
+     card fill comes from frontend/css/components/card.css, which owns the colour, because
+     no raw colour value belongs outside tokens.css (CONTRACTS section 9). The same path is
+     inlined in templates/partials/idea_card.html and a test keeps the two identical. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="16" viewBox="0 0 64 16" aria-hidden="true" focusable="false"><path d="M2 3.5L60 2l2 10.5L3 14z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path></svg>

@@ -18,11 +18,14 @@
 {% endblock %}
 
 {% block main %}
-{# On a 422 re-render the form's own panel nests inside the page panel and the
-   stylesheet makes it a plain section, so the notice and the form read as one card. #}
+{# Every page is the one cream panel (the approved board, TC-008). On a 422 re-render
+   the form's own panel nests inside it and is neutralised by the stylesheet, so the
+   notice and the form read as one card rather than two. #}
+<div class="wo-panel">
 {{ notice(page.notice, "" if page.form else "page-error") }}
 {% if page.form %}
 {{ location_choice(page.form) }}
 {{ plan_form(page.form) }}
 {% endif %}
+</div>
 {% endblock %}

@@ -60,35 +60,6 @@ def test_the_stylesheet_url_serves_non_empty_css(served_html: str, asgi_client: 
     assert "--color-ink" in response.text
 
 
-IMG_SRC: Final = re.compile(r'<img[^>]+src="(/static/[^"]+)"')
-
-
-def test_every_picture_on_the_page_serves_as_an_image(
-    served_html: str, asgi_client: TestClient
-) -> None:
-    # The board artwork (TC-008) is copied into the static root by `bun run build:assets`.
-    # The page references it by fixed path, so a missing copy is a broken picture, which
-    # no template test can see.
-    sources = sorted(set(IMG_SRC.findall(served_html)))
-    assert sources, "no board artwork referenced on the page"
-    built = Path(__file__).resolve().parents[2] / "src" / "wiggle_outside" / "web" / "static"
-    if not (built / "board").is_dir():
-        pytest.skip("run `bun run build:assets` first, or ./scripts/check.ps1 which does")
-    for source in sources:
-        response = asgi_client.get(source)
-        assert response.status_code == HTTP_OK, source
-        assert response.headers["content-type"] == "image/png", source
-
-
-def test_every_picture_on_the_page_is_decorative(served_html: str) -> None:
-    # The pictures are cut from the concept board: decoration, never meaning. Each one
-    # has an empty alt, so a screen reader passes over it.
-    pictures = re.findall(r"<img[^>]*>", served_html)
-    assert pictures
-    exposed = [tag for tag in pictures if 'alt=""' not in tag]
-    assert not exposed, f"a picture with a non-empty or missing alt: {exposed}"
-
-
 def test_the_page_carries_no_inline_style_or_script(served_html: str) -> None:
     # The CSP forbids both (PLAN section 9). Asserted on what is actually served, not
     # only on a template rendered in a test.

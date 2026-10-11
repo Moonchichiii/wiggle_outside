@@ -1,0 +1,69 @@
+/* One transparent atlas keeps the board's painted details in a single request. */
+.wo-body {
+  background-color: var(--color-oatmeal);
+  background-image: url("decor/paper-texture.svg");
+  background-size: 220px 220px;
+}
+.wo-decor { position: absolute; inset: 0; pointer-events: none; user-select: none; }
+.wo-art {
+  position: absolute;
+  display: block;
+  width: 160px;
+  aspect-ratio: 1;
+  background-image: url("decor/board-atlas-v1.webp");
+  background-repeat: no-repeat;
+  background-size: 300% 300%;
+}
+.wo-art-sun { background-position: 0 0; }
+.wo-art-sprig { background-position: 50% 0; }
+.wo-art-note { background-position: 100% 0; }
+.wo-art-small { background-position: 0 50%; }
+.wo-art-curiosity { background-position: 50% 50%; }
+.wo-art-sign { background-position: 100% 50%; }
+.wo-art-ground { background-position: 0 100%; }
+.wo-art-sun { top: 34px; left: 18px; width: 158px; }
+.wo-art-sprig-left { top: 215px; left: 157px; width: 75px; transform: rotate(-12deg); }
+.wo-art-small { top: 300px; left: 12px; width: 180px; }
+.wo-art-ground-left { bottom: 85px; left: 0; width: 230px; }
+.wo-art-note { top: 40px; right: 2px; width: 200px; }
+.wo-art-sprig-right { top: 260px; right: 145px; width: 78px; transform: rotate(12deg); }
+.wo-art-curiosity { top: 360px; right: 2px; width: 190px; }
+.wo-art-sign { bottom: 115px; right: 0; width: 220px; }
+.wo-art-ground-right { display: none; }
+.wo-card[data-illo] { background-image: none; }
+.wo-card[data-illo]::after {
+  content: "";
+  position: absolute;
+  top: 15px; right: 15px;
+  width: 94px; aspect-ratio: 1;
+  background-image: url("decor/board-atlas-v1.webp");
+  background-repeat: no-repeat;
+  background-size: 300% 300%;
+  background-position: 50% 0;
+  pointer-events: none;
+}
+.wo-card[data-illo="illo-trees"]::after { background-position: 50% 100%; }
+.wo-card[data-illo="illo-magnifier"]::after { background-position: 100% 100%; }
+.wo-card[data-illo="illo-puddle"]::after { background-position: 0 100%; }
+.wo-card[data-illo="illo-sky"]::after { background-position: 0 0; }
+.wo-card[data-illo="illo-bingo"]::after {
+  background-image: url("decor/illo-bingo.svg"); background-size: contain; background-position: center;
+}
+@media (width >= 68rem) {
+  .wo-page { min-height: 960px; }
+}
+@media (width < 68rem) {
+  .wo-decor .wo-art { display: none; }
+  .wo-page { padding-top: 80px; }
+  .wo-decor .wo-art-sun { display: block; width: 64px; top: 8px; left: 18px; }
+  .wo-decor .wo-art-sprig-right { display: block; width: 52px; top: 14px; right: 20px; }
+  .wo-decor .wo-art-ground-right { display: block; width: 55px; top: auto; bottom: 2px; right: 25px; }
+}
+@media (width < 40rem) {
+  .wo-card[data-illo]::after { width: 74px; right: 12px; }
+}
+@media print, (forced-colors: active) {
+  .wo-decor { display: none; }
+  .wo-body { background-image: none; }
+  .wo-card[data-illo]::after { content: none; }
+}

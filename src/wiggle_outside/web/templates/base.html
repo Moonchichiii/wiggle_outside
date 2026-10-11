@@ -1,5 +1,6 @@
 {# The page shell. Receives PageMeta through `page` (CONTRACTS section 8).
    No inline script, style or event handler anywhere (DESIGN-SPEC section 11). #}
+{% from "macros/icon.html" import icon %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -14,20 +15,24 @@
 </head>
 <body class="wo-body">
 {% include "partials/icon_sprite.html" %}
-{# The kit's stage: the decorations hang in the margins around one cream panel, which
-   holds the masthead and the whole page (docs/design-kit, TC-008). A page that wraps
-   part of itself in a panel nests it here, and the stylesheet makes the inner one a
-   plain section. #}
-<div class="wo-stage">
-{% include "partials/decorations.html" %}
-<main class="wo-panel" id="main">
+{# The panel's hand-inked edge: a displacement filter the stylesheet applies to the
+   panel's border layer only, never to text (TC-008). #}
+<svg class="wo-vh" width="0" height="0" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><filter id="wo-ink" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="2" seed="5" result="n"></feTurbulence><feDisplacementMap in="SourceGraphic" in2="n" scale="5.5" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap></filter></svg>
+<div class="wo-page">
+{% include "partials/doodles.html" %}
+{# One cream panel holds the masthead and the page (the approved board, TC-008). A page
+   that wraps its own content in a panel nests it here, and the stylesheet makes the
+   inner one a plain section. #}
+<div class="wo-panel wo-page-panel">
 <header class="wo-masthead">
-<p class="wo-brand">{{ copy.PAGE_TITLE }} <img class="wo-brand-sprig" src="/static/board/brand-sprig.png" alt="" width="28" height="32"></p>
+<p class="wo-brand">{{ copy.PAGE_TITLE }}{{ icon("leaf-sprig", "wo-brand-leaf") }}</p>
 {% block heading %}{% endblock %}
 {% block intro %}{% endblock %}
 </header>
+<main class="wo-column" id="main">
 {% block main %}{% endblock %}
 </main>
+</div>
 </div>
 {# External, hashed scripts only; never an inline one. #}
 {% block scripts %}{% endblock %}
