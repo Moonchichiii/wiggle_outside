@@ -1,10 +1,10 @@
-"""A PlannerService backed by fixtures, so the form can post and show a result.
+"""A PlannerService backed by fixtures, so the form can post and show a prepared result.
 
-DELETE THIS FILE when WP6 lands. It is integration scaffolding, not a package: the real
-planner runs the ARCHITECTURE section 3 workflow under one absolute deadline, calls
-providers and the model, and enforces the request budget. This calls nothing, waits for
-nothing and decides nothing — it hands back a prepared result so the web layer and the
-templates can be exercised end to end before the planner exists.
+Not the product's planner: `planner.jobs.Planner` runs the ARCHITECTURE section 3
+workflow under one absolute deadline, calls providers and the model, and enforces the
+request budget (WP6). This calls nothing, waits for nothing and decides nothing. It stays
+as the fake the route tests and `scripts/night_server.py` inject, so the web layer and
+the templates can be exercised with a known result and no providers.
 
 What it does honour, because getting these wrong would teach the web layer the wrong
 shape: results are immutable (D46), a repeat of the same key with the same fingerprint

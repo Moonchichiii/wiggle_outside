@@ -422,9 +422,13 @@ class SessionStore:
         *,
         limit: int = MAX_SESSIONS,
         monotonic: Callable[[], float] = time.monotonic,
+        on_end: Callable[[str], None] | None = None,
     ) -> None:
         self._limit = limit
         self._monotonic = monotonic
+        # Called with the session ID when a session expires or is evicted, so the planner
+        # can remove everything the session owned, together (BACKEND-CONTRACT section 2).
+        self._on_end = on_end
         self._sessions: OrderedDict[str, Session] = OrderedDict()
         self._global = TokenBucket(capacity=SUBMISSIONS_GLOBAL)
 
@@ -472,15 +476,20 @@ class SessionStore:
             idle = now - session.seen >= IDLE_SECONDS
             old = now - session.created >= ABSOLUTE_SECONDS
             if idle or old:
-                del self._sessions[session_id]
+                self._end(session_id)
 
     def _evict(self) -> None:
         """Least-recently-used idle session first, never one with an active job."""
         for session_id, session in self._sessions.items():
             if session.active_job is None:
-                del self._sessions[session_id]
+                self._end(session_id)
                 return
         # Every session holds a job reference; the bound still has to hold, so the
         # least-recently-used one goes. Active jobs are capped far below the session
         # bound (BACKEND-CONTRACT section 4), so this is unreachable in practice.
-        self._sessions.popitem(last=False)
+        self._end(next(iter(self._sessions)))
+
+    def _end(self, session_id: str) -> None:
+        del self._sessions[session_id]
+        if self._on_end is not None:
+            self._on_end(session_id)

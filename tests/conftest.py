@@ -4,6 +4,7 @@ No test may make a real HTTP request (PLAN section 8). Sockets are blocked here,
 missing respx mock fails loudly instead of reaching a provider.
 """
 
+import os
 import socket
 from collections.abc import Callable, Iterator
 from pathlib import Path
@@ -11,6 +12,12 @@ from typing import Final, NoReturn
 
 import pytest
 from fastapi.testclient import TestClient
+
+# The app builds its real providers at startup (WP6). The Nominatim adapter refuses to
+# exist without a contact address, and the cache would otherwise land in ./data; neither
+# is ever reached by a test (sockets off the machine are refused below).
+os.environ.setdefault("WO_CONTACT_EMAIL", "tests@example.invalid")
+os.environ.setdefault("WO_DB_PATH", ":memory:")
 
 from wiggle_outside.main import create_app
 from wiggle_outside.settings import Settings

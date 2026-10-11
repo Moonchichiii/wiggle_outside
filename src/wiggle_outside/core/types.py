@@ -8,7 +8,7 @@ import math
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import IntEnum, StrEnum
-from typing import Final, Literal, Self
+from typing import Final, Literal, Self, cast
 
 from wiggle_outside.core.errors import ErrorCode, NoticeId
 
@@ -298,7 +298,20 @@ class Place:
 
     @classmethod
     def from_cache(cls, payload: bytes) -> Self:
-        raise NotImplementedError
+        fields = _fields(payload)
+        fee = _text(fields, "fee")
+        access = _text(fields, "osm_access")
+        if fee not in {"no", "yes", "unknown"} or access not in {"yes", "limited", "no", "unknown"}:
+            msg = "not a cached place"
+            raise ValueError(msg)
+        return cls(
+            place_id=_text(fields, "place_id"),
+            name=_text(fields, "name"),
+            kind=_text(fields, "kind"),
+            coords=Coordinates(lat=_number(fields, "lat"), lon=_number(fields, "lon")),
+            fee=cast("Literal['no', 'yes', 'unknown']", fee),
+            osm_access=cast("Literal['yes', 'limited', 'no', 'unknown']", access),
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -312,11 +325,25 @@ class GeocodeHits:
     hits: tuple[GeocodeHit, ...]  # at most MAX_CANDIDATES
 
     def to_cache(self) -> bytes:
-        raise NotImplementedError
+        # The label and the rounded coordinates only: never the typed query
+        # (BACKEND-CONTRACT section 9).
+        hits: list[dict[str, str | float]] = [
+            {"label": hit.label, "lat": hit.coords.lat, "lon": hit.coords.lon} for hit in self.hits
+        ]
+        return _dump({"hits": hits})
 
     @classmethod
     def from_cache(cls, payload: bytes) -> Self:
-        raise NotImplementedError
+        hits: list[GeocodeHit] = []
+        for raw in _items(_fields(payload), "hits")[:MAX_CANDIDATES]:
+            fields = _mapping(raw)
+            hits.append(
+                GeocodeHit(
+                    label=_text(fields, "label"),
+                    coords=Coordinates(lat=_number(fields, "lat"), lon=_number(fields, "lon")),
+                )
+            )
+        return cls(hits=tuple(hits))
 
 
 @dataclass(frozen=True, slots=True)
@@ -341,11 +368,42 @@ class WeatherWindow:
     sunset: datetime
 
     def to_cache(self) -> bytes:
-        raise NotImplementedError
+        return _dump(
+            {
+                "start": self.start.isoformat(),
+                "end": self.end.isoformat(),
+                "fetched_at": self.fetched_at.isoformat(),
+                "tz": self.tz,
+                "times": [moment.isoformat() for moment in self.times],
+                "temp_c": list(self.temp_c),
+                "apparent_temp_c": list(self.apparent_temp_c),
+                "precip_probability": list(self.precip_probability),
+                "precipitation_mm": list(self.precipitation_mm),
+                "wind_kmh": list(self.wind_kmh),
+                "weather_code": list(self.weather_code),
+                "sunrise": self.sunrise.isoformat(),
+                "sunset": self.sunset.isoformat(),
+            }
+        )
 
     @classmethod
     def from_cache(cls, payload: bytes) -> Self:
-        raise NotImplementedError
+        fields = _fields(payload)
+        return cls(
+            start=_moment(fields, "start"),
+            end=_moment(fields, "end"),
+            fetched_at=_moment(fields, "fetched_at"),
+            tz=_text(fields, "tz"),
+            times=tuple(_parse_moment(raw) for raw in _items(fields, "times")),
+            temp_c=tuple(_real(raw) for raw in _items(fields, "temp_c")),
+            apparent_temp_c=tuple(_real(raw) for raw in _items(fields, "apparent_temp_c")),
+            precip_probability=tuple(_whole(raw) for raw in _items(fields, "precip_probability")),
+            precipitation_mm=tuple(_real(raw) for raw in _items(fields, "precipitation_mm")),
+            wind_kmh=tuple(_real(raw) for raw in _items(fields, "wind_kmh")),
+            weather_code=tuple(_whole(raw) for raw in _items(fields, "weather_code")),
+            sunrise=_moment(fields, "sunrise"),
+            sunset=_moment(fields, "sunset"),
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -430,3 +488,78 @@ class LocationCandidates:
     candidates: tuple[LocationCandidate, ...]  # up to MAX_CANDIDATES
     answers: Answers  # includes the D39 text; memory only
     expires_at: datetime
+
+
+# --- Cache codecs --------------------------------------------------------------------
+# Compact JSON, decoded without trusting its shape: every field is checked, and a payload
+# that is not what we wrote raises TypeError or ValueError, which the cache wrapper counts
+# as a miss (storage.wrapper.CODEC_ERRORS).
+
+
+def _dump(fields: dict[str, object]) -> bytes:
+    return json.dumps(fields, separators=(",", ":"), sort_keys=True).encode()
+
+
+def _fields(payload: bytes) -> dict[str, object]:
+    try:
+        decoded: object = json.loads(payload)
+    except UnicodeDecodeError as exc:
+        msg = "not a cached value"
+        raise ValueError(msg) from exc
+    return _mapping(decoded)
+
+
+def _mapping(raw: object) -> dict[str, object]:
+    if not isinstance(raw, dict):
+        msg = "not an object"
+        raise TypeError(msg)
+    return {str(key): value for key, value in cast("dict[object, object]", raw).items()}
+
+
+def _items(fields: dict[str, object], name: str) -> list[object]:
+    raw = fields.get(name)
+    if not isinstance(raw, list):
+        msg = f"{name} is not a list"
+        raise TypeError(msg)
+    return list(cast("list[object]", raw))
+
+
+def _text(fields: dict[str, object], name: str) -> str:
+    raw = fields.get(name)
+    if not isinstance(raw, str):
+        msg = f"{name} is not text"
+        raise TypeError(msg)
+    return raw
+
+
+def _real(raw: object) -> float:
+    if isinstance(raw, bool) or not isinstance(raw, int | float) or not math.isfinite(raw):
+        msg = "not a finite number"
+        raise ValueError(msg)
+    return float(raw)
+
+
+def _whole(raw: object) -> int:
+    if isinstance(raw, bool) or not isinstance(raw, int):
+        msg = "not a whole number"
+        raise TypeError(msg)
+    return raw
+
+
+def _number(fields: dict[str, object], name: str) -> float:
+    return _real(fields.get(name))
+
+
+def _parse_moment(raw: object) -> datetime:
+    if not isinstance(raw, str):
+        msg = "not a timestamp"
+        raise TypeError(msg)
+    moment = datetime.fromisoformat(raw)
+    if moment.tzinfo is None:
+        msg = "a cached timestamp must be aware"
+        raise ValueError(msg)
+    return moment
+
+
+def _moment(fields: dict[str, object], name: str) -> datetime:
+    return _parse_moment(fields.get(name))
