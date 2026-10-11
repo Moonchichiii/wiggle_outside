@@ -64,6 +64,20 @@
 .wo-fieldset { margin-bottom: 17px; }
 .wo-legend { margin-bottom: 7px; font-size: 1.0625rem; font-weight: 600; }
 .wo-hint { font-size: 0.875rem; line-height: 1.45; margin-bottom: 8px; }
+/* Desktop compactness (11 October): a wider panel at wide sizes and slightly tighter
+   vertical gaps between question groups; the mobile layout is untouched. */
+@media (width >= 68rem) {
+  :root { --wo-panel-w: 42rem; }
+  .wo-page { max-width: 74rem; }
+}
+@media (width >= 40rem) {
+  .wo-masthead { margin-bottom: 20px; }
+  .wo-fieldset { margin-bottom: 14px; }
+  .wo-legend { margin-bottom: 6px; }
+  .wo-hint { margin-bottom: 6px; }
+  .wo-extras { margin-top: 6px; padding-top: 6px; }
+  .wo-info-use { margin-top: 0; margin-bottom: 6px; }
+}
 .wo-tiles { gap: 9px; }
 .wo-tiles-two { --wo-cols: 2; }
 .wo-tiles-four { --wo-cols: 4; }

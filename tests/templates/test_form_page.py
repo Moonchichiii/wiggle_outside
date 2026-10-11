@@ -302,3 +302,43 @@ def test_the_busy_note_is_static_markup(rendered: Mapping[str, str]) -> None:
     assert esc(copy.BUSY_NOTE) in html
     assert 'aria-live="polite"' in html
     assert "Stop" not in html
+
+
+# --- The compactness pass (11 October): hints beside the fields, details below ---------
+
+
+def test_the_time_tiles_say_what_half_day_means(rendered: Mapping[str, str]) -> None:
+    html = rendered["empty"]
+    assert ">Half day<" in html
+    assert "(4 h)" not in html
+    assert esc(copy.TIME_HINT) in html
+    assert 'id="time-hint"' in html
+    assert 'aria-describedby="time-hint"' in html
+
+
+def test_the_short_hints_sit_beside_the_fields(rendered: Mapping[str, str]) -> None:
+    html = rendered["empty"]
+    assert "Type a town or area, or use your location." in html
+    assert "Please don&#39;t enter a street address." in html
+    assert "Sent via OpenRouter to an approved AI provider." in html
+    assert "never log it" in html
+
+
+def test_the_full_explanations_live_in_a_native_disclosure(
+    rendered: Mapping[str, str], documents: Mapping[str, Document]
+) -> None:
+    """A <details>/<summary>, so it works with no JavaScript and under the CSP."""
+    html = rendered["empty"]
+    assert '<details class="wo-change wo-info-use">' in html
+    assert f'<summary class="wo-change-summary">{esc(copy.INFO_USE_SUMMARY)}</summary>' in html
+    for text in (copy.INFO_USE_LOCATION, copy.INFO_USE_INTERESTS, copy.INFO_USE_LOGS):
+        assert esc(text) in html
+    # The substantive privacy information is all still on the page.
+    assert "up to 30 days" in html
+    assert "neither train on nor retain prompts" in html
+    assert "not an independent review" in html
+    # The field descriptions still resolve (aria-describedby targets exist).
+    doc = documents["empty"]
+    for described in ("place-hint", "interests-hint", "time-hint"):
+        assert described in doc.ids
+        assert described in doc.described_by

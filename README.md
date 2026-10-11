@@ -103,8 +103,13 @@ tried answered one query in five.
 - **[Placeholder: measured cold and warm timings of that search.]**
 
 In the fully live runs where places failed, Gemma was asked to choose among the three
-place-free pairs and twice answered with the interests only and no pick, so those pages
-carry the fallback label. That is recorded as a known behaviour, not hidden.
+place-free pairs and, under the prompt as it then stood, answered with the interests
+only and no pick, so those pages carry the fallback label. The prompt rule was then
+tightened (every offered pair has already passed the rules; a pair with no particular
+place is as valid as any other) and verified the same evening with the same three
+place-free pairs: three picks, all validated, served in 1.42 s
+([`model-smoke-generic.md`](docs/evidence/model-smoke-generic.md)). A fully live search
+showing that through the page is still to be captured.
 
 ## Limitations
 
@@ -114,8 +119,9 @@ carry the fallback label. That is recorded as a known behaviour, not hidden.
 - **Distances are coarse by design.** Coordinates are rounded to two decimals (about a
   kilometre) before anything is stored or shown; a place in the same cell reads "close
   by", others "about 0.6 km away" in a straight line.
-- **The model may decline place-free pairs.** Observed twice live (above). The
-  application then ranks them itself, labelled.
+- **Place-free picks are verified in a controlled call, not yet in a fully live
+  search.** If the model ever answers without a valid pick, the application ranks the
+  pairs itself and says so.
 - **English only**, and the catalogue is small and reviewed by hand.
 - **One active search per session**, bounded hosted capacity, a daily run allowance in
   hosted mode, and a 20 s ceiling per search.

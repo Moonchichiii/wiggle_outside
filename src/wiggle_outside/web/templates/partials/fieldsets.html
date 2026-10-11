@@ -34,8 +34,8 @@
 {%- endmacro %}
 
 {% macro time_budget(page) -%}
-{{ tile_group(copy.TIME_LEGEND, "", "", "time", page.time, "radio", "four", "time-first",
-              page.field_errors.get("time")) }}
+{{ tile_group(copy.TIME_LEGEND, copy.TIME_HINT, "time-hint", "time", page.time, "radio", "four",
+              "time-first", page.field_errors.get("time")) }}
 {%- endmacro %}
 
 {% macro energy(page) -%}
@@ -75,6 +75,18 @@
               "wo-vh") }}
 </fieldset>
 {% endif %}
+{%- endmacro %}
+
+{% macro info_use() -%}
+{# The detailed provider and cache explanations, in a native disclosure so the hints
+   beside the fields stay short. Works without JavaScript; reuses the results page's
+   disclosure styles. #}
+<details class="wo-change wo-info-use">
+<summary class="wo-change-summary">{{ copy.INFO_USE_SUMMARY }}</summary>
+<p class="wo-hint">{{ copy.INFO_USE_LOCATION }}</p>
+<p class="wo-hint">{{ copy.INFO_USE_INTERESTS }}</p>
+<p class="wo-hint">{{ copy.INFO_USE_LOGS }}</p>
+</details>
 {%- endmacro %}
 
 {% macro extras(page) -%}
@@ -118,6 +130,7 @@
 {{ energy(page) }}
 {{ where(page) }}
 {{ interests(page) }}
+{{ info_use() }}
 {{ extras(page) }}
 <div class="wo-actions">
 <button class="wo-btn wo-btn-primary" type="submit">{{ copy.SUBMIT }}<span class="wo-btn-arrow" aria-hidden="true">→</span></button>

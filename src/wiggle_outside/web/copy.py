@@ -83,9 +83,10 @@ TIME_LABELS: Final[Mapping[TimeBudget, str]] = MappingProxyType(
         TimeBudget.M30: "30 min",
         TimeBudget.H1: "1 hour",
         TimeBudget.H2: "2 hours",
-        TimeBudget.HALF_DAY: "Half day (4 h)",  # D35
+        TimeBudget.HALF_DAY: "Half day",  # D35: the hint carries the duration
     }
 )
+TIME_HINT: Final = "Half day means about 4 hours."
 # DESIGN-SPEC section 5 names one clock symbol per time tile.
 TIME_ICONS: Final[Mapping[TimeBudget, str]] = MappingProxyType(
     {
@@ -123,8 +124,8 @@ PLACE_LABEL: Final = "or type a town or area"
 # BACKEND-CONTRACT section 9: local development may show the hosted note; it is not a
 # product mode of its own, so every mode gets the same disclosed wording.
 _PLACE_HINT: Final = (
-    "Please don't type a street address. We look the town up with OpenStreetMap's "
-    "search and keep the lookup on our server for up to 30 days to avoid repeat requests."
+    "Type a town or area, or use your location. Town or area only. Please don't enter a "
+    "street address."
 )
 PLACE_HINT_BY_MODE: Final[Mapping[DeploymentMode, str]] = MappingProxyType(
     {
@@ -194,11 +195,35 @@ INTERESTS_OPTIONAL: Final = "(optional)"
 # selects. The basis for the approved list is OpenRouter's published data policy per
 # provider (no training, no prompt retention), not an independent review of each
 # provider's terms; the hint says exactly that, no more.
+# Visible beside the field; the full explanation is under "How your information is
+# used" (INFO_USE_*). The storage sentence is what the code does: the text lives in
+# process memory with the search and its result until the result is removed
+# (retain_until, about an hour), and is never logged or written to disk.
 INTERESTS_HINT: Final = (
     "For example: birds, puddles, running. Optional. Don't include personal details. "
-    "We send this through OpenRouter to one of the approved model providers it selects, "
-    "chosen because OpenRouter's published data policy says they neither train on nor "
-    "retain prompts; we don't store it."
+    "Sent via OpenRouter to an approved AI provider. We keep your text only while your "
+    "results are available, about an hour, and never log it."
+)
+# The disclosure under the form: a native <details>, no JavaScript needed.
+INFO_USE_SUMMARY: Final = "How your information is used"
+INFO_USE_LOCATION: Final = (
+    "Your location: we look a typed town up with OpenStreetMap's search and keep that "
+    "lookup on our server for up to 30 days to avoid repeat requests. The point you "
+    "search from is rounded to about a kilometre before anything is stored. Nearby "
+    "places come from OpenStreetMap and the forecast from Open-Meteo; both are cached "
+    "for a while so repeat searches cost nothing."
+)
+INFO_USE_INTERESTS: Final = (
+    "Your interests: the text goes through OpenRouter to one of the approved model "
+    "providers it selects, chosen because OpenRouter's published data policy says they "
+    "neither train on nor retain prompts. That policy is the basis of the approved "
+    "list; it is not an independent review of each provider's terms. We don't store the "
+    "text: it stays in memory with your search until the result is removed, about an "
+    "hour, and only the recognised interest tags are kept with the result."
+)
+INFO_USE_LOGS: Final = (
+    "We log counts, timings and which provider answered, never your text, your "
+    "coordinates or your answers. There are no accounts and no analytics."
 )
 # D46: "Change answers" prefills the recognised tag labels, never the original text.
 INTERESTS_PREFILLED_HINT: Final = (
