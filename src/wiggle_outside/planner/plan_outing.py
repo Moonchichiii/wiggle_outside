@@ -23,8 +23,9 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from wiggle_outside.core.activities import Conditions, eligible
 from wiggle_outside.core.answers import Constraints, answers_outcome, constraints
-from wiggle_outside.core.errors import ErrorCode
+from wiggle_outside.core.errors import ErrorCode, NoticeId
 from wiggle_outside.core.ideas import ReasonContext, allowed_reason_ids, parse_selection
+from wiggle_outside.core.night import next_morning, night_outcome
 from wiggle_outside.core.places import ANY_PLACE_KIND, PairPlan, pair_candidates, to_pairs
 from wiggle_outside.core.ranking import RankingInputs
 from wiggle_outside.core.result import Empty, Ok, Outcome, TransportFailure
@@ -49,7 +50,6 @@ from wiggle_outside.core.types import (
 )
 from wiggle_outside.core.weather import (
     Samples,
-    daylight_outcome,
     is_in_daylight,
     run_weather_outcome,
     summarise,
@@ -162,6 +162,13 @@ class _Located:
 
 
 @dataclass(frozen=True, slots=True)
+class _PlanAhead:
+    """It is dark at the place but not locked: plan the next morning there (TC-011)."""
+
+    tz: str
+
+
+@dataclass(frozen=True, slots=True)
 class _Evaluated:
     """Valid weather and the pure rules, applied to one run."""
 
@@ -192,7 +199,10 @@ async def _plan_from(ports: Ports, run: Run, budgets: Budgets, located: _Located
     if charged is not None:
         return _failed(ports, run, charged, summary)
     places, weather = await _fetch(ports, run, located, budgets)
-    evaluated = _evaluate(ports, run, located, weather)
+    evaluated = _evaluate(ports, run, located, weather, ahead=False)
+    ahead = isinstance(evaluated, _PlanAhead)
+    if isinstance(evaluated, _PlanAhead):
+        run, evaluated = await _plan_morning(ports, run, budgets, located, evaluated.tz)
     if not isinstance(evaluated, _Evaluated):
         return _failed(ports, run, evaluated, summary)
     if not evaluated.activities:
@@ -201,7 +211,24 @@ async def _plan_from(ports: Ports, run: Run, budgets: Budgets, located: _Located
     if not pairs:
         code = ErrorCode.PLACES_UNAVAILABLE if _unavailable(places) else ErrorCode.NO_MATCHES
         return _failed(ports, run, code, summary, evaluated.summary)
-    return await _choose(ports, run, budgets, summary, evaluated, pairs, places)
+    return await _choose(ports, run, budgets, summary, evaluated, pairs, places, ahead=ahead)
+
+
+async def _plan_morning(
+    ports: Ports, run: Run, budgets: Budgets, located: _Located, tz: str
+) -> tuple[Run, _Evaluated | ErrorCode]:
+    """Plan the same answers for the next morning at the place (TC-011).
+
+    Dark but not locked: the window moves to 09:00 local there, and a second forecast is
+    fetched for that window so its own date's sun times apply. A morning that is still
+    dark is the night page.
+    """
+    run = replace(run, planned_start=next_morning(run.planned_start, tz))
+    weather = await _fetch_weather(ports, run, located, budgets)
+    evaluated = _evaluate(ports, run, located, weather, ahead=True)
+    if isinstance(evaluated, _PlanAhead):  # unreachable with ahead=True; typed anyway
+        return run, ErrorCode.DAYLIGHT_NIGHT
+    return run, evaluated
 
 
 # --- Location -------------------------------------------------------------------------
@@ -309,6 +336,22 @@ async def _fetch(
     return places, weather
 
 
+async def _fetch_weather(
+    ports: Ports, run: Run, located: _Located, budgets: Budgets
+) -> Outcome[WeatherWindow]:
+    """Fetch the forecast for the run's window alone (the morning window, TC-011)."""
+    deadline = _stage_deadline(ports, run, budgets.providers_s)
+    window = constraints(run.answers, run.planned_start).window
+    weather = await _bounded(
+        ports,
+        "weather",
+        partial(ports.weather.window, located.origin, window.start, window.end, deadline),
+        deadline,
+    )
+    ports.counters.incr(STAGE_DONE, "weather_morning")
+    return weather
+
+
 def radius_m(answers: Answers) -> int:
     """Reach as far as the outing can walk out and back in half the budget, bounded."""
     speed = WALK_KMH_WITH_KIDS if answers.who is Who.KIDS else WALK_KMH_ALONE
@@ -327,8 +370,13 @@ def place_kinds(activities: tuple[Activity, ...]) -> frozenset[str]:
 
 
 def _evaluate(
-    ports: Ports, run: Run, located: _Located, weather: Outcome[WeatherWindow]
-) -> _Evaluated | ErrorCode:
+    ports: Ports,
+    run: Run,
+    located: _Located,
+    weather: Outcome[WeatherWindow],
+    *,
+    ahead: bool,
+) -> _Evaluated | _PlanAhead | ErrorCode:
     if not isinstance(weather, Ok):
         return ErrorCode.WEATHER_UNAVAILABLE
     window = weather.value
@@ -337,11 +385,9 @@ def _evaluate(
     if samples is None or _now(ports) - window.fetched_at >= WEATHER_USABLE_FOR:
         return ErrorCode.WEATHER_UNAVAILABLE
     if rules.with_kids:
-        # The family daylight rule decides the run before any activity is checked, and
-        # before the severe and heat rules (BACKEND-CONTRACT section 1).
-        blocked = daylight_outcome(rules.window, window.sunrise, window.sunset)
-        if blocked is not None:
-            return blocked
+        verdict = _family_verdict(rules, window, ahead=ahead)
+        if verdict is not None:
+            return verdict
     restricted = run_weather_outcome(samples, with_kids=rules.with_kids)
     if restricted is not None:
         return restricted
@@ -358,6 +404,26 @@ def _evaluate(
         conditions=conditions,
         activities=eligible(ports.catalogue.activities(), rules, conditions),
     )
+
+
+def _family_verdict(
+    rules: Constraints, window: WeatherWindow, *, ahead: bool
+) -> ErrorCode | _PlanAhead | None:
+    """Apply the family daylight rule before any activity is checked.
+
+    It runs before the severe and heat rules (BACKEND-CONTRACT section 1). After dark it
+    plans the next morning instead of saying no, except in the 00:00-04:30 lock (TC-011);
+    a morning window that is still dark (polar night) is the night page. None means the
+    window is in daylight and the run carries on.
+    """
+    outcome = night_outcome(rules.window, window.sunrise, window.sunset, window.tz)
+    if outcome == "too_short":
+        return ErrorCode.DAYLIGHT_TOO_SHORT
+    if outcome == "lock" or (outcome == "plan_ahead" and ahead):
+        return ErrorCode.DAYLIGHT_NIGHT
+    if outcome == "plan_ahead":
+        return _PlanAhead(tz=window.tz)
+    return None
 
 
 def _local_date(moment: datetime, tz: str) -> date:
@@ -413,6 +479,8 @@ async def _choose(  # noqa: PLR0913, PLR0917
     evaluated: _Evaluated,
     pairs: tuple[Pair, ...],
     places: Outcome[tuple[Place, ...]],
+    *,
+    ahead: bool = False,
 ) -> PlanResult:
     by_id = {activity.activity_id: activity for activity in ports.catalogue.activities()}
     interests = _no_model_interests(run.answers.interest_text)
@@ -433,11 +501,14 @@ async def _choose(  # noqa: PLR0913, PLR0917
     places_down = _unavailable(places)
     if places_down:
         notices = (ErrorCode.PLACES_UNAVAILABLE, *notices)
+    if ahead:
+        notices = (NoticeId.PLANNED_FOR_MORNING, *notices)
     created = _now(ports)
     valid_until = min(
         created + VALID_AFTER_CREATION,
         evaluated.summary.fetched_at + WEATHER_USABLE_FOR,
-        run.planned_start + VALID_AFTER_START,
+        # A morning result is never valid past the start of its window (TC-011).
+        run.planned_start if ahead else run.planned_start + VALID_AFTER_START,
     )
     return replace(
         _base(ports, run, summary, created=created),

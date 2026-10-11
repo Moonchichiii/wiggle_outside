@@ -1,9 +1,11 @@
 """CONTRACTS section 4.1: the wrappers return the same port types the planner uses."""
 
+import dataclasses
 import inspect
 import json
 from dataclasses import dataclass, field
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import pytest
 from fakes import (
@@ -301,3 +303,34 @@ def test_each_wrapper_matches_the_port_it_replaces(
 
         assert inspect.iscoroutinefunction(actual)
         assert parameters(actual) == parameters(declared)
+
+
+# --- TC-011: an entry's sun times are for one local date -----------------------------------
+
+
+def test_a_weather_entry_never_covers_a_window_on_another_local_date() -> None:
+    # The entry spans 40 hours of samples (two forecast days) but carries the sunrise of
+    # START's date only, so a window on the next local date must miss the cache.
+    entry = weather_window(START, START + timedelta(hours=40))
+    same_day = weather_codec(START + timedelta(hours=2), START + timedelta(hours=3)).covers
+    next_day = START + timedelta(hours=24)
+    morning = weather_codec(next_day, next_day + timedelta(hours=1)).covers
+
+    assert same_day(entry) is True
+    assert morning(entry) is False
+
+
+def test_the_local_date_is_the_entrys_own_timezone_so_the_pacific_case_is_right() -> None:
+    nz = ZoneInfo("Pacific/Auckland")
+    evening = datetime(2026, 10, 11, 21, 0, tzinfo=nz).astimezone(UTC)
+    next_morning = datetime(2026, 10, 12, 9, 0, tzinfo=nz).astimezone(UTC)
+    assert evening.date() == next_morning.date()  # one UTC date: a key could not tell them apart
+    entry = dataclasses.replace(
+        weather_window(evening - timedelta(hours=12), next_morning + timedelta(hours=12)),
+        tz="Pacific/Auckland",
+        sunrise=datetime(2026, 10, 11, 7, 0, tzinfo=nz).astimezone(UTC),
+        sunset=datetime(2026, 10, 11, 18, 0, tzinfo=nz).astimezone(UTC),
+    )
+
+    assert weather_codec(evening, evening + timedelta(hours=1)).covers(entry) is True
+    assert weather_codec(next_morning, next_morning + timedelta(hours=1)).covers(entry) is False

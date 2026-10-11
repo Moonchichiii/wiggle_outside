@@ -589,6 +589,34 @@ def _notice_body(code: NoticeId | ErrorCode, idea_count: int) -> str | None:
     return copy.ERROR_MESSAGES[code]
 
 
+def _result_notice_body(result: PlanResult, code: NoticeId | ErrorCode) -> str | None:
+    """Return one notice's text; the morning notice is dated from the result (TC-011)."""
+    if code is NoticeId.PLANNED_FOR_MORNING:
+        return _morning_body(result)
+    return _notice_body(code, len(result.ideas))
+
+
+def _morning_body(result: PlanResult) -> str:
+    """Say that the search was planned for the morning, and which one (TC-011).
+
+    "Tomorrow" when the morning is on a later local date than the search (the forecast
+    was fetched at search time); "this morning" between 04:30 and sunrise. Dated in the
+    place's timezone. Without a weather summary there is no timezone, so only the plain
+    sentence is shown.
+    """
+    weather = result.weather
+    plain = copy.NOTICE_MESSAGES[NoticeId.PLANNED_FOR_MORNING]
+    if weather is None:
+        return plain
+    at = ZoneInfo(weather.tz)
+    tomorrow = result.planned_start.astimezone(at).date() > weather.fetched_at.astimezone(at).date()
+    lede = plain if tomorrow else copy.PLANNED_FOR_THIS_MORNING
+    window = (copy.MORNING_WINDOW_TOMORROW if tomorrow else copy.MORNING_WINDOW_TODAY).format(
+        start=_time(result.planned_start, weather.tz), end=_time(result.planned_end, weather.tz)
+    )
+    return f"{lede} {window}"
+
+
 def _notice_views(result: PlanResult) -> tuple[NoticeView, ...]:
     """Build the notices, the result's own error first, each as plain reviewed text.
 
@@ -606,7 +634,7 @@ def _notice_views(result: PlanResult) -> tuple[NoticeView, ...]:
     for code in result.notices:
         if code == error:
             continue
-        body = _notice_body(code, len(result.ideas))
+        body = _result_notice_body(result, code)
         if body is not None:
             bodies.append(("info", body))
     return tuple(

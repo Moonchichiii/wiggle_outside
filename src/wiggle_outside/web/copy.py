@@ -259,6 +259,10 @@ STEP_FREE_HINT: Final = "Places OpenStreetMap reports as step-free come first; w
 SUBMIT: Final = "Find outings"
 BUSY_LABEL: Final = f"Finding outings{ELLIPSIS}"
 BUSY_NOTE: Final = "This can take up to 20 seconds."
+# TC-011: the loader shown only while an explicitly submitted search is pending. The
+# badge is decorative; the status region announces the supporting text once.
+LOADER_BADGE: Final = f"Tying shoelaces{ELLIPSIS}"
+LOADER_TEXT: Final = f"Finding outdoor ideas. {BUSY_NOTE}"
 
 # --- Honeypot (D49, DEPLOYMENT section 4) ----------------------------------------------
 
@@ -564,8 +568,15 @@ NOTICE_MESSAGES: Final[Mapping[NoticeId, str]] = MappingProxyType(
         NoticeId.INTERESTS_USED_BY_FALLBACK: (
             "These picks are sorted by our activity list using the interests above."
         ),
+        # TC-011: a family search after dark, planned for the next morning. The presenter
+        # adds the window sentence below, dated in the place's timezone.
+        NoticeId.PLANNED_FOR_MORNING: "It's dark now, so here are ideas for tomorrow morning.",
     }
 )
+# The same notice when the next 09:00 is still today (a search between 04:30 and sunrise).
+PLANNED_FOR_THIS_MORNING: Final = "It's dark now, so here are ideas for this morning."
+MORNING_WINDOW_TOMORROW: Final = f"Tomorrow, {{start}}{EN_DASH}{{end}}."
+MORNING_WINDOW_TODAY: Final = f"This morning, {{start}}{EN_DASH}{{end}}."
 
 # --- The error page ------------------------------------------------------------------
 

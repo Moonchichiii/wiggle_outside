@@ -61,4 +61,6 @@ class NoticeId(StrEnum):
     INTEREST_UNCLEAR = "INTEREST_UNCLEAR"
     INTEREST_NOT_APPLIED = "INTEREST_NOT_APPLIED"
     INTERESTS_USED_BY_FALLBACK = "INTERESTS_USED_BY_FALLBACK"
+    # TC-011: a family search after dark, planned for the next morning at the place.
+    PLANNED_FOR_MORNING = "PLANNED_FOR_MORNING"
     REPLAY = "REPLAY"

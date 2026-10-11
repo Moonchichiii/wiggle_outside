@@ -8,6 +8,7 @@ import dataclasses
 import json
 from datetime import timedelta
 from typing import TYPE_CHECKING
+from zoneinfo import ZoneInfo
 
 import pytest
 from planner_support import (
@@ -25,9 +26,11 @@ from planner_support import (
     Rig,
     day_window,
     rig,
+    window_for,
 )
 
 from wiggle_outside.core.errors import ErrorCode, NoticeId
+from wiggle_outside.core.night import next_morning
 from wiggle_outside.core.result import Empty, Ok, QuotaOrUnavailable, TransportFailure
 from wiggle_outside.core.types import (
     MAX_IDEAS,
@@ -65,9 +68,15 @@ async def plan(r: Rig, answers: Answers = ANSWERS) -> PlanResult:
 
 
 def at_evening(r: Rig, *, code: int = 3) -> None:
-    """Move the clock to the evening with a forecast fetched just now, as the cache would."""
+    """Move the clock to the evening with a forecast fetched just now, as the cache would.
+
+    TC-011: a family search now plans the next morning, so the fake also holds the
+    forecast the run fetches for that window (tomorrow's sun times, a mild morning).
+    """
     r.clock.wall = EVENING
     r.weather.outcome = Ok(day_window(fetched_at=EVENING - timedelta(seconds=5), code=code))
+    morning = next_morning(EVENING, "Europe/Stockholm").astimezone(ZoneInfo("Europe/Stockholm"))
+    r.weather.queued = [Ok(window_for(morning, fetched_at=EVENING - timedelta(seconds=5)))]
 
 
 # --- The labelled fallback, the path every run takes until WP5 wires a model ------------
@@ -255,15 +264,17 @@ async def test_expired_weather_is_unavailable_weather() -> None:
 
 
 @pytest.mark.asyncio
-async def test_a_family_run_after_sunset_is_daylight_night() -> None:
+async def test_a_family_run_after_sunset_is_planned_for_the_next_morning() -> None:
+    # TC-011: after sunset and before midnight the answers are kept and the next
+    # morning at the place is planned instead (test_plan_ahead.py has the clock cases).
     r = rig()
     at_evening(r)
     result = await plan(r)
 
-    assert result.error is ErrorCode.DAYLIGHT_NIGHT
-    assert result.ideas == ()
-    assert result.weather is None  # no weather promise on the daylight pages
-    assert ErrorCode.MODEL_FALLBACK not in result.notices
+    assert result.error is None
+    assert result.notices[0] is NoticeId.PLANNED_FOR_MORNING
+    assert result.ideas
+    assert result.planned_start == next_morning(EVENING, "Europe/Stockholm")
 
 
 @pytest.mark.asyncio
@@ -277,10 +288,22 @@ async def test_a_family_run_that_would_end_after_sunset_is_too_short() -> None:
 
 @pytest.mark.asyncio
 async def test_daylight_takes_precedence_over_severe_weather_for_the_family_path() -> None:
+    # Severe weather now is not the question after dark: the morning window is, and it
+    # is judged on its own forecast (TC-011). A severe morning is then restricted.
     r = rig()
     at_evening(r, code=SEVERE_THUNDER)
     result = await plan(r)
-    assert result.error is ErrorCode.DAYLIGHT_NIGHT
+    assert result.error is None
+    assert result.notices[0] is NoticeId.PLANNED_FOR_MORNING
+
+    r = rig()
+    at_evening(r)
+    morning = next_morning(EVENING, "Europe/Stockholm").astimezone(ZoneInfo("Europe/Stockholm"))
+    r.weather.queued = [
+        Ok(window_for(morning, code=SEVERE_THUNDER, fetched_at=EVENING - timedelta(seconds=5)))
+    ]
+    stormy = await plan(r)
+    assert stormy.error is ErrorCode.WEATHER_RESTRICTED
 
 
 @pytest.mark.asyncio
@@ -322,10 +345,14 @@ async def test_a_resubmission_re_evaluates_against_its_own_window() -> None:
     r = rig()
     first = await plan(r)
     at_evening(r)
+    r.weather.calls.clear()  # the fake queues the morning forecast for the next run
     second = await plan(r)
 
     assert first.error is None
-    assert second.error is ErrorCode.DAYLIGHT_NIGHT
+    assert second.error is None
+    assert first.planned_start != second.planned_start
+    assert NoticeId.PLANNED_FOR_MORNING not in first.notices
+    assert second.notices[0] is NoticeId.PLANNED_FOR_MORNING
 
 
 # --- Places ----------------------------------------------------------------------------

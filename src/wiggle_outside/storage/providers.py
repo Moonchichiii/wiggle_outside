@@ -10,6 +10,7 @@ from datetime import timedelta
 from functools import partial
 from typing import TYPE_CHECKING, Final
 
+from wiggle_outside.core.night import zone
 from wiggle_outside.core.types import GeocodeHits, Place, WeatherWindow
 from wiggle_outside.planner.ports import (
     CacheStore,
@@ -53,10 +54,20 @@ PLACES_CODEC: Final[Codec[tuple[Place, ...]]] = Codec(encode=_encode_places, dec
 
 
 def weather_codec(start: datetime, end: datetime) -> Codec[WeatherWindow]:
-    """Build the weather codec: a hit only while the entry covers the whole window."""
+    """Build the weather codec: a hit only while the entry covers the whole window.
+
+    Covering the hours is not enough (TC-011): an entry carries the sunrise and sunset
+    of one local date, the date of the start it was fetched for, so a window on another
+    local date at the place must miss, or tomorrow's morning window would be judged
+    against today's sun times. The date is taken in the entry's own timezone, which is
+    what makes the Pacific case right where the two windows share a UTC date.
+    """
 
     def covers(window: WeatherWindow) -> bool:
-        return window.start <= start and window.end >= end
+        if not (window.start <= start and window.end >= end):
+            return False
+        at = zone(window.tz)
+        return window.sunrise.astimezone(at).date() == start.astimezone(at).date()
 
     return Codec(encode=WeatherWindow.to_cache, decode=WeatherWindow.from_cache, covers=covers)
 

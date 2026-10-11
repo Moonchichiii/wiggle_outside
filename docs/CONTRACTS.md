@@ -77,7 +77,8 @@ class JobState(StrEnum): RUNNING, NEEDS_LOCATION_CHOICE, WAITING, GENERATING, CA
 
 `NoticeId` is a `StrEnum` of notices that are not in the ERROR-HANDLING table:
 `GENTLER_THAN_ASKED`, `INTEREST_NO_MATCH`, `INTEREST_UNCLEAR`,
-`INTEREST_NOT_APPLIED`, `INTERESTS_USED_BY_FALLBACK`, `REPLAY`. `DeploymentMode` (`hosted_live` = the product and primary build path; `local` =
+`INTEREST_NOT_APPLIED`, `INTERESTS_USED_BY_FALLBACK`, `PLANNED_FOR_MORNING` (a family
+search made after dark was planned for the next morning, 09:00 local at the place; TC-011), `REPLAY`. `DeploymentMode` (`hosted_live` = the product and primary build path; `local` =
 optional development; `replay` = **inactive**, D24 superseded by D48, kept only so the
 enum is stable) comes from settings and is passed explicitly to presenters; it selects mode-specific copy such as the privacy note. The
 successful-result rows of that table (`FEWER_MATCHES`, `MODEL_FALLBACK`, `PLACES_CACHED`)

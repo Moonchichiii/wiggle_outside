@@ -135,6 +135,44 @@ def day_window_around(moment: datetime, *, code: int = 3) -> WeatherWindow:
     )
 
 
+def window_for(
+    start_local: datetime,
+    *,
+    sunrise_h: int = 7,
+    sunset_h: int = 18,
+    fetched_at: datetime | None = None,
+    code: int = 3,
+) -> WeatherWindow:
+    """Build two mild days of hourly samples around a local moment (TC-011 tests).
+
+    `start_local` carries a ZoneInfo; the entry's timezone is that zone, and the sun is
+    up from `sunrise_h` to `sunset_h` on the local date of `start_local`, as the adapter
+    would report for a window starting then. The samples run 48 hours from the UTC
+    midnight before the moment, so a next-morning window is covered too.
+    """
+    tz = getattr(start_local.tzinfo, "key", "UTC")
+    moment = start_local.astimezone(UTC)
+    first = datetime(moment.year, moment.month, moment.day, tzinfo=UTC)
+    times = tuple(first + timedelta(hours=hour) for hour in range(48))
+    count = len(times)
+    day = start_local.date()
+    return WeatherWindow(
+        start=times[0],
+        end=times[-1],
+        fetched_at=fetched_at if fetched_at is not None else moment - timedelta(seconds=5),
+        tz=tz,
+        times=times,
+        temp_c=(12.0,) * count,
+        apparent_temp_c=(11.0,) * count,
+        precip_probability=(20,) * count,
+        precipitation_mm=(0.0,) * count,
+        wind_kmh=(12.0,) * count,
+        weather_code=(code,) * count,
+        sunrise=datetime(day.year, day.month, day.day, sunrise_h, tzinfo=start_local.tzinfo),
+        sunset=datetime(day.year, day.month, day.day, sunset_h, tzinfo=start_local.tzinfo),
+    )
+
+
 @dataclass(slots=True)
 class FakeClock:
     wall: datetime = MORNING
@@ -188,11 +226,16 @@ class FakePlaces:
 class FakeWeather:
     outcome: Outcome[WeatherWindow] = field(default_factory=lambda: Ok(day_window()))
     calls: list[tuple[Coordinates, datetime, datetime, float]] = field(default_factory=list)
+    # Answers for the calls after the first, in order (the morning fetch, TC-011); when
+    # exhausted, `outcome` answers again.
+    queued: list[Outcome[WeatherWindow]] = field(default_factory=list)
 
     async def window(
         self, at: Coordinates, start: datetime, end: datetime, deadline: float
     ) -> Outcome[WeatherWindow]:
         self.calls.append((at, start, end, deadline))
+        if len(self.calls) > 1 and self.queued:
+            return self.queued.pop(0)
         return self.outcome
 
 

@@ -6,7 +6,9 @@ of the location script is tests/web/test_browser_location.py.
 
 import dataclasses
 from collections.abc import Mapping
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
+from zoneinfo import ZoneInfo
 
 import pytest
 from markupsafe import escape
@@ -22,8 +24,8 @@ from fixtures import (
     STYLESHEET,
 )
 from parse import read
-from wiggle_outside.core.errors import ErrorCode
-from wiggle_outside.core.types import DeploymentMode
+from wiggle_outside.core.errors import ErrorCode, NoticeId
+from wiggle_outside.core.types import DeploymentMode, PlanResult
 from wiggle_outside.web import copy
 from wiggle_outside.web.forms import DEFAULT_LOCATION_LABEL
 from wiggle_outside.web.presenters import (
@@ -210,3 +212,81 @@ def test_the_device_label_reads_lower_case_mid_sentence() -> None:
         .answers.lines[0]
         .endswith(copy.ANSWERS_NEAR.format(label=RESULT.answers.location_label))
     )
+
+
+# --- Round 2: the morning notice ------------------------------------------------------------
+
+STOCKHOLM = ZoneInfo("Europe/Stockholm")
+
+
+def _morning_result(searched_at: datetime, morning: datetime) -> PlanResult:
+    assert RESULT.weather is not None
+    return dataclasses.replace(
+        RESULT,
+        notices=(NoticeId.PLANNED_FOR_MORNING,),
+        planned_start=morning.astimezone(UTC),
+        planned_end=(morning + timedelta(hours=1)).astimezone(UTC),
+        weather=dataclasses.replace(
+            RESULT.weather,
+            fetched_at=searched_at.astimezone(UTC),
+            window_start=morning.astimezone(UTC),
+            window_end=(morning + timedelta(hours=1)).astimezone(UTC),
+        ),
+    )
+
+
+def test_the_morning_notice_says_tomorrow_and_the_window_in_the_places_time() -> None:
+    result = _morning_result(
+        datetime(2026, 10, 11, 21, 0, tzinfo=STOCKHOLM),
+        datetime(2026, 10, 12, 9, 0, tzinfo=STOCKHOLM),
+    )
+    page = present_result(result, CATALOGUE, NOW, SESSION, MODE, D39_ON)
+    html = render_result(build_environment(), with_assets(page, STYLESHEET))
+
+    window = f"Tomorrow, 09:00{copy.EN_DASH}10:00."
+    expected = f"It's dark now, so here are ideas for tomorrow morning. {window}"
+    assert [n.body for n in page.notices] == [expected]
+    assert esc(expected) in html
+    assert page.heading == copy.RESULTS_HEADING
+    assert page.ideas
+
+
+def test_the_morning_notice_says_this_morning_after_the_lock() -> None:
+    result = _morning_result(
+        datetime(2026, 10, 12, 4, 31, tzinfo=STOCKHOLM),
+        datetime(2026, 10, 12, 9, 0, tzinfo=STOCKHOLM),
+    )
+    page = present_result(result, CATALOGUE, NOW, SESSION, MODE, D39_ON)
+
+    window = f"This morning, 09:00{copy.EN_DASH}10:00."
+    assert page.notices[0].body == f"It's dark now, so here are ideas for this morning. {window}"
+
+
+def test_the_morning_notice_without_a_forecast_is_the_plain_sentence() -> None:
+    result = dataclasses.replace(RESULT, notices=(NoticeId.PLANNED_FOR_MORNING,), weather=None)
+    page = present_result(result, CATALOGUE, NOW, SESSION, MODE, D39_ON)
+
+    assert page.notices[0].body == copy.NOTICE_MESSAGES[NoticeId.PLANNED_FOR_MORNING]
+
+
+# --- The loader (TC-011) ----------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("name", ["form", "ambiguous", "result", "error"])
+def test_every_search_form_carries_a_hidden_loader(rendered: Mapping[str, str], name: str) -> None:
+    html = rendered[name]
+    forms = html.count("data-wo-pending")
+    assert forms == html.count('<div class="wo-busy wo-loader" data-wo-loader hidden>')
+    assert forms == (2 if name == "ambiguous" else 1)
+    # Decorative badge and bar; an empty status region that the script fills once.
+    assert f'<p class="wo-loader-badge" aria-hidden="true">{esc(copy.LOADER_BADGE)}</p>' in html
+    assert (
+        '<div class="wo-loader-track" aria-hidden="true"><div class="wo-loader-bar"></div></div>'
+        in html
+    )
+    assert (
+        '<p class="wo-loader-text" role="status" aria-live="polite" data-wo-loader-status '
+        f'data-message="{esc(copy.LOADER_TEXT)}"></p>'
+    ) in html
+    assert "%" not in copy.LOADER_TEXT
+    assert copy.LOADER_TEXT.endswith(copy.BUSY_NOTE)
