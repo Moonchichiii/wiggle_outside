@@ -809,11 +809,16 @@ def _find_index(result: PlanResult, idea_id: str) -> int:
     raise KeyError(idea_id)
 
 
+def _item_case(text: str) -> str:
+    """Capitalise a catalogue item's first letter for a list (TC-012); the rest is verbatim."""
+    return text[:1].upper() + text[1:]
+
+
 def _activity_view(activity: Activity) -> ActivityView:
     card = BingoView(heading=copy.BINGO_HEADING, items=activity.card) if activity.card else None
     return ActivityView(
         steps=activity.steps,
-        optional=activity.optional,
+        optional=tuple(_item_case(item) for item in activity.optional),
         adapt=activity.adapt,
         ask=activity.ask,
         safety=activity.safety,
@@ -968,7 +973,9 @@ def _packing_view(result: PlanResult, catalogue: Catalogue) -> PackingView | Non
     if weather is None or not result.ideas:
         return None
     by_id = {activity.activity_id: activity for activity in catalogue.activities()}
-    items = tuple(item for idea in result.ideas for item in by_id[idea.pair.activity_id].optional)
+    items = tuple(
+        _item_case(item) for idea in result.ideas for item in by_id[idea.pair.activity_id].optional
+    )
     built = packing_list(
         PackingInputs(
             who=result.answers.who,

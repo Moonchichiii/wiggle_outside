@@ -587,3 +587,21 @@ def test_a_result_without_ideas_has_no_packing_box() -> None:
     html = render_result(build_environment(), with_assets(page, STYLESHEET))
     assert page.packing is None
     assert "wo-packing" not in html
+
+
+def test_catalogue_items_are_capitalised_in_the_packing_list_and_nice_to_have() -> None:
+    # The catalogue writes "a small bag ..."; both lists show "A small bag ...".
+    page = present_result(RESULT, CATALOGUE, NOW, SESSION, MODE, D39_ON)
+    assert page.packing is not None
+    ideas = next(g for g in page.packing.groups if g.heading == copy.PACKING_GROUP_IDEAS)
+    assert ideas.items
+    assert all(item[:1] == item[:1].upper() for item in ideas.items)
+    activity = next(
+        a for a in CATALOGUE.activities() if a.activity_id == RESULT.ideas[0].pair.activity_id
+    )
+    raw = activity.optional
+    assert any(item[:1].islower() for item in raw), "the catalogue text itself stays lower case"
+    detail = present_detail(RESULT, RESULT.ideas[0].pair.idea_id, CATALOGUE, NOW)
+    assert detail.activity.optional == tuple(i[:1].upper() + i[1:] for i in raw)
+    # The same words, only the first letter changed.
+    assert [i[1:] for i in detail.activity.optional] == [i[1:] for i in raw]

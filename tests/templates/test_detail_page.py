@@ -88,6 +88,7 @@ def test_the_detail_page_renders_the_catalogue_text_verbatim(
         assert esc(step) in html
     for item in page.activity.optional:
         assert esc(item) in html
+        assert item[:1] == item[:1].upper()  # TC-012: capitalised like the packing list
 
 
 def test_why_this_idea_carries_the_reasons_and_the_match_line(
