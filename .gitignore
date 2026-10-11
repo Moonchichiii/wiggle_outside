@@ -1,3 +1,4 @@
+# --- Environments and caches ------------------------------------------------------------
 .venv/
 .claude/worktrees/
 node_modules/
@@ -11,18 +12,41 @@ htmlcov/
 build/
 dist/
 *.egg-info/
+*.log
+
+# --- Local configuration and data (never committed) ------------------------------------
 .env
+.env.*
+!.env.example
 data/
+
+# --- Generated output: screenshots, dev certificates and keys, captures ------------------
 out/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+night-*.txt
+
+# --- Built static files (bun run build writes them; the Dockerfile rebuilds them) -------
 frontend/dist/
 src/wiggle_outside/web/static/
 
-# Fonts: the Fontshare Font Licence 2.0 permits self-hosting but forbids
-# redistributing the files in a public repository (TC-007). They are supplied at
-# deploy time from private storage; frontend/fonts/README.md says how.
+# --- Design handoffs and archives kept beside the repository, not in it -----------------
+_design_fix/
+*.zip
+
+# --- Operating-system noise ------------------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# --- Fonts ---------------------------------------------------------------------------
+# The Fontshare Font Licence 2.0 permits self-hosting but forbids redistributing the
+# files in a public repository (TC-007); they are supplied at deploy time from private
+# storage, as frontend/fonts/README.md says. No font file is tracked; the licence texts
+# and the README are.
 frontend/fonts/*
+frontend/fonts/*.woff2
 !frontend/fonts/README.md
-# Patrick Hand is SIL OFL 1.1, which permits redistribution, so it is committed with
-# its licence (TC-008, the handwritten margin notes).
-!frontend/fonts/PatrickHand-Regular.woff2
 !frontend/fonts/OFL-PatrickHand.txt
