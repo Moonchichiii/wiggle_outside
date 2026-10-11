@@ -149,3 +149,27 @@ def _collect(message: object, into: list[str]) -> None:
     kind = getattr(message, "type", "")
     if kind == "error":
         into.append(str(getattr(message, "text", message)))
+
+
+@pytest.mark.timeout(BROWSER_TIMEOUT_S)
+def test_going_back_never_leaves_the_busy_state_showing(server: str, browser: Browser) -> None:
+    # TC-011: the busy note and the button's busy state must be clear after a back
+    # navigation, whether the page comes from the back-forward cache or is reloaded.
+    context = browser.new_context()
+    page = context.new_page()
+    page.goto(f"{server}/")
+    page.check('input[name="who"][value="kids"]')
+    page.check('input[name="age_band"][value="3-5"]')
+    page.check('input[name="time"][value="60"]')
+    page.fill('input[name="place"]', "Bergby")
+    page.click('.wo-plan-form button[type="submit"]')
+    page.wait_for_url("**/results/*")
+
+    page.go_back()
+    page.wait_for_url(f"{server}/")
+
+    expect(page.locator(".wo-busy")).to_be_hidden()
+    assert page.locator('.wo-plan-form button[type="submit"][aria-busy="true"]').count() == 0
+    expect(page.locator('.wo-plan-form button[type="submit"]')).to_be_enabled()
+    expect(page.locator('.wo-plan-form button[type="submit"]')).to_have_text(f"{copy.SUBMIT}→")
+    context.close()

@@ -415,6 +415,8 @@ RESULTS_HEADING: Final = "Here's what we found"
 # with the middle dot as the separator and the ages only when there are any.
 ANSWERS_WITH_AGES: Final = "{who} ({ages})"
 ANSWERS_NEAR: Final = "near {label}"
+# TC-011: the device label is a sentence fragment here, so it is not capitalised.
+ANSWERS_NEAR_YOUR_LOCATION: Final = "near your location"
 ANSWERS_JOIN: Final = f" {MIDDLE_DOT} "
 AGES_JOIN: Final = ", "
 

@@ -4,6 +4,7 @@ Rendered from fixture view models, like the other template tests. The browser be
 of the location script is tests/web/test_browser_location.py.
 """
 
+import dataclasses
 from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
@@ -24,6 +25,7 @@ from parse import read
 from wiggle_outside.core.errors import ErrorCode
 from wiggle_outside.core.types import DeploymentMode
 from wiggle_outside.web import copy
+from wiggle_outside.web.forms import DEFAULT_LOCATION_LABEL
 from wiggle_outside.web.presenters import (
     build_environment,
     present_detail,
@@ -183,4 +185,28 @@ def test_every_page_carries_the_one_description(rendered: Mapping[str, str], nam
     assert copy.PAGE_DESCRIPTION == (
         "Weather, nearby places and a little inspiration in one short search. "
         "Up to three outdoor ideas for right now, chosen with Gemma."
+    )
+
+
+# --- Round 2, copy: "near your location" ----------------------------------------------------
+
+
+def test_the_device_label_reads_lower_case_mid_sentence() -> None:
+    located = dataclasses.replace(
+        RESULT, answers=dataclasses.replace(RESULT.answers, location_label=DEFAULT_LOCATION_LABEL)
+    )
+    page = present_result(located, CATALOGUE, NOW, SESSION, MODE, D39_ON)
+    html = render_result(build_environment(), with_assets(page, STYLESHEET))
+    detail = present_detail(located, BINGO, CATALOGUE, NOW)
+
+    assert page.answers.lines[0].endswith(copy.ANSWERS_NEAR_YOUR_LOCATION)
+    assert "near your location" in html
+    assert "near Your location" not in html
+    assert detail.print is not None
+    assert detail.print.context_line.endswith("near your location.")
+    # A geocoded place keeps its own name, capitals and all.
+    assert (
+        present_result(RESULT, CATALOGUE, NOW, SESSION, MODE, D39_ON)
+        .answers.lines[0]
+        .endswith(copy.ANSWERS_NEAR.format(label=RESULT.answers.location_label))
     )

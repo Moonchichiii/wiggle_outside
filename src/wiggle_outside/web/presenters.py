@@ -29,7 +29,7 @@ from wiggle_outside.core.types import (
     Who,
 )
 from wiggle_outside.web import copy
-from wiggle_outside.web.forms import DEFAULT_ENERGY, DEFAULT_LOCATION_MODE
+from wiggle_outside.web.forms import DEFAULT_ENERGY, DEFAULT_LOCATION_LABEL, DEFAULT_LOCATION_MODE
 from wiggle_outside.web.views import (
     ActionView,
     ActivityView,
@@ -470,6 +470,13 @@ def _weather_view(weather: WeatherSummary, *, example: bool = False) -> WeatherV
 # --- The answers summary and the interest labels -------------------------------------------
 
 
+def _near(label: str) -> str:
+    """Say where, mid-sentence: the device label reads "near your location" (TC-011)."""
+    if label == DEFAULT_LOCATION_LABEL:
+        return copy.ANSWERS_NEAR_YOUR_LOCATION
+    return copy.ANSWERS_NEAR.format(label=label)
+
+
 def _answers_view(answers: AnswersSummary) -> AnswersView:
     ages = copy.AGES_JOIN.join(
         copy.AGE_LABELS[band] for band in AgeBand if band in answers.age_bands
@@ -480,7 +487,7 @@ def _answers_view(answers: AnswersSummary) -> AnswersView:
             copy.ANSWERS_WITH_AGES.format(who=who, ages=ages) if ages else who,
             copy.TIME_LABELS[answers.time_budget],
             copy.ENERGY_LABELS[answers.energy],
-            copy.ANSWERS_NEAR.format(label=answers.location_label),
+            _near(answers.location_label),
         )
     )
     # D42: two answers with different effects, each shown only when it was given.
@@ -715,6 +722,10 @@ def _activity_view(activity: Activity) -> ActivityView:
     )
 
 
+def _print_location(label: str) -> str:
+    return "your location" if label == DEFAULT_LOCATION_LABEL else label
+
+
 def _print_view(result: PlanResult, weather: WeatherSummary) -> PrintView:
     """Build the dated context a printed card keeps for as long as it exists (section 10)."""
     return PrintView(
@@ -723,7 +734,7 @@ def _print_view(result: PlanResult, weather: WeatherSummary) -> PrintView:
             start=_time(result.planned_start, weather.tz),
             end=_time(result.planned_end, weather.tz),
             tz=weather.tz,
-            location=result.answers.location_label,
+            location=_print_location(result.answers.location_label),
         ),
         weather_line=copy.PRINT_WEATHER.format(
             time=_time(weather.fetched_at, weather.tz),

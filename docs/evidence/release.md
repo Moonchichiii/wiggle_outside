@@ -12,3 +12,8 @@ Commit: 8ec3b472daadf8f031ba79cc1a6c903efee89c03
 
 - label: registry.fly.io/wiggle-outside:v8ec3b47
 - digest: sha256:d39de6af74d234e92d25ca3f419e07ad68b4f0ac87852ea9369abae317930809 (from the build output)
+
+## Deploy 2 (TC-011 round 1)
+
+- commit: f923e03
+- digest: sha256:87bfcbdcfa8370ef003baf31e98153738e79a3892cda26eabbdde4dbbb2c192c
