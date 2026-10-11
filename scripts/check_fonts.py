@@ -20,6 +20,8 @@ from typing import Final
 from fontTools.ttLib import TTFont
 
 FONT_DIR: Final = Path(__file__).resolve().parent.parent / "frontend" / "fonts"
+# The two Fontshare faces (TC-007). Patrick Hand is committed and needs no gate.
+LICENSED_FACES: Final = ("CabinetGrotesk-Variable.woff2", "Switzer-Variable.woff2")
 
 # DESIGN-SPEC section 1.2 check 1, verbatim.
 SPEC_REQUIRED: Final = "å ä ö Å Ä Ö é è ê ë à â ç î ï ô û ù ü ÿ œ Œ æ « » ’ – —"
@@ -164,10 +166,18 @@ def main() -> int:
     parser.add_argument("--json", action="store_true", help="machine-readable output")
     args = parser.parse_args()
 
+    absent = [name for name in LICENSED_FACES if not (FONT_DIR / name).is_file()]
+    if absent:
+        # TC-007: the licensed faces are supplied at deploy time and never committed, so a
+        # checkout without them (CI, a fresh clone) has nothing to check. Skip, say so,
+        # and never fail: a missing file is expected there, not a finding.
+        print(
+            "check_fonts: SKIPPED, the licensed font files are not present "
+            f"({', '.join(absent)} under {FONT_DIR}); they are supplied at deploy time "
+            "(TC-007) and this check only runs where they are."
+        )
+        return 0
     files = sorted(FONT_DIR.glob("*.woff2"))
-    if not files:
-        print(f"no .woff2 files in {FONT_DIR}", file=sys.stderr)
-        return 1
 
     reports = [inspect(path) for path in files]
     complete = all(not r["spec_required_missing"] for r in reports)

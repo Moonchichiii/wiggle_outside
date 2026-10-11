@@ -41,6 +41,13 @@ jobs:
       - name: Install dependencies from the lockfile
         run: uv sync --frozen --all-groups
 
+      - name: Install Bun
+        # The same Bun as the Dockerfile's frontend stage (oven/bun:1.4.2), pinned to a
+        # full commit like every other action here.
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.2
+
       - name: Install frontend dependencies
         run: bun install --frozen-lockfile
 

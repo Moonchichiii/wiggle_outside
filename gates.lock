@@ -28,5 +28,5 @@ b70e7fe7860b53b443d8062f520cf07222615da0ecce15b462cd2c30438e3230  src/wiggle_out
 9d1db1cc106d445fc2f52c45a380d42300886b4084e90725b38b36dfda5ac9ef  src/wiggle_outside/planner/hooks.toml
 30c6770c3ad4b00976e08c4dc4650cb330a40b7014cb196c3d81e08c67432624  uv.lock
 2c7adb448750f83327abcd2d9b1007e1968ce5e3cd2204b7ac1d9d897c0408bd  .github/rulesets/main.json
-bf1fdab940b3167690a77e850f4eea77fe58677d910c9028f16099b74284e878  .github/workflows/check.yml
+c2f4ccdb6813edc795b4942b3de88171dc5727145c5cee364b6333a473d7158c  .github/workflows/check.yml
 absent                                                            tests/policy/
