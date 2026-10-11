@@ -11,6 +11,7 @@ Everything lives in process memory for the documented lifecycle and nowhere else
 
 import asyncio
 import contextlib
+import hashlib
 import logging
 import secrets
 from dataclasses import dataclass, field, replace
@@ -75,8 +76,14 @@ def submission_fingerprint(answers: Answers) -> str:
     so a plain repr would make two submissions that differ only in their interests look
     the same. The web layer compares the HMAC fingerprint of the canonical form before
     calling; this is the registry's own check over the answers it was handed.
+
+    A SHA-256 digest, never the canonical text itself (TC-011, privacy fix): the
+    fingerprint lives in the registry until `retain_until`, and the contract says the raw
+    interest text is discarded once the job has run. The registry has no secret of its
+    own, so this is a plain digest, not an HMAC; it is compared in memory only and never
+    stored, rendered or logged.
     """
-    return repr(
+    canonical = repr(
         (
             answers.who,
             sorted(answers.age_bands),
@@ -89,6 +96,7 @@ def submission_fingerprint(answers: Answers) -> str:
             answers.location_label,
         )
     )
+    return hashlib.sha256(canonical.encode()).hexdigest()
 
 
 def serialized_size(result: PlanResult) -> int:

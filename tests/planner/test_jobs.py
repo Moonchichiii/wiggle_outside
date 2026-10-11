@@ -7,6 +7,7 @@ event the test releases, never by sleeping.
 import asyncio
 import dataclasses
 import logging
+import re
 from datetime import timedelta
 
 import pytest
@@ -386,3 +387,44 @@ async def test_a_finished_job_logs_one_line_with_source_state_and_timing_only(
     # Names, counts and timings only: never the answers (PLAN section 5).
     assert "Bergby" not in lines[0]
     assert "60." not in lines[0].split("elapsed=")[0]
+
+
+# --- The fingerprint is a digest; the raw text does not outlive the run (TC-011) --------
+
+
+def test_the_fingerprint_is_a_digest_that_carries_no_text() -> None:
+    with_text = jobs.submission_fingerprint(
+        dataclasses.replace(ANSWERS, interest_text="zebra crossings and puddles")
+    )
+    without = jobs.submission_fingerprint(ANSWERS)
+    again = jobs.submission_fingerprint(
+        dataclasses.replace(ANSWERS, interest_text="zebra crossings and puddles")
+    )
+
+    assert re.fullmatch(r"[0-9a-f]{64}", with_text)
+    assert with_text == again
+    assert with_text != without  # the text still discriminates two submissions
+    assert "zebra" not in with_text
+    assert "Bergby" not in with_text
+
+
+@pytest.mark.asyncio
+async def test_the_registry_keeps_no_raw_interest_text_once_the_job_has_run() -> None:
+    secret = "zebra-crossings-and-puddles-7"  # noqa: S105  interest text, not a credential
+    p, _ = planner(rig())
+    ref = await p.start_or_join(S1, K1, dataclasses.replace(ANSWERS, interest_text=secret))
+    await p.wait(S1, ref.job_id)
+
+    job = p._jobs[ref.job_id]  # noqa: SLF001  the point is what the registry holds
+    assert job.result is not None
+    assert job.task is not None
+    assert job.task.done()
+    # Every field the registry keeps for the job, as text: the digest, the ids, the
+    # placeholder and the result (AnswersSummary has no text field at all).
+    kept = " ".join(repr(getattr(job, name)) for name in job.__slots__)  # type: ignore[attr-defined]
+    assert secret not in kept
+    assert re.fullmatch(r"[0-9a-f]{64}", job.fingerprint)
+    assert not hasattr(job.result.answers, "interest_text")
+    # Nothing else in the registry references the answers: the Run was a local of the
+    # finished task, and this run published no candidate set.
+    assert p._candidates == {}  # noqa: SLF001
