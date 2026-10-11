@@ -301,7 +301,7 @@ Cards fade and rise 8 px over 240 ms with an 80 ms stagger; hover lift 2 px, 120
 | Too little daylight, family path (DAYLIGHT_TOO_SHORT, copy TC-002) | heading: Not enough daylight for this one. — text: The outing would end after sunset. Change your answers and we’ll check the daylight and the weather again, or leave the adventure for tomorrow. |
 | Gentler notice | These suggestions are gentler than the energy level you selected. |
 | Fallback label | AI selection isn't available right now. These picks come from our activity list and passed every normal check. |
-| Card practical line | {place} · {kind} · about {distance} km away · {travel} min there and back · {duration} min activity (times are estimates; distance is straight-line, stated on the detail page) |
+| Card practical line | {place} · {kind} · about {distance} km away · {travel} min there and back · {duration} min activity (times are estimates; distance is straight-line, stated on the detail page; a distance that would round to 0.0 km reads "close by", with no straight-line suffix) |
 | Detail: why | Why this idea — reasons, then "Matches the interests: {tags}" when true |
 | Answers summary | {who} ({ages}) · {time} · {energy} · near {location} — "Change answers" |
 | Stroller (D42) | We're bringing a stroller |

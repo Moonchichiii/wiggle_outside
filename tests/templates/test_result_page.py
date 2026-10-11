@@ -8,6 +8,7 @@ Accessibility is not claimed from these checks: axe, the contrast script and the
 screen-reader, forced-colours and zoom walkthroughs are WP9b's and have not run.
 """
 
+import dataclasses
 from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
@@ -433,3 +434,17 @@ def test_each_card_names_its_own_link(rendered: Mapping[str, str]) -> None:
     for title in ("Puddle jumping championship", "Nature bingo", "Leaf colour hunt"):
         assert esc(copy.CARD_LINK_CONTEXT.format(title=title)) in rendered["three"]
     assert "idea-i1-title" in doc.ids
+
+
+def test_a_distance_below_the_display_precision_reads_close_by() -> None:
+    """Both points in one rounded cell (CONTRACTS section 2): no "0.0 km" on a card."""
+    idea = RESULT.ideas[0]
+    near = dataclasses.replace(idea, pair=dataclasses.replace(idea.pair, distance_m=30))
+    page = view(dataclasses.replace(RESULT, ideas=(near, *RESULT.ideas[1:])))
+
+    assert page.ideas[0].place.distance == copy.DISTANCE_CLOSE_BY
+    html = render_result(build_environment(), with_assets(page, STYLESHEET))
+    assert "0.0 km" not in html
+    assert "close by" in html
+    assert page.ideas[1].place.distance is not None
+    assert page.ideas[1].place.distance.endswith("km away")  # the others keep their figure

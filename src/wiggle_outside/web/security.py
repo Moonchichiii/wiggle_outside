@@ -7,6 +7,7 @@ fingerprint.
 """
 
 import hmac
+import logging
 import secrets
 import time
 from collections import OrderedDict
@@ -29,6 +30,8 @@ if TYPE_CHECKING:
     from starlette.requests import Request
 
     from wiggle_outside.settings import Settings
+
+log = logging.getLogger(__name__)
 
 # --- Statuses (CONTRACTS section 3) -------------------------------------------------
 
@@ -491,5 +494,11 @@ class SessionStore:
 
     def _end(self, session_id: str) -> None:
         del self._sessions[session_id]
-        if self._on_end is not None:
+        if self._on_end is None:
+            return
+        try:
             self._on_end(session_id)
+        except Exception:
+            # CC-005: the session is gone either way; the unrelated request that
+            # triggered the purge must not fail for it.
+            log.exception("the end-of-session hook failed; the session is already removed")

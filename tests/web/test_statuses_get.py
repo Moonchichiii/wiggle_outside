@@ -7,6 +7,8 @@ answers what the mapping says.
 
 import re
 from collections.abc import Iterator
+from dataclasses import replace
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Final
 
@@ -151,3 +153,24 @@ def test_the_notice_page_kinds_are_the_ones_the_table_names() -> None:
     assert outcome_for(form).kind is PageKind.FORM
     assert outcome_for(plan_result(ideas=(one_idea(),))).kind is PageKind.RESULTS
     assert outcome_for(plan_result(state=JobState.EXPIRED)).kind is PageKind.MISSING
+
+
+def test_a_result_past_valid_until_but_retained_is_the_historical_view() -> None:
+    """BACKEND-CONTRACT section 2: between valid_until and retain_until, with real time."""
+    now = datetime.now(UTC)
+    result = replace(
+        plan_result(ideas=(one_idea(),)),
+        valid_until=now - timedelta(minutes=1),
+        retain_until=now + timedelta(minutes=30),
+    )
+    for harness in build_harness(FixedPlanner(result=result)):
+        posted = harness.plan()
+        assert posted.status_code == 303
+        shown = harness.client.get(posted.headers["location"], follow_redirects=False)
+
+        assert shown.status_code == 200
+        assert "no longer current" in shown.text
+        detail = re.search(r'href="(/results/[^"]+/ideas/[^"]+)"', shown.text)
+        assert detail is not None
+        assert harness.client.get(detail.group(1)).status_code == 200
+        break

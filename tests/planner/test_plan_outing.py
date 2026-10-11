@@ -466,3 +466,84 @@ async def test_each_stage_gets_only_the_remaining_budget() -> None:
     assert geocode_deadline == 1003.0  # min(absolute deadline, now + 3 s)
     assert r.places.calls[0][3] == 1004.0
     assert r.weather.calls[0][3] == 1004.0
+
+
+# --- Uniqueness and validity, now that `uniqueItems` is not sent to the model ------------
+
+
+def _pick(pair: Pair, hook: str | None = None, reasons: tuple[str, ...] = ()) -> dict[str, object]:
+    return {
+        "pair_id": pair.pair_id,
+        "hook_id": hook if hook is not None else min(pair.allowed_hook_ids),
+        "reason_ids": list(reasons),
+    }
+
+
+def _twins(pairs: tuple[Pair, ...]) -> tuple[Pair, Pair]:
+    """Return an entry offered at two places; failing that, the first pair twice."""
+    for first in pairs:
+        for twin in pairs:
+            if twin.pair_id != first.pair_id and twin.activity_id == first.activity_id:
+                return first, twin
+    return pairs[0], pairs[0]
+
+
+class _TrickyModel:
+    """Answer with every kind of invalid pick around one valid one, the schema unchecked."""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def __call__(
+        self, pairs: tuple[Pair, ...], _text: str | None, _deadline: float
+    ) -> Ok[RawSelection]:
+        self.calls += 1
+        first, twin = _twins(pairs)
+        other = next(p for p in pairs if p.activity_id != first.activity_id)
+        reason = min(other.allowed_reason_ids) if other.allowed_reason_ids else "fits_time"
+        picks = [
+            _pick(first),  # valid
+            _pick(first),  # the same pick again
+            _pick(twin),  # the same activity at another place
+            {"pair_id": "p99", "hook_id": min(other.allowed_hook_ids), "reason_ids": []},
+            _pick(other, hook="not-a-hook"),  # a hook the pair does not allow
+            _pick(other, reasons=("not-a-reason",)),  # a reason the pair does not allow
+            _pick(other, reasons=(reason, reason)),  # the same reason twice
+        ]
+        return Ok(RawSelection(payload=json.dumps({"picks": picks})))
+
+
+@pytest.mark.asyncio
+async def test_duplicate_and_invalid_picks_never_become_ideas() -> None:
+    model = _TrickyModel()
+    r = rig()
+    r.model = model  # type: ignore[assignment]  the fake satisfies the callable shape
+    result = await plan(r)
+
+    assert model.calls == 1
+    assert result.source is Source.MODEL
+    assert len(result.ideas) == 1, "only the one valid pick"
+    activities = [idea.pair.activity_id for idea in result.ideas]
+    assert len(set(activities)) == len(activities)
+    for idea in result.ideas:
+        assert idea.hook_id in idea.pair.allowed_hook_ids
+        assert set(idea.reason_ids) <= idea.pair.allowed_reason_ids
+        assert len(set(idea.reason_ids)) == len(idea.reason_ids)
+
+
+@pytest.mark.asyncio
+async def test_with_places_down_the_model_is_asked_to_choose_among_the_generic_pairs() -> None:
+    """Places failed, place-free entries are eligible: the model still picks (D44)."""
+    model = _EchoModel()
+    r = rig(places=FakePlaces(outcome=TransportFailure()))
+    r.model = model  # type: ignore[assignment]
+    result = await plan(r)
+
+    assert model.calls == 1
+    assert result.source is Source.MODEL
+    assert result.state is JobState.COMPLETE
+    assert result.error is ErrorCode.PLACES_UNAVAILABLE
+    assert result.notices[0] is ErrorCode.PLACES_UNAVAILABLE
+    assert ErrorCode.MODEL_FALLBACK not in result.notices
+    assert result.ideas
+    assert all(idea.pair.place is None for idea in result.ideas)

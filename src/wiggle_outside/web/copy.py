@@ -448,6 +448,9 @@ CARD_LINK: Final = "Read the full activity"
 CARD_LINK_CONTEXT: Final = ": {title}"
 PRACTICAL_JOIN: Final = f" {MIDDLE_DOT} "
 DISTANCE: Final = "about {km} km away"
+# A distance that would round to 0.0 km: both points are in the same rounded cell
+# (CONTRACTS section 2), so no figure is honest. The detail page adds no suffix to it.
+DISTANCE_CLOSE_BY: Final = "close by"
 # The detail page says where the number comes from; the card keeps the line short and the
 # detail page carries the qualification (DESIGN-SPEC section 9).
 DISTANCE_STRAIGHT_LINE_SUFFIX: Final = " in a straight line"

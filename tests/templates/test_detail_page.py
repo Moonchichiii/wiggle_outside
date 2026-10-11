@@ -8,6 +8,7 @@ Accessibility is not claimed from these checks: axe, the contrast script, Playwr
 the print-preview review are WP9b's and have not run.
 """
 
+import dataclasses
 from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
@@ -242,3 +243,15 @@ def test_the_page_has_one_heading_per_section_and_no_duplicate_ids(
 def test_no_rendered_detail_page_shows_the_word_energetic(rendered: Mapping[str, str]) -> None:
     for name, html in rendered.items():
         assert "Energetic" not in html, name
+
+
+def test_a_close_by_place_gets_no_straight_line_suffix_on_the_detail_page() -> None:
+    idea = RESULT.ideas[0]
+    near = dataclasses.replace(idea, pair=dataclasses.replace(idea.pair, distance_m=30))
+    result = dataclasses.replace(RESULT, ideas=(near, *RESULT.ideas[1:]))
+    page = present_detail(result, idea.pair.idea_id, CATALOGUE, NOW)
+    html = render_detail(build_environment(), with_assets(page, STYLESHEET)).replace("\n", "")
+
+    assert "0.0 km" not in html
+    assert f"{copy.PRACTICAL_JOIN}close by</p>" in html
+    assert "close by in a straight line" not in html

@@ -411,3 +411,22 @@ def test_a_form_post_is_accepted_with_the_referrer_policy_we_send(harness: Harne
     assert page.headers["referrer-policy"] == "same-origin"
     # Same-origin requests therefore carry an Origin, and the POST is accepted.
     assert harness.plan().status_code == 303
+
+
+def test_a_raising_end_of_session_hook_does_not_fail_the_request() -> None:
+    """CC-005: the session is removed first; a hook failure is logged, never raised."""
+    ended: list[str] = []
+
+    def hook(session_id: str) -> None:
+        ended.append(session_id)
+        msg = "the planner is broken"
+        raise RuntimeError(msg)
+
+    clock = [0.0]
+    store = SessionStore(monotonic=lambda: clock[0], on_end=hook)
+    session = store.create()
+
+    clock[0] = 30 * 60
+    assert store.get(session.session_id) is None  # expired: the hook ran and raised
+    assert ended == [session.session_id]
+    assert store.create() is not None  # the store still works after the failure

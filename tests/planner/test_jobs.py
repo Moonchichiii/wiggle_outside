@@ -21,8 +21,9 @@ from planner_support import (
 
 from wiggle_outside.core.errors import ErrorCode
 from wiggle_outside.core.result import Ok
-from wiggle_outside.core.types import GeocodeHits, JobState, LocationCandidates
-from wiggle_outside.planner.jobs import CANDIDATES_TTL, Limits, Planner
+from wiggle_outside.core.types import GeocodeHit, GeocodeHits, JobState, LocationCandidates
+from wiggle_outside.planner import jobs
+from wiggle_outside.planner.jobs import CANDIDATES_TTL, RESULT_CAP_BYTES, Limits, Planner
 from wiggle_outside.planner.ports import Busy, Conflict, NotFound
 
 S1 = "session-1"
@@ -299,3 +300,65 @@ async def test_an_exception_inside_the_workflow_is_a_safe_failure() -> None:
     assert result.state is JobState.FAILED
     assert result.error is ErrorCode.UNEXPECTED_FAILURE
     assert result.ideas == ()
+
+
+# --- Bounded storage: the serialised result cap (ARCHITECTURE section 4) -----------------
+
+
+@pytest.mark.asyncio
+async def test_an_oversized_result_is_never_stored_and_reads_as_a_safe_failure() -> None:
+    # A geocoder label of 40 000 characters makes the result exceed 32 KiB through the
+    # ordinary workflow: the label is carried into the answers summary unchanged.
+    huge = GeocodeHit(label="x" * 40_000, coords=HITS[0].coords)
+    p, _ = planner(rig(geocoder=FakeGeocoder(outcome=Ok(GeocodeHits(hits=(huge,))))))
+    ref = await p.start_or_join(S1, K1, ANSWERS)
+    result = await p.wait(S1, ref.job_id)
+
+    assert result.state is JobState.FAILED
+    assert result.error is ErrorCode.UNEXPECTED_FAILURE
+    assert result.ideas == ()
+    assert "x" * 100 not in repr(result), "the oversized record is not kept in any form"
+    assert jobs.serialized_size(result) <= RESULT_CAP_BYTES
+
+
+@pytest.mark.asyncio
+async def test_an_ordinary_result_is_well_inside_the_cap() -> None:
+    p, _ = planner(rig())
+    ref = await p.start_or_join(S1, K1, ANSWERS)
+    result = await p.wait(S1, ref.job_id)
+
+    assert result.state is JobState.FALLBACK
+    assert jobs.serialized_size(result) < RESULT_CAP_BYTES // 2
+
+
+# --- The job-level deadline guard (the last resort behind the stage guards) ---------------
+
+
+@pytest.mark.asyncio
+async def test_a_job_that_overruns_its_deadline_is_cancelled_and_fails_safely(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The allowance is the one awaited port without a stage guard; let it hang."""
+    cancelled = asyncio.Event()
+
+    class Hanging:
+        async def reserve(self, _now: object) -> str:
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError:
+                cancelled.set()
+                raise
+            return "reserved"
+
+    monkeypatch.setattr(jobs, "DEADLINE_GRACE_S", 0.0)
+    r = rig()
+    r.allowance = Hanging()  # type: ignore[assignment]
+    p = Planner(r.ports, BUDGETS, deadline_s=0.05)
+    ref = await p.start_or_join(S1, K1, ANSWERS)
+    result = await asyncio.wait_for(p.wait(S1, ref.job_id), timeout=2.0)
+
+    assert cancelled.is_set(), "the hanging call was cancelled, not left running"
+    assert result.state is JobState.FAILED
+    assert result.error is ErrorCode.UNEXPECTED_FAILURE
+    assert p.active_jobs() == 0
+    assert r.places.calls == [], "nothing after the hang ran"

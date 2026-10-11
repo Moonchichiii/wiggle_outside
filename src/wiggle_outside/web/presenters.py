@@ -73,6 +73,8 @@ if TYPE_CHECKING:
 from zoneinfo import ZoneInfo
 
 TEMPLATES_DIR: Final = Path(__file__).parent / "templates"
+# Below this a distance rounds to 0.0 km; the card then says "close by" (copy).
+CLOSE_BY_MAX_M: Final = 50
 METRES_PER_KM: Final = 1000
 
 # Card colour by position (CONTRACTS section 8: `variant`, from the idea's position).
@@ -406,10 +408,17 @@ def _km(metres: int) -> str:
     return f"{metres / METRES_PER_KM:.1f}"
 
 
+def _distance(metres: int | None) -> str | None:
+    """Say the distance to one decimal of a kilometre, or "close by" below that precision."""
+    if metres is None:
+        return None
+    if metres < CLOSE_BY_MAX_M:
+        return copy.DISTANCE_CLOSE_BY
+    return copy.DISTANCE.format(km=_km(metres))
+
+
 def _place_view(pair: Pair) -> PlaceView:
-    distance = (
-        copy.DISTANCE.format(km=_km(pair.distance_m)) if pair.distance_m is not None else None
-    )
+    distance = _distance(pair.distance_m)
     return PlaceView(
         name=pair.place.name if pair.place is not None else None,
         kind_label=_kind_label(pair.place),
