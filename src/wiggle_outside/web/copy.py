@@ -408,6 +408,9 @@ ERROR_HEADINGS: Final[Mapping[ErrorCode, str]] = MappingProxyType(
     }
 )
 
+# The singular of FEWER_MATCHES (TC-011).
+FEWER_MATCHES_ONE: Final = "We found 1 matching idea."
+
 # --- Results-side copy the form page links to ----------------------------------------
 
 CHANGE_ANSWERS: Final = "Change answers"
@@ -438,6 +441,8 @@ EXAMPLE_FORECAST: Final = "Example forecast"
 EXAMPLE_NOTE: Final = "Illustrative places and weather"
 WEATHER_LINE: Final = "Forecast for {window}, checked at {time}: {summary}"
 WEATHER_WINDOW: Final = f"{{start}}{EN_DASH}{{end}}"
+# The window is on a later local date than now: a plan-ahead result (TC-011).
+WEATHER_WINDOW_TOMORROW: Final = f"tomorrow, {{start}}{EN_DASH}{{end}}"
 WEATHER_SUMMARY: Final = "{condition}{rain}, {temperature}, wind up to {wind} km/h."
 WEATHER_RAIN: Final = " (up to {percent} %)"
 WEATHER_TEMPERATURE_RANGE: Final = f"{{low}}{EN_DASH}{{high}} {DEGREE}C"
@@ -501,6 +506,8 @@ DISTANCE_CLOSE_BY: Final = "close by"
 # detail page carries the qualification (DESIGN-SPEC section 9).
 DISTANCE_STRAIGHT_LINE_SUFFIX: Final = " in a straight line"
 TIMES: Final = f"{{travel}} min there and back {MIDDLE_DOT} {{duration}} min activity"
+# A place-free idea has no journey, so only the activity is timed (TC-011).
+TIMES_ACTIVITY_ONLY: Final = "{duration} min activity"
 DETAIL_TIMES: Final = "About {times} (estimates)"
 
 # OSM place kinds as words. A kind that is not listed falls back to the tag with its

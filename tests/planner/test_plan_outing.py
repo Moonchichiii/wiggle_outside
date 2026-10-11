@@ -574,3 +574,21 @@ async def test_with_places_down_the_model_is_asked_to_choose_among_the_generic_p
     assert ErrorCode.MODEL_FALLBACK not in result.notices
     assert result.ideas
     assert all(idea.pair.place is None for idea in result.ideas)
+
+
+@pytest.mark.asyncio
+async def test_an_empty_interests_field_never_yields_an_interests_notice() -> None:
+    # TC-011: whatever the model says about an empty <family_text>, no interpretation is
+    # taken and no interests notice is attached. (The "no match" seen live with an empty
+    # field could not be reproduced here; this pins the planner side.)
+    payload = json.dumps({"interests": [], "interest_status": "no_match", "picks": []})
+    for text in (None, ""):
+        r = rig(model=FakeModel(outcome=Ok(RawSelection(payload=payload))))
+        result = await plan(r, dataclasses.replace(ANSWERS, interest_text=text))
+
+        assert result.interests is None
+        assert not {n for n in result.notices if isinstance(n, NoticeId)} & {
+            NoticeId.INTEREST_NO_MATCH,
+            NoticeId.INTEREST_UNCLEAR,
+            NoticeId.INTEREST_NOT_APPLIED,
+        }

@@ -132,7 +132,9 @@ def test_a_result_with_no_ideas_renders_no_card_markup(rendered: Mapping[str, st
 def test_fewer_matches_counts_what_is_actually_shown(pages: Mapping[str, ResultPage]) -> None:
     template = copy.ERROR_MESSAGES[ErrorCode.FEWER_MATCHES]
     assert template.format(count=2) in [n.body for n in pages["two"].notices]
-    assert template.format(count=1) in [n.body for n in pages["one"].notices]
+    # TC-011: the singular for one idea.
+    assert copy.FEWER_MATCHES_ONE in [n.body for n in pages["one"].notices]
+    assert template.format(count=1) not in [n.body for n in pages["one"].notices]
     # No unfilled placeholder ever reaches a page.
     for page in pages.values():
         for item in page.notices:

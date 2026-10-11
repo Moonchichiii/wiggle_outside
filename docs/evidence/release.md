@@ -17,3 +17,8 @@ Commit: 8ec3b472daadf8f031ba79cc1a6c903efee89c03
 
 - commit: f923e03
 - digest: sha256:87bfcbdcfa8370ef003baf31e98153738e79a3892cda26eabbdde4dbbb2c192c
+
+## Deploy 3 (round 2, loader, 404/405, privacy fix)
+
+- commit: 34011ce
+- digest: sha256:aa6f8791824d1dfebc28e14225d33862e95dd3c771af1ea915d80a0dcfb644fa

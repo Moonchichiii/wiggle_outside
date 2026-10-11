@@ -37,6 +37,7 @@ LOADER_STATE_JS: Final = """() => {
     status: form.querySelector('[data-wo-loader-status]').textContent,
     badge: form.querySelector('.wo-loader-badge').textContent,
     busy: form.querySelector('button[type="submit"]').getAttribute('aria-busy'),
+    actionsHidden: form.querySelector('.wo-actions').hidden,
   };
 }"""
 
@@ -178,6 +179,7 @@ def test_going_back_never_leaves_the_busy_state_showing(server: str, browser: Br
     page.wait_for_url(f"{server}/")
 
     expect(page.locator(".wo-busy")).to_be_hidden()
+    expect(page.locator(".wo-plan-form .wo-actions")).to_be_visible()
     assert page.locator('.wo-plan-form button[type="submit"][aria-busy="true"]').count() == 0
     expect(page.locator('.wo-plan-form button[type="submit"]')).to_be_enabled()
     expect(page.locator('.wo-plan-form button[type="submit"]')).to_have_text(f"{copy.SUBMIT}→")
@@ -217,6 +219,7 @@ def test_the_loader_shows_only_while_a_submitted_search_is_pending(
         "status": copy.LOADER_TEXT,
         "badge": copy.LOADER_BADGE,
         "busy": "true",
+        "actionsHidden": True,
     }
     for _ in range(100):  # the request reaches the route a moment after the submit event
         if held:

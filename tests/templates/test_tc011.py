@@ -20,12 +20,16 @@ from fixtures import (
     FORM_ERRORS,
     NOW,
     RESULT,
+    RESULT_GENERIC,
+    RESULT_NO_MATCH,
+    RESULT_ONE,
+    RESULT_TWO,
     SESSION,
     STYLESHEET,
 )
 from parse import read
 from wiggle_outside.core.errors import ErrorCode, NoticeId
-from wiggle_outside.core.types import DeploymentMode, PlanResult
+from wiggle_outside.core.types import DeploymentMode, InterestOutcome, Interests, PlanResult
 from wiggle_outside.web import copy
 from wiggle_outside.web.forms import DEFAULT_LOCATION_LABEL
 from wiggle_outside.web.presenters import (
@@ -290,3 +294,78 @@ def test_every_search_form_carries_a_hidden_loader(rendered: Mapping[str, str], 
     ) in html
     assert "%" not in copy.LOADER_TEXT
     assert copy.LOADER_TEXT.endswith(copy.BUSY_NOTE)
+
+
+# --- Five fixes from the live site (TC-011) ----------------------------------------------------
+
+
+def test_a_place_free_idea_is_timed_without_a_journey() -> None:
+    page = present_result(RESULT_GENERIC, CATALOGUE, NOW, SESSION, MODE, D39_ON)
+    (idea,) = page.ideas
+    assert idea.times == copy.TIMES_ACTIVITY_ONLY.format(
+        duration=idea_pair_duration(RESULT_GENERIC)
+    )
+    assert "there and back" not in idea.times
+    detail = present_detail(RESULT_GENERIC, RESULT_GENERIC.ideas[0].pair.idea_id, CATALOGUE, NOW)
+    assert "there and back" not in detail.idea.times
+    assert not detail.idea.times.startswith("0 min")
+    # A placed idea keeps the journey.
+    placed = present_result(RESULT, CATALOGUE, NOW, SESSION, MODE, D39_ON).ideas[0]
+    assert "min there and back" in placed.times
+
+
+def idea_pair_duration(result: PlanResult) -> int:
+    return result.ideas[0].pair.duration_min
+
+
+def test_a_window_on_a_later_local_date_says_tomorrow() -> None:
+    result = _morning_result(
+        datetime(2026, 10, 11, 21, 0, tzinfo=STOCKHOLM),
+        datetime(2026, 10, 12, 9, 0, tzinfo=STOCKHOLM),
+    )
+    now = datetime(2026, 10, 11, 21, 5, tzinfo=STOCKHOLM)
+    page = present_result(result, CATALOGUE, now, SESSION, MODE, D39_ON)
+    assert page.weather is not None
+    assert page.weather.line.startswith(
+        f"Forecast for tomorrow, 09:00{copy.EN_DASH}10:00, checked at 21:00"
+    )
+    detail = present_detail(result, BINGO, CATALOGUE, now)
+    assert detail.weather.line.startswith(f"Forecast for tomorrow, 09:00{copy.EN_DASH}10:00")
+    # Seen the next morning, the same window is no longer "tomorrow".
+    later = present_result(
+        result, CATALOGUE, datetime(2026, 10, 12, 8, 0, tzinfo=STOCKHOLM), SESSION, MODE, D39_ON
+    )
+    assert later.weather is not None
+    assert later.weather.line.startswith(f"Forecast for 09:00{copy.EN_DASH}10:00")
+
+
+def test_the_fewer_matches_notice_is_singular_for_one_idea() -> None:
+    one = present_result(RESULT_ONE, CATALOGUE, NOW, SESSION, MODE, D39_ON)
+    two = present_result(RESULT_TWO, CATALOGUE, NOW, SESSION, MODE, D39_ON)
+    assert copy.FEWER_MATCHES_ONE in [n.body for n in one.notices]
+    assert "We found 1 matching ideas." not in [n.body for n in one.notices]
+    assert "We found 2 matching ideas." in [n.body for n in two.notices]
+
+
+def test_an_interests_notice_never_shows_without_an_interpretation() -> None:
+    # Belt and braces: even if a result carried the notice with no interpretation (no text
+    # was given, or the outcome is not_provided), nothing is rendered for it.
+    for interests in (None, Interests(tags=(), outcome=InterestOutcome.NOT_PROVIDED)):
+        carried = dataclasses.replace(
+            RESULT, interests=interests, notices=(NoticeId.INTEREST_NO_MATCH,)
+        )
+        page = present_result(carried, CATALOGUE, NOW, SESSION, MODE, D39_ON)
+        assert copy.NOTICE_MESSAGES[NoticeId.INTEREST_NO_MATCH] not in [
+            n.body for n in page.notices
+        ]
+    # With text that matched nothing, the notice stays.
+    page = present_result(RESULT_NO_MATCH, CATALOGUE, NOW, SESSION, MODE, D39_ON)
+    assert copy.NOTICE_MESSAGES[NoticeId.INTEREST_NO_MATCH] in [n.body for n in page.notices]
+
+
+def test_the_loader_sits_in_the_actions_place(rendered: Mapping[str, str]) -> None:
+    html = rendered["form"]
+    actions = html.index('<div class="wo-actions">')
+    loader = html.index('<div class="wo-busy wo-loader" data-wo-loader hidden>')
+    assert actions < loader
+    assert "</form>" not in html[actions:loader]  # the same form, right after the button

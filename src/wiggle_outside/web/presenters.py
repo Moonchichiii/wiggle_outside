@@ -451,8 +451,11 @@ def _forecast(weather: WeatherSummary) -> str:
     )
 
 
-def _weather_view(weather: WeatherSummary, *, example: bool = False) -> WeatherView:
-    window = copy.WEATHER_WINDOW.format(
+def _weather_view(weather: WeatherSummary, now: datetime, *, example: bool = False) -> WeatherView:
+    # TC-011: a window on a later local date than now says so (a plan-ahead result).
+    at = ZoneInfo(weather.tz)
+    later = weather.window_start.astimezone(at).date() > now.astimezone(at).date()
+    window = (copy.WEATHER_WINDOW_TOMORROW if later else copy.WEATHER_WINDOW).format(
         start=_time(weather.window_start, weather.tz),
         end=_time(weather.window_end, weather.tz),
     )
@@ -544,6 +547,13 @@ def _interests_view(result: PlanResult, *, d39_enabled: bool) -> InterestsView |
 # --- Ideas and notices -----------------------------------------------------------------------
 
 
+def _times(pair: Pair) -> str:
+    """Time the idea: a place-free one has no journey, so only the activity (TC-011)."""
+    if pair.place is None:
+        return copy.TIMES_ACTIVITY_ONLY.format(duration=pair.duration_min)
+    return copy.TIMES.format(travel=pair.travel_min, duration=pair.duration_min)
+
+
 def _idea_views(result: PlanResult, catalogue: Catalogue) -> tuple[IdeaView, ...]:
     """One view per idea, in the result's display order. Never padded (0-3, FEWER_MATCHES).
 
@@ -565,9 +575,7 @@ def _idea_views(result: PlanResult, catalogue: Catalogue) -> tuple[IdeaView, ...
                 reasons=tuple(reasons[reason_id] for reason_id in idea.reason_ids),
                 interest_match=_interest_match(activity, result.interests),
                 place=_place_view(idea.pair),
-                times=copy.TIMES.format(
-                    travel=idea.pair.travel_min, duration=idea.pair.duration_min
-                ),
+                times=_times(idea.pair),
                 detail_url=f"/results/{result.job_id}/ideas/{idea.pair.idea_id}",
                 illustration=copy.ACTIVITY_ILLUSTRATIONS.get(
                     activity.activity_id, copy.DEFAULT_ILLUSTRATION
@@ -583,16 +591,31 @@ def _notice_body(code: NoticeId | ErrorCode, idea_count: int) -> str | None:
         # REPLAY has no reviewed copy: the replay demo is inactive (D24, D48).
         return copy.NOTICE_MESSAGES.get(code)
     if code is ErrorCode.FEWER_MATCHES:
+        if idea_count == 1:
+            return copy.FEWER_MATCHES_ONE
         return copy.ERROR_MESSAGES[code].format(count=idea_count)
     if code in NOT_A_RESULT_NOTICE:
         return None
     return copy.ERROR_MESSAGES[code]
 
 
+INTEREST_NOTICES: Final[frozenset[NoticeId]] = frozenset(
+    {NoticeId.INTEREST_NO_MATCH, NoticeId.INTEREST_UNCLEAR, NoticeId.INTEREST_NOT_APPLIED}
+)
+
+
+def _interpreted(result: PlanResult) -> bool:
+    interests = result.interests
+    return interests is not None and interests.outcome is not InterestOutcome.NOT_PROVIDED
+
+
 def _result_notice_body(result: PlanResult, code: NoticeId | ErrorCode) -> str | None:
     """Return one notice's text; the morning notice is dated from the result (TC-011)."""
     if code is NoticeId.PLANNED_FOR_MORNING:
         return _morning_body(result)
+    if code in INTEREST_NOTICES and not _interpreted(result):
+        # TC-011: an interests notice needs an interpretation of text that was given.
+        return None
     return _notice_body(code, len(result.ideas))
 
 
@@ -689,7 +712,7 @@ def present_result(  # noqa: PLR0913, PLR0917
     weather = (
         None
         if fixed_copy or result.weather is None
-        else _weather_view(result.weather, example=NoticeId.REPLAY in result.notices)
+        else _weather_view(result.weather, now, example=NoticeId.REPLAY in result.notices)
     )
     is_historical = now > result.valid_until
     return ResultPage(
@@ -800,7 +823,7 @@ def present_detail(
         meta=PageMeta(title=copy.PAGE_TITLE, assets={}, demo_mode=False),
         idea=_idea_views(result, catalogue)[index],
         activity=_detail_activity(catalogue, idea),
-        weather=_weather_view(weather),
+        weather=_weather_view(weather, now),
         print=_print_view(result, weather),
         notices=(
             (NoticeView(kind="alert", heading=None, body=historical, actions=()),)

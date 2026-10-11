@@ -108,10 +108,14 @@ function pending(form) {
   if (!loader || !status) {
     return;
   }
+  const actions = form.querySelector(".wo-actions");
   let timer = 0;
 
   function clear() {
     loader.hidden = true;
+    if (actions) {
+      actions.hidden = false;
+    }
     status.textContent = "";
     for (const button of form.querySelectorAll('button[type="submit"]')) {
       button.removeAttribute("aria-busy");
@@ -124,6 +128,10 @@ function pending(form) {
 
   form.addEventListener("submit", () => {
     loader.hidden = false;
+    // The loader takes the button's place, so it is always where the click was.
+    if (actions) {
+      actions.hidden = true;
+    }
     status.textContent = status.dataset.message || "";
     for (const button of form.querySelectorAll('button[type="submit"]')) {
       button.setAttribute("aria-busy", "true");
