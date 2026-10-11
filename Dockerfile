@@ -47,14 +47,17 @@ COPY src/ ./src/
 # The built stylesheet, the board artwork and the fonts, from the frontend stage.
 COPY --from=frontend /build/src/wiggle_outside/web/static/ ./src/wiggle_outside/web/static/
 COPY --from=frontend /build/frontend/fonts/ ./frontend/fonts/
+COPY docker/entrypoint.sh /usr/local/bin/wiggle-entrypoint
 
 RUN uv sync --frozen --no-dev
 
-# Fly mounts the volume at /data (fly.toml).
+# Fly mounts the volume at /data (fly.toml) owned by root. The container starts as root
+# so the entrypoint can hand the mount to the app user, then drops to that user; the
+# server itself never runs as root.
 RUN mkdir -p /data && \
     adduser --system --no-create-home --uid 10001 wiggle && \
-    chown -R wiggle:nogroup /data /app
-USER wiggle
+    chown -R wiggle:nogroup /data /app && \
+    chmod 0755 /usr/local/bin/wiggle-entrypoint
 
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
@@ -62,5 +65,6 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
          "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/healthz').read()==b'ok' else 1)"]
 
 # One worker (D21). The model key is a runtime secret, never an image layer.
+ENTRYPOINT ["/usr/local/bin/wiggle-entrypoint"]
 CMD ["/app/.venv/bin/uvicorn", "wiggle_outside.main:create_app", "--factory", \
      "--host", "0.0.0.0", "--port", "8080", "--workers", "1", "--no-server-header"]

@@ -337,6 +337,70 @@ deployment would need different providers or plans.
   outage; a printed or saved card that works offline; the app itself needing internet.
   No service worker, on-device model or offline subsystem.
 
+## 5. Deploy runbook (11 October 2026; commands, run by Mats)
+
+Files: `Dockerfile` (two stages: bun build of the stylesheet and artwork, then a
+python:3.14-slim runtime with one uvicorn worker), `docker/entrypoint.sh` (hands the
+root-owned volume mount to the app user, then drops privileges), `fly.toml` (one
+Machine, `/data` volume, `/healthz` check, hosted env), `.dockerignore` (keeps
+`frontend/fonts/*.woff2` in the build context although git ignores them).
+
+**The fonts and the same-image rule.** The Fontshare files are present only on the build
+machine, so the image is built from this checkout with the fonts in place; the build
+context is what the Dockerfile sees, and `.dockerignore` does not exclude them. The
+image that passes the checks is the one that stays deployed: record its digest, and roll
+back by digest, never by tag.
+
+```powershell
+# 0. From the repository root, gates green and the fonts present:
+Get-ChildItem frontend/fonts/*.woff2          # expect three files
+./scripts/check.ps1
+
+# 1. Create the app (once). The name must stay wiggle-outside: HOSTED_HOST in
+#    web/security.py accepts only wiggle-outside.fly.dev.
+fly auth login
+fly apps create wiggle-outside
+
+# 2. The one volume (once), 1 GB in Stockholm.
+fly volumes create wiggle_data --app wiggle-outside --region arn --size 1 --count 1 --yes
+
+# 3. Secrets, from the environment, never typed into a file or shown on screen.
+#    Both variables are already set in this shell ([bool]$env:OPENROUTER_API_KEY).
+fly secrets set --app wiggle-outside "OPENROUTER_API_KEY=$env:OPENROUTER_API_KEY" "WO_CONTACT_EMAIL=$env:WO_CONTACT_EMAIL"
+
+# 4. First deploy: exactly one Machine, built from this directory.
+#    --remote-only builds on Fly's builder from the local context (fonts included);
+#    with Docker Desktop installed use --local-only instead for the same result.
+fly deploy --app wiggle-outside --ha=false --remote-only
+
+# 5. Assert the contract: one Machine, one volume, healthy, model ready.
+fly machine list --app wiggle-outside           # exactly one row
+fly volumes list --app wiggle-outside           # one volume, attached
+fly status --app wiggle-outside
+curl.exe -s https://wiggle-outside.fly.dev/healthz   # ok
+curl.exe -s https://wiggle-outside.fly.dev/readyz    # app: ready / model: ready
+curl.exe -sI https://wiggle-outside.fly.dev/static/fonts/CabinetGrotesk-Variable.woff2 | Select-String "200|font/woff2"
+
+# 6. Record the image digest (docs/evidence/release.md) and keep it for rollback.
+fly image show --app wiggle-outside
+
+# 7. Later deploys: same command; the volume and the quota table persist.
+fly deploy --app wiggle-outside --ha=false --remote-only
+fly machine list --app wiggle-outside           # still one row
+
+# 8. Rollback to a recorded digest, never a tag:
+fly deploy --app wiggle-outside --ha=false --image registry.fly.io/wiggle-outside@sha256:<digest>
+
+# 9. Stop everything after judging (ARCHITECTURE section 2.1): delete the app and the
+#    volume, then revoke the OpenRouter key at openrouter.ai.
+fly apps destroy wiggle-outside
+```
+
+Not done here and still open: the image has not been built on this machine (no Docker
+Desktop), so the first `fly deploy` is also the first build; the WP9 release proofs
+(`Fly-Client-IP` spoofing, key absent from image and logs, quota across restart and
+rollback) are recorded in `docs/evidence/` when they are run.
+
 ## Sources (checked 10 October 2026)
 
 - ai.google.dev/gemma/docs/core · ai.google.dev/gemma/docs/core/gemma_on_gemini_api ·

@@ -1,0 +1,53 @@
+# Fly.io app definition (ARCHITECTURE section 2.1, DEPLOYMENT sections 1.5 and 2).
+#
+# Exactly one Machine, one worker, one 1 GB volume at /data for SQLite. The app name is
+# the public host the app accepts (web/security.py HOSTED_HOST = wiggle-outside.fly.dev),
+# so renaming the app means changing that constant too. No secret lives here: the
+# OpenRouter key and the Nominatim contact address are Fly secrets (DEPLOYMENT section 3).
+
+app = "wiggle-outside"
+primary_region = "arn"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  WO_MODE = "hosted_live"
+  WO_HOST = "0.0.0.0"
+  WO_PORT = "8080"
+  WO_DB_PATH = "/data/wiggle.sqlite"
+  # DEPLOYMENT section 2: 500 planning runs per UTC day, restart-safe in SQLite.
+  WO_DAILY_RUN_LIMIT = "500"
+  WO_DEADLINE_SECONDS = "20"
+  WO_D39_ENABLED = "true"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Always on: the quota, the job registry and the caches assume one long-lived process.
+  auto_stop_machines = "off"
+  auto_start_machines = false
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 50
+    hard_limit = 100
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "3s"
+    path = "/healthz"
+
+[[mounts]]
+  source = "wiggle_data"
+  destination = "/data"
+  initial_size = "1gb"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  cpus = 1
