@@ -10,7 +10,7 @@ import sys
 
 import pytest
 
-from wiggle_outside.main import LOG_FORMAT, configure_logging
+from wiggle_outside.main import LOG_FORMAT, QUIET_LOGGERS, configure_logging
 
 
 @pytest.fixture
@@ -60,3 +60,17 @@ def test_the_real_root_is_configured_by_create_app() -> None:
     before = list(logging.getLogger().handlers)
     assert configure_logging() is False
     assert logging.getLogger().handlers == before
+
+
+def test_request_url_loggers_are_quiet_whoever_owns_the_root(bare_root: logging.Logger) -> None:
+    # httpx logs "HTTP Request: GET https://...?latitude=..&longitude=..&q=town" at INFO.
+    # That line must never reach a log, so those loggers stay at WARNING even when the
+    # root already has a handler and nothing else is configured.
+    for name in QUIET_LOGGERS:
+        logging.getLogger(name).setLevel(logging.NOTSET)
+    bare_root.addHandler(logging.NullHandler())
+
+    assert configure_logging(root=bare_root) is False
+    for name in QUIET_LOGGERS:
+        assert logging.getLogger(name).level == logging.WARNING
+    assert "httpx" in QUIET_LOGGERS

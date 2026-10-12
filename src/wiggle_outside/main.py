@@ -54,6 +54,8 @@ log = logging.getLogger(__name__)
 
 PROCESS_KEY_BYTES: Final = 32
 LOG_FORMAT: Final = "%(asctime)s %(levelname)s %(name)s: %(message)s"
+# Libraries whose INFO lines would carry request URLs: coordinates, the typed town.
+QUIET_LOGGERS: Final = ("httpx", "httpcore")
 
 
 def configure_logging(level: int = logging.INFO, root: logging.Logger | None = None) -> bool:
@@ -69,6 +71,10 @@ def configure_logging(level: int = logging.INFO, root: logging.Logger | None = N
     """
     if root is None:
         root = logging.getLogger()
+    # httpx logs every request URL at INFO, and those URLs carry the rounded coordinates
+    # and the typed town. Those never reach a log (PLAN section 5), whoever owns the root.
+    for name in QUIET_LOGGERS:
+        logging.getLogger(name).setLevel(logging.WARNING)
     if root.handlers:
         return False
     handler = logging.StreamHandler(sys.stdout)
