@@ -20,7 +20,7 @@ absent                                                            CLAUDE.md
 3f6ad6891dfc92759c0d73475dd44d9322592c7181f87f6fd5eb0d0940923b2c  pyproject.toml
 789dcdffd0f021086be524ce8af242a3a79e35fc948170b858613bb3d1994f9a  pytest.ini
 3c821537c8002b7fe2a618199b18bbcb88520e57aa1fdb5fe229b114ea1e1e89  ruff.toml
-3cabf5676494152bf5a8e77ee8410f40ac06a53df5e1249a2800310d81bfc8ab  scripts/check_contrast.py
+0aeaa3e79a9d97759f8cf8c144ecde8aa35b0c043276e425b7e767b7d2ffcabe  scripts/check_contrast.py
 cb721310c8c2dd5367bbcbf45fcc87c7c4f145c955999968a69f4c65cb110f05  scripts/check.ps1
 bb8248fcf2dcf124a1322d58cbb7000c3db6762b731eb62181d03e4031821ead  scripts/gates_lock.ps1
 4712786114f627dfad68025018a22f99630fc1c8e8533be78149d9cd1e0e9bee  scripts/release.ps1
@@ -28,5 +28,5 @@ b70e7fe7860b53b443d8062f520cf07222615da0ecce15b462cd2c30438e3230  src/wiggle_out
 9d1db1cc106d445fc2f52c45a380d42300886b4084e90725b38b36dfda5ac9ef  src/wiggle_outside/planner/hooks.toml
 30c6770c3ad4b00976e08c4dc4650cb330a40b7014cb196c3d81e08c67432624  uv.lock
 2c7adb448750f83327abcd2d9b1007e1968ce5e3cd2204b7ac1d9d897c0408bd  .github/rulesets/main.json
-c2f4ccdb6813edc795b4942b3de88171dc5727145c5cee364b6333a473d7158c  .github/workflows/check.yml
+2cf75f850f08f9332f4f05d29e0f489424a8999d4dd901ad42b2e1d3ac2f3124  .github/workflows/check.yml
 absent                                                            tests/policy/
