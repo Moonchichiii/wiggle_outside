@@ -3,9 +3,8 @@
 WCAG 1.4.6 needs 7:1 for normal text. This script is the gate; the numbers in the
 document are claims until it runs.
 
-WP9b wires this into check.ps1 and owns the pair list (TC-006). At M0 it only reads the
-tokens, so the token values are checked against the document by the contract test, and
-the ratios are not yet asserted.
+Not wired into check.ps1: it reads and prints the tokens. The contract test checks the
+token values against the document; the 7:1 ratios are read off this output by hand.
 """
 
 import re
@@ -53,7 +52,7 @@ def main() -> int:
     for name, value in sorted(tokens.items()):
         print(f"  {name:14} {value}")
     print(
-        "\nPair list and the 7:1 assertion arrive with WP9b (TC-006); "
+        "\nThe pair list and the 7:1 assertion are not automated; "
         "this run checks only that the tokens parse."
     )
     return 0

@@ -178,11 +178,10 @@ def security_headers(mode: DeploymentMode) -> dict[str, str]:
     headers = {
         "Content-Security-Policy": content_security_policy(mode),
         "X-Content-Type-Options": "nosniff",
-        # NOT no-referrer, though PLAN section 9 first said so: Chromium sends
-        # `Origin: null` on a form POST under no-referrer, and BACKEND-CONTRACT
-        # section 5 refuses a null Origin with 403 - so every submission failed, in
-        # the hosted product as much as locally. same-origin sends no referrer
-        # cross-origin, which is what the privacy rule was for (TC-008).
+        # same-origin, not no-referrer: under no-referrer Chromium sends `Origin: null`
+        # on a form POST, which BACKEND-CONTRACT section 5 refuses with 403, so every
+        # submission would fail. same-origin sends no referrer cross-origin, which is
+        # what the privacy rule is for (TC-008).
         "Referrer-Policy": "same-origin",
         "Cross-Origin-Opener-Policy": "same-origin",
         "Cross-Origin-Resource-Policy": "same-origin",

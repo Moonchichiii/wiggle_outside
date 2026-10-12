@@ -6,8 +6,8 @@
 
 Writes out/shot-<page>-<width>.png. Needs the app on 127.0.0.1:8443 (night: 8444) and
 `bun run build`. Compare with docs/design-kit/shots/.
-Playwright is a dev dependency; WP9b owns the CSP, axe and journey runs that use it for
-real. This is an eyeball aid, not a check.
+Playwright is a dev dependency; the browser tests under tests/web use it for real.
+This is an eyeball aid, not a check.
 """
 
 import sys

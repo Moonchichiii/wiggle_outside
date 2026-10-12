@@ -1,9 +1,8 @@
 # Release image. ONE uvicorn worker (D21), no model key baked in (DEPLOYMENT section 3).
 #
-# NOT YET A VERIFIED RELEASE IMAGE. WP9b's acceptance is separate and unmet: no image
-# scan by digest, no canonical audit, no deploy evidence (TC-006). This exists now because
-# the fonts need a home in it (TC-007) and because the frontend build has to be part of
-# the image rather than committed.
+# Built on Fly's remote builder by the release runbook (DEPLOYMENT section 5), which
+# records the font hashes and the image digest in docs/evidence/release.md. The frontend
+# build and the fonts are part of the image rather than committed (TC-007, TC-008).
 
 # --- Frontend build: bun only, no npm or npx (DESIGN-SPEC section 11) ----------------
 FROM oven/bun:1.4.2-alpine AS frontend

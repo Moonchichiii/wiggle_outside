@@ -1,10 +1,10 @@
 {# One idea card (DESIGN-SPEC sections 2, 5 and 6; mock 03-results.html). Receives
    IdeaView.
 
-   Tightened in 8.12: the card carries the title, one playful sentence, one practical
-   line, the uncertainty labels that apply and the link. Reasons and the interest match
-   live on the detail page under "Why this idea". There is no per-card weather: the cards
-   share one window, shown once above them.
+   The card carries the title, one playful sentence, at most two reasons and the matched
+   interests (TC-012), one practical line, the uncertainty labels that apply, the place
+   link and the detail link. Every instruction lives on the detail page. There is no
+   per-card weather: the cards share one window, shown once above them.
 
    Every string is catalogue, hook or copy text, rendered verbatim and escaped once. #}
 {% from "macros/icon.html" import icon %}
@@ -23,9 +23,9 @@
 <p class="wo-card-intro">{{ idea.intro }}</p>
 {# TC-012: what the model chose, said on the card: at most two reviewed reasons and the
    interests this activity matches. The same data the detail page shows in full. #}
-{% if idea.reasons %}
+{% if idea.card_reasons %}
 <ul class="wo-card-reasons">
-{% for reason in idea.reasons[:2] %}
+{% for reason in idea.card_reasons %}
 <li>{{ icon("check", "", 24) }}<span>{{ reason }}</span></li>
 {% endfor %}
 </ul>
@@ -41,8 +41,8 @@
 {%- if idea.place.distance %}{{ copy.PRACTICAL_JOIN }}{{ idea.place.distance }}{% endif -%}
 </span></p>
 <p class="wo-card-practical">{{ icon("walker", "", 24) }}<span>{{ idea.times }}</span></p>
-{% if idea.place.directions_url %}
-<p class="wo-card-map"><a href="{{ idea.place.directions_url }}" target="_blank" rel="noopener noreferrer">{{ copy.DIRECTIONS_LABEL }}<span class="wo-vh"> {{ copy.DIRECTIONS_CONTEXT }}</span></a></p>
+{% if idea.place.place_url %}
+<p class="wo-card-map"><a href="{{ idea.place.place_url }}" target="_blank" rel="noopener noreferrer">{{ copy.PLACE_LINK_LABEL }}<span class="wo-vh"> {{ copy.PLACE_LINK_CONTEXT }}</span></a></p>
 {% endif %}
 {% if idea.place.uncertainty %}
 <ul class="wo-labels">

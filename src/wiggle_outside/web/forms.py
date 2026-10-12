@@ -129,11 +129,6 @@ def fingerprint(process_key: bytes, values: Mapping[str, Sequence[str]]) -> str:
     return hmac.new(process_key, canonical_form(values), sha256).hexdigest()
 
 
-def fingerprints_equal(left: str, right: str) -> bool:
-    """Constant-time comparison (D31)."""
-    return hmac.compare_digest(left, right)
-
-
 def candidate_key(candidate_id: str) -> str:
     """Derive the /location-choice submission key; it is never client-supplied."""
     return f"candidate:{candidate_id}"

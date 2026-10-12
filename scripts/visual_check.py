@@ -5,7 +5,7 @@
 For each page (form, errors, results, night) at 390, 1280, 1440, 1580 and 1920 px:
 no decoration overlaps another (a piece standing in the grass excepted), none is cut
 off by the viewport, none overlaps the panel or the masthead, and no label is clipped.
-Exit 1 on any failure. An eyeball aid with teeth, not one of the WP9b gates.
+Exit 1 on any failure. An eyeball aid with teeth, not one of the gates.
 """
 
 import sys

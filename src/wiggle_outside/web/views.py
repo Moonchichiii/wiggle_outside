@@ -170,8 +170,8 @@ class PlaceView:
     kind_label: str
     distance: str | None
     uncertainty: tuple[str, ...]  # fee and access labels, always "as reported"
-    # TC-012: OpenStreetMap directions to the place's own coordinates; None = generic.
-    directions_url: str | None = None
+    # TC-012: the place's own OpenStreetMap page, from its OSM id; None without one.
+    place_url: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -192,6 +192,8 @@ class IdeaView:
     match_labels: str | None = None
     # TC-012: the detail page's version of the times line, which qualifies the estimate.
     times_detail: str = ""
+    # TC-012: the first CARD_REASONS_MAX reasons, for the card; `reasons` is the full list.
+    card_reasons: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

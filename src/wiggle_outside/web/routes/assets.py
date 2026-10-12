@@ -27,7 +27,8 @@ FONT_FILES: Final[frozenset[str]] = frozenset(
     {
         "CabinetGrotesk-Variable.woff2",
         "Switzer-Variable.woff2",
-        # The handwritten margin notes (TC-008). SIL OFL 1.1; committed with its licence.
+        # The handwritten margin notes (TC-008), SIL OFL 1.1. Like the other faces it is not
+        # in the repository, only its licence text is; a clone falls back to the body face.
         "PatrickHand-Regular.woff2",
     }
 )
@@ -43,8 +44,9 @@ class StaticFile:
 def build_manifest(static_dir: Path = STATIC_DIR) -> Mapping[str, AssetRef]:
     """Map a logical asset name to the hashed file actually on disk.
 
-    WP9b's build writes `manifest.json`; until it does, every stylesheet in the static
-    directory is its own entry, so the page is styled either way.
+    `bun run build` writes `manifest.json` (hashed names and integrity values). Without
+    one, as in a checkout that has only built the stylesheet, every stylesheet in the
+    static directory is its own entry, so the page is styled either way.
     """
     manifest = static_dir / MANIFEST_NAME
     if manifest.is_file():

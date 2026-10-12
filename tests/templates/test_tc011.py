@@ -408,7 +408,8 @@ def test_the_card_shows_at_most_two_reasons_and_the_match() -> None:
     page = present_result(RESULT, CATALOGUE, NOW, SESSION, MODE, D39_ON)
     html = render_result(build_environment(), with_assets(page, STYLESHEET))
     for idea in page.ideas:
-        for reason in idea.reasons[:2]:
+        assert idea.card_reasons == idea.reasons[:2]
+        for reason in idea.card_reasons:
             assert f"<span>{esc(reason)}</span>" in html
         if idea.match_labels:
             assert esc(copy.CARD_MATCH.format(tags=idea.match_labels)) in html
@@ -472,11 +473,11 @@ def test_a_placed_idea_links_its_own_osm_page(place_id: str, expected: str) -> N
     page = present_result(result, CATALOGUE, NOW, SESSION, MODE, D39_ON)
     html = render_result(build_environment(), with_assets(page, STYLESHEET))
     first = page.ideas[0]
-    assert first.place.directions_url == expected
-    context = f'<span class="wo-vh"> {esc(copy.DIRECTIONS_CONTEXT)}</span>'
+    assert first.place.place_url == expected
+    context = f'<span class="wo-vh"> {esc(copy.PLACE_LINK_CONTEXT)}</span>'
     tag = (
         f'<a href="{expected}" target="_blank" rel="noopener noreferrer">'
-        f"{esc(copy.DIRECTIONS_LABEL)}{context}</a>"
+        f"{esc(copy.PLACE_LINK_LABEL)}{context}</a>"
     )
     assert tag in html
     # No coordinate and no route in any link.
@@ -492,18 +493,18 @@ def test_a_place_without_a_usable_osm_id_gets_no_link(place_id: str) -> None:
     result = _with_place_ids(place_id)
     page = present_result(result, CATALOGUE, NOW, SESSION, MODE, D39_ON)
     html = render_result(build_environment(), with_assets(page, STYLESHEET))
-    assert page.ideas[0].place.directions_url is None
+    assert page.ideas[0].place.place_url is None
     # The other placed ideas keep their fixture ids, so the page carries no link at all.
     assert "openstreetmap.org/" not in html.replace("OpenStreetMap", "")
     detail = present_detail(result, page.ideas[0].idea_id, CATALOGUE, NOW)
     detail_html = render_detail(build_environment(), with_assets(detail, STYLESHEET))
-    assert esc(copy.DIRECTIONS_LABEL) not in detail_html
+    assert esc(copy.PLACE_LINK_LABEL) not in detail_html
 
 
 def test_a_place_free_idea_has_no_directions_link() -> None:
     page = present_result(RESULT_GENERIC, CATALOGUE, NOW, SESSION, MODE, D39_ON)
     html = render_result(build_environment(), with_assets(page, STYLESHEET))
-    assert page.ideas[0].place.directions_url is None
+    assert page.ideas[0].place.place_url is None
     assert "openstreetmap.org/" not in html.replace("OpenStreetMap", "")
 
 

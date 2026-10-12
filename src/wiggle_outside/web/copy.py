@@ -93,16 +93,6 @@ TIME_LABELS: Final[Mapping[TimeBudget, str]] = MappingProxyType(
     }
 )
 TIME_HINT: Final = "Half day means about 4 hours."
-# DESIGN-SPEC section 5 names one clock symbol per time tile.
-TIME_ICONS: Final[Mapping[TimeBudget, str]] = MappingProxyType(
-    {
-        TimeBudget.M30: "clock-30",
-        TimeBudget.H1: "clock-1h",
-        TimeBudget.H2: "clock-2h",
-        TimeBudget.HALF_DAY: "clock-half-day",
-    }
-)
-
 # --- Energy (TC-001) ----------------------------------------------------------------
 
 ENERGY_LEGEND: Final = "How much energy today?"
@@ -243,11 +233,6 @@ INFO_USE_LOGS: Final = (
     "We log counts, timings and which provider answered, never your text, your "
     "coordinates or your answers. There are no accounts and no analytics."
 )
-# D46: "Change answers" prefills the recognised tag labels, never the original text.
-INTERESTS_PREFILLED_HINT: Final = (
-    "These are the interests we recognised. Edit them for your next search."
-)
-
 # --- The optional panel (D42) ---------------------------------------------------------
 
 OPTIONAL_SUMMARY: Final = "Anything to account for?"
@@ -258,7 +243,6 @@ STEP_FREE_HINT: Final = "Places OpenStreetMap reports as step-free come first; w
 # --- Submit and the busy state (D43) ---------------------------------------------------
 
 SUBMIT: Final = "Find outings"
-BUSY_LABEL: Final = f"Finding outings{ELLIPSIS}"
 BUSY_NOTE: Final = "This can take up to 20 seconds."
 # TC-011: the loader shown only while an explicitly submitted search is pending. The
 # badge is decorative; the status region announces the supporting text once.
@@ -409,9 +393,6 @@ ERROR_HEADINGS: Final[Mapping[ErrorCode, str]] = MappingProxyType(
     }
 )
 
-# The singular of FEWER_MATCHES (TC-011).
-FEWER_MATCHES_ONE: Final = "We found 1 matching idea."
-
 # --- Results-side copy the form page links to ----------------------------------------
 
 CHANGE_ANSWERS: Final = "Change answers"
@@ -500,9 +481,9 @@ CARD_MATCH: Final = "Matches: {tags}"
 # TC-012: the place's own OpenStreetMap page, by its OSM id (node, way or relation), in a
 # new tab. No route is promised and no coordinate travels; a place without a usable OSM
 # id gets no link.
-DIRECTIONS_URL: Final = "https://www.openstreetmap.org/{kind}/{number}"
-DIRECTIONS_LABEL: Final = f"View place on OpenStreetMap {chr(0x2197)}"
-DIRECTIONS_CONTEXT: Final = "(opens in a new tab)"
+PLACE_LINK_URL: Final = "https://www.openstreetmap.org/{kind}/{number}"
+PLACE_LINK_LABEL: Final = f"View place on OpenStreetMap {chr(0x2197)}"
+PLACE_LINK_CONTEXT: Final = "(opens in a new tab)"
 # The one compact box above the cards that gathers the notices (TC-012).
 NOTICES_HEADING: Final = "About these ideas"
 

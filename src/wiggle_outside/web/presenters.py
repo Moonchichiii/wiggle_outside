@@ -79,6 +79,8 @@ from zoneinfo import ZoneInfo
 TEMPLATES_DIR: Final = Path(__file__).parent / "templates"
 # Below this a distance rounds to 0.0 km; the card then says "close by" (copy).
 CLOSE_BY_MAX_M: Final = 50
+# TC-012: how many of a pick's reasons the card shows; the detail page shows them all.
+CARD_REASONS_MAX: Final = 2
 METRES_PER_KM: Final = 1000
 
 # Card colour by position (CONTRACTS section 8: `variant`, from the idea's position).
@@ -362,10 +364,9 @@ def with_assets[P: FormPage | ResultPage | DetailPage | ErrorPage](
 ) -> P:
     """Attach a build manifest to an already-built page.
 
-    `FormContext` carries `assets`, so `present_form` no longer needs this (CC-B). The
-    other three presenters have no assets parameter in their CONTRACTS section 8
-    signature and a presenter must never reach for the manifest, so this is how the
-    caller, which knows it, hands it over.
+    `present_form` takes its assets from `FormContext` (CC-B). The other three
+    presenters have no assets parameter in their CONTRACTS section 8 signature and must
+    never reach for the manifest, so the caller, which knows it, hands it over here.
     """
     return replace(page, meta=replace(page.meta, assets=dict(assets)))
 
@@ -428,7 +429,7 @@ def _place_view(pair: Pair) -> PlaceView:
         kind_label=_kind_label(pair.place),
         distance=distance,
         uncertainty=_uncertainty(pair.place),
-        directions_url=_directions_url(pair.place),
+        place_url=_place_url(pair.place),
     )
 
 
@@ -436,14 +437,14 @@ def _place_view(pair: Pair) -> PlaceView:
 OSM_IDENTITY: Final = re.compile(r"^(node|way|relation):([0-9]+)$")
 
 
-def _directions_url(place: Place | None) -> str | None:
+def _place_url(place: Place | None) -> str | None:
     """Link the place's own OpenStreetMap page from its OSM id, or None without one."""
     if place is None:
         return None
     found = OSM_IDENTITY.match(place.place_id)
     if found is None:
         return None
-    return copy.DIRECTIONS_URL.format(kind=found.group(1), number=found.group(2))
+    return copy.PLACE_LINK_URL.format(kind=found.group(1), number=found.group(2))
 
 
 # --- The shared weather line ---------------------------------------------------------------
@@ -533,10 +534,8 @@ def _matched_interests(
 ) -> tuple[InterestTag, ...]:
     """Return the tags this activity covers, in the result's own tag order.
 
-    This is `core.ideas.matched_interests` (CONTRACTS section 2, PRODUCT-FIT section 3.3),
-    which WP1 has not implemented yet: `core/ideas.py` is still a stub. The same
-    intersection is computed here so the match line is never stale, and this helper is
-    deleted in favour of the core function as soon as it lands.
+    The intersection is computed from the result's validated tags at render time, so the
+    match line is never stale (CONTRACTS section 2, PRODUCT-FIT section 3.3).
     """
     return tuple(tag for tag in tags if tag in activity.interests)
 
@@ -608,6 +607,9 @@ def _idea_views(result: PlanResult, catalogue: Catalogue) -> tuple[IdeaView, ...
                 title=activity.title,
                 intro=hooks[idea.hook_id],
                 reasons=tuple(reasons[reason_id] for reason_id in idea.reason_ids),
+                card_reasons=tuple(
+                    reasons[reason_id] for reason_id in idea.reason_ids[:CARD_REASONS_MAX]
+                ),
                 interest_match=_interest_match(activity, result.interests),
                 match_labels=_match_labels(activity, result.interests),
                 place=_place_view(idea.pair),
