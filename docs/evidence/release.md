@@ -27,3 +27,8 @@ Commit: 8ec3b472daadf8f031ba79cc1a6c903efee89c03
 
 - commit: bb170b6
 - digest: sha256:f61163bd621753c2916c343e9f6d793bf629e6bfa5ec35c81bb4ebbf99537133
+
+## Deploy 5 (TC-012)
+
+- commit: be812ec
+- digest: sha256:6be11867c3eb720ba4cca262c405908f5933aec5826f77e3f53b284f672e220d
