@@ -32,3 +32,24 @@ Commit: 8ec3b472daadf8f031ba79cc1a6c903efee89c03
 
 - commit: be812ec
 - digest: sha256:6be11867c3eb720ba4cca262c405908f5933aec5826f77e3f53b284f672e220d
+
+## Deploy 6 (capitalised items, CI Bun step)
+
+- commit: baf7241
+- digest: sha256:def0029db31ce934951a2d571b38ef7ff95a136f3ca8841589664adbdce04213
+- machine version: 6
+- deployed: 2026-10-11T23:07Z
+
+## Deploy 7 (phase 2 cleanup, httpx log privacy fix)
+
+- commit: dc04137
+- digest: sha256:4436726aebeae8093e4fc8db0037b2c71b3d2d348edcc15166bc9f8bf691112b
+- machine version: 7
+- deployed: 2026-10-12T00:05Z
+- includes the httpx log privacy fix: provider request URLs (rounded coordinates, the
+  typed town) are no longer written to the logs (`main.configure_logging`, QUIET_LOGGERS)
+
+## Published post
+
+- <https://dev.to/moonchichiii/wiggle-outside-weather-nearby-places-and-a-little-inspiration-in-one-short-search-25cc>
+- published: 2026-10-11T23:53Z
