@@ -144,4 +144,6 @@ Open-Meteo for the same point: 0.14 s, 0.03 s, 0.03 s.
 | 10 | generic-only smoke, final wording | served by CoreWeave, 735 / 103 / 0, 1.42 s; three validated picks |
 | 11 | Bloomsbury, London, fixture places, 11 Oct 21:09 UTC (22:09 local, after sunset): planned for the next morning (TC-011 round 2), 12 pairs | served by NextBit, 1714 / 126 / 0, finish `stop`, 1.49 s; two validated picks (nature-bingo@Oak Lane Park, puddle-jumping@Elm & Oak Playground), source=MODEL, total 2.04 s |
 | 12 | Bloomsbury, London, fixture places, 12 Oct 00:11 local, during the later-withdrawn TC-012 part B (selection.v3 with a note per pick) | served by DeepInfra, 1849 / 128 / 0, finish `stop`, 2.23 s; two validated picks, two notes rendered; part B then dropped, nothing of it shipped |
-| 13 to 25 | unspent | |
+| 13 | Live site, deploy 6 (`baf7241`), 12 Oct 01:52 local: family, 3-5, 1 h, Auckland (first candidate), "birds and puddles"; a check that the detail page capitalises "Nice to have" | one pick (puddle jumping); "Nice to have" rendered "Wellies (or shoes that may get wet)", "A towel for the way home (…)": capitalised as shipped |
+| 14 | Local app (phase 2 sign-off, uncommitted tree on `baf7241`), 12 Oct 01:55 local: Stockholm family (night lock, no call), then Auckland family, 3-5, 1 h | one pick (puddle jumping); form, night notice, results, Before you go, map link and the detail page rendered |
+| 15 to 25 | unspent | |

@@ -229,7 +229,7 @@ Fallbacks obey exactly the same rules as generated results.
 ## 5. Location, sources and privacy
 
 **Location**
-- "Use my location": the browser rounds coordinates to 2 decimals (~1 km) in `app.js`
+- "Use my location": the browser rounds coordinates to 2 decimals (~1 km) in `location.js`
   before sending; the server rounds again and rejects out-of-range values.
 - Typed place: server-side Nominatim, one request per search (no autocomplete), with an
   identifying User-Agent, max 1 req/s, results cached 30 days, OSM attribution shown.
@@ -292,8 +292,8 @@ not promise the same thread twice).
 
 **Transport** (D43): one owned job is awaited by the POST in both paths; the planner
 returns a `PlanResult`; `web` answers 303 to the result page. The whole flow works as a
-plain form POST; htmx only adds the busy state and swaps the result region. No event
-stream.
+plain form POST; `location.js` only adds the busy state (the htmx enhancement planned
+here was not built, TC-012 review). No event stream.
 
 **Import-linter contracts**
 - Layers: `web → planner → core`; `integrations` and `storage` sit beside `planner`.
@@ -334,7 +334,7 @@ wiggle_outside/
 │  ├─ integrations/  nominatim.py · overpass.py · open_meteo.py · openrouter.py · (ollama.py, dev only)
 │  ├─ storage/       sqlite.py · cache.py · feedback.py · migrations/
 │  └─ web/           routes/ · forms.py · views.py · presenters.py · copy.py · security.py · templates/ · static/
-├─ frontend/  css/ (tokens · base · components/ · utilities) · js/ (app.js · components/)
+├─ frontend/  css/ (tokens · base · components/ · utilities) · js/ (location.js · print.js)
 ├─ tests/     mirrors src/ · contract/ · acceptance/ · policy/ · eval/ (real-model set, not in CI)
 ├─ analysis/  benchmark notebooks/scripts: pandas vs Polars vs DuckDB on the same data
 ├─ scripts/   check.ps1 · release.ps1 · check_contrast.py · benchmark.py

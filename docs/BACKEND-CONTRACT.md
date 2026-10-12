@@ -72,7 +72,8 @@ activity is checked. Pure function `daylight_outcome(window, sunrise, sunset)` i
 
 | Condition | Outcome | Copy (ERROR-HANDLING §2) |
 |---|---|---|
-| `planned_start < sunrise` or `planned_start ≥ sunset` | DAYLIGHT_NIGHT | "The adventures can wait till morning." |
+| `planned_start < sunrise` or `planned_start ≥ sunset`, and the local time at the place is between 00:00 and 04:30 (the night lock, TC-011) | DAYLIGHT_NIGHT | "The adventures can wait till morning." |
+| `planned_start < sunrise` or `planned_start ≥ sunset`, at any other local time (TC-011) | planned for the next morning: `planned_start` becomes the next 09:00 local at the place, a second forecast is fetched for that window and this table runs again on it (a still-dark morning is DAYLIGHT_NIGHT); the result carries `NoticeId.PLANNED_FOR_MORNING` and is valid no later than the window's start | "It's dark now, so here are ideas for tomorrow morning." |
 | otherwise, `planned_end > sunset` | DAYLIGHT_TOO_SHORT | "Not enough daylight for this one." |
 | otherwise | continue with the normal eligibility rules | — |
 

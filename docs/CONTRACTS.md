@@ -91,6 +91,10 @@ table (INPUT_INVALID … REPLAY_FIXTURE_MISSING). A test asserts the enum and th
 match. HTTP mapping (ERROR-HANDLING §3); **this section is canonical** and states which
 response carries each status (round 8.12).
 
+> **Not built (TC-012 review):** no page loads htmx. The enhanced path described in
+> this document was planned and kept for the record; the product is the plain-form
+> path, with `location.js` adding the busy state and "Use my location" only.
+
 **Responses are full pages only.** Every HTML response is a complete page. With htmx,
 the same request carries `HX-Request`; the server returns the same page and htmx swaps
 `<main>` from it (`hx-select`), for every status including 4xx and 5xx (`hx-status`
@@ -126,7 +130,8 @@ result or idea (below).
 | Still running (e.g. a second tab) | waits, bounded by the job's deadline, then as below | — |
 | Complete or Fallback (1–3 ideas, with notices such as MODEL_FALLBACK, FEWER_MATCHES, PLACES_CACHED, PLACES_UNAVAILABLE with generic ideas) | 200 | results; historical view after `valid_until` |
 | NO_MATCHES, WEATHER_RESTRICTED (evaluated; nothing qualified) | 200 | notice with the edits that could help |
-| DAYLIGHT_NIGHT, DAYLIGHT_TOO_SHORT (family path; evaluated before the weather limits, BACKEND-CONTRACT §1) | 200 | fixed copy, answers summary and "Change answers"; no model call. The verdict is not cached: a resubmission re-runs every check (TC-002) |
+| DAYLIGHT_TOO_SHORT (family path; evaluated before the weather limits, BACKEND-CONTRACT §1) | 200 | fixed copy, answers summary and "Change answers"; no model call. The verdict is not cached: a resubmission re-runs every check (TC-002) |
+| DAYLIGHT_NIGHT (family path; only between 00:00 and 04:30 local at the place. After sunset until midnight, and from 04:30 until sunrise, the run is planned for the next morning instead, 09:00 local, with a second forecast for that window, and continues as a normal result carrying `NoticeId.PLANNED_FOR_MORNING`; TC-011) | 200 | fixed copy, answers summary and "Change answers"; no model call |
 | NeedsLocationChoice, not yet consumed | 200 | choice page (LOCATION_AMBIGUOUS) |
 | NeedsLocationChoice, consumed | 303 to the most recent job from that set | — |
 | LOCATION_NOT_FOUND | 422 | form page, answers kept, location error |
@@ -141,7 +146,7 @@ result or idea (below).
 
 **Any GET in the hosted product (B2, DEPLOYMENT §2.2):** beyond 600 GETs per network in
 the sliding hour, 429 REQUEST_BUSY with `Retry-After`, checked before routing: a minimal
-static page for a full-page request, the same text as a fragment for an htmx request,
+static page for a full-page request (the htmx fragment variant is not built),
 an empty body for `/static/*`. `/healthz` is never counted. This is an abuse limit, not a
 spending cap.
 
@@ -268,7 +273,7 @@ All HTML responses: `Cache-Control: no-store, private`; full security headers; C
 PLAN §9. Every POST: urlencoded only, ≤ 8 KiB, CSRF token, Origin check (BACKEND-CONTRACT
 §5, §7). Every `{job_id}` route checks session ownership. A GET never starts work.
 
-| Method and path | Purpose | Plain form | Enhanced (htmx) | Upstream calls |
+| Method and path | Purpose | Plain form | Enhanced (htmx; not built) | Upstream calls |
 |---|---|---|---|---|
 | GET `/` | form page; creates the session | page | same page | 0 |
 | POST `/plan` | start or join a job | waits for the terminal state, then 303 to `/results/{job_id}` (other statuses: §3) | same request and responses; busy state shown at once; htmx follows the 303 and swaps `<main>` from the full page | per D33 |

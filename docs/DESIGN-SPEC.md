@@ -147,7 +147,7 @@ All components work without JavaScript unless noted. Keyboard behaviour is nativ
 | Idea card | padding 24, `wonk-card`, sage/peach/butter by position, shadow | focus ring on "Read the full activity" link · hover lift 2 px (motion-safe, hover-capable only) | `<h3>` title | place names wrap | no |
 | Notice | padding 16, 4 px left border, icon, ink text on alert/success or card | — | heading or first sentence | wraps | no |
 | Error summary | notice on alert, list of links to fields | receives focus once after a failed submission | `<h2>` "Check these answers" | wraps | no |
-| Busy state (D43) | button text "Finding outings…" with `aria-busy`, plus the static note "This can take up to 20 seconds." in a polite live region and a small static SVG | shown at once on submit (htmx request indicator); hidden on every terminal outcome | live region | wraps | the indicator needs htmx; without JS the browser's own loading state is used |
+| Busy state (D43, the loader of TC-011) | the submit button gives way to a sage badge "Tying shoelaces…", a slim cream track with a drifting dark-green segment (decorative, `aria-hidden`) and the status line "Finding outdoor ideas. This can take up to 20 seconds." in a polite live region | shown by `location.js` on an explicit submit only; cleared by the navigation, on `pageshow` and by a 30 s safety timer; static under `prefers-reduced-motion`; without JavaScript the browser's own loading state shows | the status line | wraps | no |
 | Answers summary | card background, 2 px ink border, `wonk-tile`, padding 16; "Change answers" is a native `<details>` summary, min 44 px | collapsed · open (prefilled form inside) · focus ring on summary | summary text | lines wrap | no |
 | Bingo grid | 3 × 3 grid of bordered cells, min 44 px tall, ink on card | — (print: plain borders) | `<h3>` "Your bingo card"; table with 9 cells | cell text wraps | no |
 | Link | link colour, 2 px underline | hover thicker underline · focus ring | link text | wraps | no |
@@ -187,7 +187,7 @@ fewer than 20 path commands per icon, no filters, scripts, rasters or external r
 | Asset | Location | Sizes | Class | Treatment |
 |---|---|---|---|---|
 | adult, adult-with-child | who tiles | 24 | decorative (label beside) | `aria-hidden` |
-| clock-30, clock-1h, clock-2h, clock-half-day | time tiles | 24 | decorative | `aria-hidden` |
+| (none) | time tiles | — | — | the time tiles shipped without icons (TC-012 review); the duration reads from the label and the hint |
 | snail, walker, whirlwind | energy tiles | 24 | decorative | `aria-hidden` |
 | location-pin | "Use my location" | 24 | decorative | `aria-hidden` |
 | sun, cloud, rain, wind, sunset, thermometer | card weather line | 32, 48 | decorative (text states the weather) | `aria-hidden` |
@@ -208,9 +208,11 @@ edges, climbing, heights, fire or roads.
   coordinates and shows "Using your location". There is no reverse geocoding. The button
   is rendered hidden and shown only once `location.js` runs in a secure context with the
   geolocation API, so without JavaScript only the town field is offered (TC-011).
-- **Submit and busy state (D43):** validation first (BACKEND-CONTRACT §7). With htmx the
-  button shows "Finding outings…" at once and the note "This can take up to 20 seconds."
-  appears in a polite live region; repeat clicks are ignored and the server deduplicates.
+- **Submit and busy state (D43):** validation first (BACKEND-CONTRACT §7). On submit,
+  `location.js` hides the button and shows the loader in its place (TC-011: "Tying
+  shoelaces…", the track, and "Finding outdoor ideas. This can take up to 20 seconds."
+  announced once); repeat clicks are ignored and the server deduplicates. The htmx
+  enhancement first planned here was not built.
   There is no Stop button, no stage messages, no polling and no progress stream. Without
   JavaScript the browser's own loading state shows while the POST waits. No percentages,
   splash screens or artificial delays.
@@ -227,9 +229,13 @@ edges, climbing, heights, fire or roads.
 - **Cards (tightened in 8.12):** the title, one playful sentence (the hook, which no
   longer repeats the activity or place), one practical line ("Linden Park · park · about
   0.6 km away · 24 min there and back · 36 min activity"), the uncertainty labels that
-  apply, and "Read the full activity". Reasons, the interest match and every instruction
-  live on the detail page under "Why this idea" and "What to do". No per-card weather:
-  the cards share one window, shown once above them.
+  apply, and "Read the full activity". Since TC-012 the card also shows, under the hook,
+  at most two of the pick's reviewed reasons and "Matches: birds" from the reviewed tag
+  labels; an idea with a real place links "View place on OpenStreetMap ↗" to the place's
+  own OSM page. Every instruction and the full match sentence live on the detail page
+  under "Why this idea" and "What to do". No per-card weather: the cards share one
+  window, shown once above them. Above the cards, one compact notice box gathers the
+  notices, most important first; below them, "Before you go" (TC-012).
 - **Form (compacted in 8.9):** short legends, 12 px between tiles, 24 px between
   fieldsets; two tiles per row from 360 px for who, ages and time, energy one per row
   below 40 rem; ages four per row and energy three per row from 40 rem; decorative tile
@@ -298,8 +304,10 @@ Cards fade and rise 8 px over 240 ms with an 80 ms stagger; hover lift 2 px, 120
 | Prefilled interests (Change answers) | hint: These are the interests we recognised. Edit them for your next search. |
 | Carried location (Change answers) | {label} (kept from this search; no new place lookup) — or type a different town or area |
 | Results heading | Here's what we found |
-| Fewer results | We found {count} matching ideas. |
-| Night, family path (DAYLIGHT_NIGHT) | heading: The adventures can wait till morning. — text: Time to put the phone down and get some rest. The outdoors will still be there tomorrow. |
+| Morning plan (PLANNED_FOR_MORNING, TC-011) | It's dark now, so here are ideas for tomorrow morning. Tomorrow, 09:00–10:00. ("this morning" between 04:30 and sunrise; the window follows the chosen duration) |
+| Place link (TC-012) | View place on OpenStreetMap ↗ (hidden context: opens in a new tab) |
+| Before you go (TC-012) | heading: Before you go — groups: For the weather · For the little ones · For these ideas — Snack idea: … — A quick reminder, not a complete list. |
+| Night, family path (DAYLIGHT_NIGHT; since TC-011 only 00:00–04:30 local at the place) | heading: The adventures can wait till morning. — text: Time to put the phone down and get some rest. The outdoors will still be there tomorrow. |
 | Too little daylight, family path (DAYLIGHT_TOO_SHORT, copy TC-002) | heading: Not enough daylight for this one. — text: The outing would end after sunset. Change your answers and we’ll check the daylight and the weather again, or leave the adventure for tomorrow. |
 | Gentler notice | These suggestions are gentler than the energy level you selected. |
 | Fallback label | AI selection isn't available right now. These picks come from our activity list and passed every normal check. |

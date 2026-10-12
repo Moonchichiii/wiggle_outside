@@ -11,11 +11,52 @@ says so rather than padding the list.
 
 Built for the Hacktoberfest Open-Source AI Challenge, Week 1 ("Touch Grass").
 
-- Live app: **[URL — not yet deployed]**
-- DEV post: **[URL — drafted separately]**
-- Specification and decisions: [`docs/`](docs/), starting with [`docs/PLAN.md`](docs/PLAN.md)
+- Live app: **<https://wiggle-outside.fly.dev>**
+- DEV post: **<https://dev.to/moonchichiii/wiggle-outside-weather-nearby-places-and-a-little-inspiration-in-one-short-search-25cc>**
+- Specification and decisions: [`docs/`](docs/), indexed in [`docs/README.md`](docs/README.md)
 
-## What the hosted model actually does
+## Run it locally
+
+Requires [uv](https://docs.astral.sh/uv/), [bun](https://bun.sh/) and PowerShell 7.
+
+```powershell
+uv sync --all-groups
+$env:WO_CONTACT_EMAIL = "you@example.org"      # Nominatim's usage policy wants a contact
+$env:OPENROUTER_API_KEY = "..."                 # optional: without it, every result is the labelled fallback
+uv run uvicorn wiggle_outside.main:create_app --factory --host 127.0.0.1 --port 8000
+```
+
+`GET /readyz` reports the app and the model separately (`model: unavailable` without a
+key). Other settings, all optional, are `WO_` environment variables (`WO_MODE`,
+`WO_DB_PATH`, `WO_OVERPASS_URL`, `WO_DEADLINE_SECONDS`, `WO_DAILY_RUN_LIMIT`; see
+[`settings.py`](src/wiggle_outside/settings.py)). The key is read from the environment
+only and never written to a file or a log.
+
+The two headline fonts (Cabinet Grotesk and Switzer, both from
+[fontshare.com](https://www.fontshare.com/)) are **not in this repository**: the
+Fontshare Font Licence 2.0 allows self-hosting them but not redistributing the files
+publicly. See [`frontend/fonts/README.md`](frontend/fonts/README.md). The app renders
+correctly without them, on the metric-matched system-font fallback.
+
+## Test it
+
+```powershell
+./scripts/check.ps1
+```
+
+`check.ps1` is the one gate script: it builds the stylesheet with Bun, then runs ruff
+(format and lint), mypy strict, import-linter and pytest with the contract tests, about
+1,700 tests. CI runs the same file on Linux with `shell: pwsh`. The browser tests use
+Playwright and skip when no browser is installed (`uv run playwright install chromium`
+to run them). The two Fontshare faces are not needed for any test.
+
+## How it works
+
+The sections below say what the hosted model actually decides, which online services
+the app depends on, what it shows when one of them fails, what has been measured, and
+what it does not do.
+
+### What the hosted model actually does
 
 The model is Gemma 4 26B A4B (`google/gemma-4-26b-a4b-it`), reached through OpenRouter.
 Its job is deliberately small and fully checked:
@@ -44,7 +85,7 @@ published data policy per provider (no training, no prompt retention), not on an
 independent review of each provider's terms (TC-010). Which provider served each request
 is logged with token counts and latency; prompts and answers are not logged.
 
-## Online dependencies
+### Online dependencies
 
 | Service | Used for | Cached | If it fails |
 |---|---|---|---|
@@ -58,7 +99,7 @@ forecast together, 6 s model, 2 s reserve); a stage that overruns is cancelled a
 search continues to its labelled fallback. Nothing is retried past the budget, and an
 identical resubmission joins the running search instead of starting another.
 
-## Labelled fallbacks
+### Labelled fallbacks
 
 The page always says what it is:
 
@@ -67,15 +108,17 @@ The page always says what it is:
   own ranking over the same validated pairs.
 - **"We couldn't load nearby places."** Overpass failed; the cards, if any, are the
   activities that need no particular place.
-- **Daylight and weather notices.** A family outing that would end after sunset, a night
-  search, severe weather or nothing eligible gives a fixed notice with "Change answers",
-  not a thinner list.
+- **Daylight and weather notices.** A family outing that would end after sunset gets
+  "Not enough daylight for this one". A family search after dark is planned for the next
+  morning instead, 09:00 local at the place, and the page says so; only between 00:00 and
+  04:30 local does the night notice show (TC-011). Severe weather or nothing eligible
+  gives a fixed notice with "Change answers", not a thinner list.
 - **Historical view.** A result older than its validity window says so when reopened.
 
 Nothing is described as "safe" or "verified": a place's admission fee and step-free
 access are shown as OpenStreetMap reports them, and the forecast is a forecast.
 
-## Evidence
+### Evidence
 
 All measurements are from 11 October 2026 and recorded in
 [`docs/evidence/`](docs/evidence/). Two kinds, kept apart:
@@ -111,7 +154,7 @@ place-free pairs: three picks, all validated, served in 1.42 s
 ([`model-smoke-generic.md`](docs/evidence/model-smoke-generic.md)). A fully live search
 showing that through the page is still to be captured.
 
-## Limitations
+### Limitations
 
 - **Overpass is the weak link.** The public instance is shared and often slow; a search
   that cannot get places within its stage gets place-free ideas or an honest notice. The
@@ -129,7 +172,7 @@ showing that through the page is still to be captured.
 - **Not yet deployed**, and no accessibility or performance claim in the documents has
   been verified on a hosted instance.
 
-## Privacy
+### Privacy
 
 The five answers and the interest text are processed to make one search and are not
 stored beyond the search's own short lifetime in process memory. The interest text and
@@ -138,42 +181,14 @@ selects, chosen because OpenRouter's published data policy says they neither tra
 nor retain prompts. The application logs counts, the serving provider and timings only,
 never a visitor's text or coordinates. There are no accounts and no analytics.
 
-## Run it locally
-
-Requires [uv](https://docs.astral.sh/uv/), [bun](https://bun.sh/) and PowerShell 7.
-
-```powershell
-uv sync --all-groups
-$env:WO_CONTACT_EMAIL = "you@example.org"      # Nominatim's usage policy wants a contact
-$env:OPENROUTER_API_KEY = "..."                 # optional: without it, every result is the labelled fallback
-uv run uvicorn wiggle_outside.main:create_app --factory --host 127.0.0.1 --port 8000
-```
-
-`GET /readyz` reports the app and the model separately (`model: unavailable` without a
-key). Other settings, all optional, are `WO_` environment variables (`WO_MODE`,
-`WO_DB_PATH`, `WO_OVERPASS_URL`, `WO_DEADLINE_SECONDS`, `WO_DAILY_RUN_LIMIT`; see
-[`settings.py`](src/wiggle_outside/settings.py)). The key is read from the environment
-only and never written to a file or a log.
-
-The two headline fonts (Cabinet Grotesk and Switzer, both from
-[fontshare.com](https://www.fontshare.com/)) are **not in this repository**: the
-Fontshare Font Licence 2.0 allows self-hosting them but not redistributing the files
-publicly. See [`frontend/fonts/README.md`](frontend/fonts/README.md). The app renders
-correctly without them, on the metric-matched system-font fallback.
-
 ## Development
 
-```powershell
-./scripts/check.ps1
-```
-
-`check.ps1` is the one gate script (ruff, mypy, import-linter, pytest with the contract
-tests); CI runs the same file on Linux with `shell: pwsh`. Per TC-006 the remaining
-release gates arrive with WP9b, and until then nothing is described as supply-chain
-verified. The architecture is layered and enforced by import-linter: `web` above
+The architecture is layered and enforced by import-linter: `web` above
 `planner` above `core`, with the provider and model adapters beside the planner and
 wired only in `main.py`. Changes after the frozen baseline are tracked in
-[`docs/decisions/tracked-changes/`](docs/decisions/tracked-changes/).
+[`docs/decisions/tracked-changes/`](docs/decisions/tracked-changes/); the release and
+its checks are recorded in [`docs/evidence/`](docs/evidence/) and
+[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 Evidence scripts: `scripts/model_smoke.py` (two controlled model calls) and
 `scripts/live_journey.py` (a real search through the real app on a loopback server,
@@ -181,8 +196,13 @@ with `--fixture-places` for the labelled fixture mode).
 
 ## Licence and credits
 
-Apache-2.0 — see [LICENSE](LICENSE). Place data © OpenStreetMap contributors (ODbL);
-weather from [Open-Meteo](https://open-meteo.com/); geocoding by
-[Nominatim](https://nominatim.org/) and places by [Overpass](https://overpass-api.de/).
-Model: Gemma 4 26B A4B by Google, served through [OpenRouter](https://openrouter.ai/).
-Security policy: [SECURITY.md](SECURITY.md).
+Apache-2.0 — see [LICENSE](LICENSE). Security policy: [SECURITY.md](SECURITY.md).
+
+Credits: places © OpenStreetMap contributors (ODbL), via
+[Nominatim](https://nominatim.org/) and [Overpass](https://overpass-api.de/); forecasts
+by [Open-Meteo](https://open-meteo.com/) (CC BY 4.0); Gemma by Google DeepMind, served
+through [OpenRouter](https://openrouter.ai/); FastAPI, Jinja and Tailwind CSS.
+Handwritten notes in Patrick Hand by Patrick Wagesreiter (OFL); headings and body in
+Cabinet Grotesk and Switzer from [Fontshare](https://www.fontshare.com/) (used under
+their licence, not redistributed). The margin illustrations come from the AI-generated
+concept board.

@@ -187,9 +187,9 @@ The state machine describes user-visible results. Model-slot ownership is a sepa
 ### Transport contract (D43, round 8.11)
 
 One transport for both paths: POST `/plan` waits for the job's terminal state, then
-answers 303 to `/results/{job_id}`. Without JavaScript the browser follows it. With htmx
-the same request shows the busy state immediately, follows the redirect and swaps the
-result region (how htmx 4 handles the redirect is a proof obligation, with the CSP). No
+answers 303 to `/results/{job_id}`. The browser follows it; `location.js` shows the busy
+state on submit (TC-011). The htmx enhancement planned here, swapping the result region,
+was not built (TC-012 review). No
 progress stream, no polling, no second workflow. Nothing about the answers appears in a
 URL.
 
@@ -250,7 +250,7 @@ Catalogue validation checks unique IDs, known enums, age/energy sets, finite ord
 |---|---|---|
 | Application | fastapi, uvicorn, pydantic, httpx, jinja2, python-multipart | Web boundary, server, validation, outbound HTTP, templates, form parsing |
 | Standard library | sqlite3, tomllib, dataclasses, asyncio, concurrent.futures, logging | Persistence, catalogue parsing, values, lifecycle and diagnostics |
-| Browser/build | htmx if required; Tailwind and its chosen build integration; small external JS | Progressive enhancement and styles |
+| Browser/build | Tailwind built with Bun; two small external scripts (`location.js`, `print.js`); htmx was not built | Progressive enhancement and styles |
 | Development/security | Existing approved linters, tests and scanners | Quality evidence; excluded from runtime image |
 | Analysis | pandas, Polars, DuckDB | Offline comparison only; excluded from runtime image |
 
@@ -344,10 +344,10 @@ the Saturday smoke test before lock.
 `__Host-wo_session` (TC-005): random opaque ID, Secure, HttpOnly, SameSite=Strict, Path=/, no Domain,
 mapped to server-side state holding the CSRF token and owned job IDs (bounded by section 4).
 Every form, plain or enhanced, carries the token; comparison uses `hmac.compare_digest`;
-Origin is checked. htmx 4 (core only; the `hx-sse` extension is not used since D43); status
-the server returns full pages only and htmx swaps `<main>` from each (`hx-select`);
-`hx-status` lets 4xx and 5xx swap too, so an error page replaces stale results and never
-lands inside the results list (round 8.12; CONTRACTS §3), as ERROR-HANDLING section 5
+Origin is checked. htmx was not built (TC-012 review; the plan below is kept for the
+record): the server returns full pages only, and the browser navigates to each, so an
+error page replaces stale results and never lands inside the results list (round 8.12;
+CONTRACTS §3), as ERROR-HANDLING section 5
 requires. No `hx-on`, event
 filters or `js:` values. htmx's indicator CSS arrives as a constructable stylesheet outside
 `style-src`; this is documented library behaviour and our indicators use our own CSS.
